@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Solace • Protótipo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #fdfcfa;
+      --bg-secondary: #f5f3ef;
+      --bg-card: #ffffff;
+      --gold: #b8860b;
+      --gold-light: #d4a855;
+      --gold-dark: #8b6914;
+      --gold-bg: #faf6ed;
+      --text-dark: #1a1a1a;
+      --text-body: #3d3d3d;
+      --text-muted: #6b6b6b;
+      --text-light: #8a8a8a;
+      --border: #e5e0d5;
+      --success: #2e7d32;
+      --danger: #c62828;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+      --font-serif: 'Cormorant Garamond', Georgia, serif;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: #f0ebe3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* === PHONE FRAME === */
+    .phone-frame {
+      width: 100%;
+      max-width: 390px;
+      height: 844px;
+      max-height: 95vh;
+      background: var(--bg-primary);
+      border-radius: 40px;
+      box-shadow: var(--shadow-lg), 0 0 0 12px #1a1a1a;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* === NOTCH === */
+    .notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 34px;
+      background: #1a1a1a;
+      border-radius: 0 0 20px 20px;
+      z-index: 100;
+    }
+
+    /* === STATUS BAR === */
+    .status-bar {
+      height: 50px;
+      padding: 0 24px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 600;
+      padding-bottom: 8px;
+      background: var(--bg-primary);
+    }
+
+    .status-bar-time {
+      color: var(--text-dark);
+    }
+
+    .status-bar-icons {
+      display: flex;
+      gap: 6px;
+      color: var(--text-dark);
+      font-size: 12px;
+    }
+
+    /* === SCREENS === */
+    .screen {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg-primary);
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* === WELCOME SCREEN === */
+    .welcome-screen {
+      padding: 40px 24px;
+      text-align: center;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(180deg, var(--gold-bg) 0%, var(--bg-primary) 100%);
+    }
+
+    .welcome-logo {
+      width: 100px;
+      height: 100px;
+      border: 3px solid var(--gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-serif);
+      font-size: 52px;
+      font-weight: 700;
+      color: var(--gold);
+      background: var(--bg-card);
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .welcome-title {
+      font-family: var(--font-serif);
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--text-dark);
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+
+    .welcome-subtitle {
+      font-size: 15px;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+    }
+
+    .welcome-verse {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 16px;
+      color: var(--gold-dark);
+      max-width: 280px;
+      margin: 0 auto 8px;
+      line-height: 1.5;
+    }
+
+    .welcome-verse-ref {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 40px;
+    }
+
+    .welcome-btn {
+      width: 100%;
+      max-width: 280px;
+      padding: 16px 24px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(184, 134, 11, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .welcome-btn:active {
+      transform: scale(0.98);
+    }
+
+    .welcome-features {
+      display: flex;
+      gap: 24px;
+      margin-top: 40px;
+    }
+
+    .welcome-feature {
+      text-align: center;
+    }
+
+    .welcome-feature-icon {
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+
+    .welcome-feature-text {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* === CHAT SCREEN === */
+    .chat-header {
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card);
+    }
+
+    .chat-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .chat-avatar {
+      width: 40px;
+      height: 40px;
+      border: 2px solid var(--gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-serif);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gold);
+      background: var(--gold-bg);
+    }
+
+    .chat-header-info h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .chat-header-status {
+      font-size: 12px;
+      color: var(--success);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .chat-header-status::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--success);
+      border-radius: 50%;
+    }
+
+    .chat-menu-btn {
+      width: 36px;
+      height: 36px;
+      border: none;
+      background: var(--bg-secondary);
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: var(--bg-secondary);
+    }
+
+    .message {
+      max-width: 85%;
+      padding: 14px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.5;
+      animation: messageIn 0.3s ease-out;
+    }
+
+    @keyframes messageIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message-user {
+      align-self: flex-end;
+      background: var(--gold);
+      color: white;
+      border-bottom-right-radius: 6px;
+    }
+
+    .message-ai {
+      align-self: flex-start;
+      background: var(--bg-card);
+      color: var(--text-body);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 6px;
+    }
+
+    .message-ai .verse {
+      display: block;
+      margin: 10px 0;
+      padding: 10px 12px;
+      background: var(--gold-bg);
+      border-left: 3px solid var(--gold);
+      border-radius: 0 8px 8px 0;
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 14px;
+      color: var(--gold-dark);
+    }
+
+    .message-ai .disclaimer {
+      display: block;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border);
+      font-size: 11px;
+      color: var(--text-light);
+    }
+
+    .typing-indicator {
+      align-self: flex-start;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 14px 20px;
+      border-radius: 18px;
+      border-bottom-left-radius: 6px;
+      display: none;
+    }
+
+    .typing-indicator.active {
+      display: flex;
+      gap: 4px;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--gold);
+      border-radius: 50%;
+      animation: typingBounce 1.4s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typingBounce {
+      0%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-6px); }
+    }
+
+    .chat-input-area {
+      padding: 12px 16px 24px;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+    }
+
+    .chat-input-wrapper {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 14px 18px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      font-size: 15px;
+      font-family: var(--font-sans);
+      resize: none;
+      outline: none;
+      background: var(--bg-secondary);
+      transition: border-color 0.2s;
+    }
+
+    .chat-input:focus {
+      border-color: var(--gold);
+    }
+
+    .chat-input::placeholder {
+      color: var(--text-light);
+    }
+
+    .chat-send-btn {
+      width: 48px;
+      height: 48px;
+      border: none;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: white;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 2px 8px rgba(184, 134, 11, 0.3);
+      transition: transform 0.2s;
+    }
+
+    .chat-send-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* === DEVOCIONAL SCREEN === */
+    .devocional-screen {
+      background: var(--bg-primary);
+    }
+
+    .devocional-header {
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card);
+    }
+
+    .devocional-back {
+      width: 36px;
+      height: 36px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 20px;
+      color: var(--text-dark);
+    }
+
+    .devocional-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .devocional-fav {
+      width: 36px;
+      height: 36px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .devocional-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 20px;
+    }
+
+    .devocional-date {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .devocional-verse-card {
+      background: linear-gradient(135deg, var(--gold-bg), #fff);
+      border: 1px solid var(--gold);
+      border-radius: 20px;
+      padding: 28px 24px;
+      text-align: center;
+      margin-bottom: 28px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .devocional-verse-text {
+      font-family: var(--font-serif);
+      font-size: 22px;
+      font-style: italic;
+      color: var(--text-dark);
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+
+    .devocional-verse-ref {
+      font-size: 14px;
+      color: var(--gold-dark);
+      font-weight: 600;
+    }
+
+    .devocional-section {
+      margin-bottom: 24px;
+    }
+
+    .devocional-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gold-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+
+    .devocional-section-text {
+      font-size: 15px;
+      color: var(--text-body);
+      line-height: 1.7;
+    }
+
+    .devocional-prayer {
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      padding: 20px;
+      font-style: italic;
+      color: var(--text-body);
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    .devocional-cta {
+      padding: 20px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-card);
+    }
+
+    .devocional-cta-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(184, 134, 11, 0.3);
+    }
+
+    /* === MENU SCREEN === */
+    .menu-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .menu-overlay.active {
+      display: block;
+      opacity: 1;
+    }
+
+    .menu-panel {
+      position: absolute;
+      top: 0;
+      right: -280px;
+      width: 280px;
+      height: 100%;
+      background: var(--bg-card);
+      z-index: 201;
+      transition: right 0.3s ease-out;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .menu-panel.active {
+      right: 0;
+    }
+
+    .menu-header {
+      padding: 60px 20px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .menu-header h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .menu-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .menu-items {
+      flex: 1;
+      padding: 16px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .menu-item:hover {
+      background: var(--bg-secondary);
+    }
+
+    .menu-item-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--gold-bg);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .menu-item-text h4 {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-dark);
+    }
+
+    .menu-item-text p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .menu-footer {
+      padding: 20px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .menu-footer p {
+      font-size: 11px;
+      color: var(--text-light);
+    }
+
+    /* === BOTTOM NAV === */
+    .bottom-nav {
+      display: flex;
+      border-top: 1px solid var(--border);
+      background: var(--bg-card);
+      padding: 8px 0 20px;
+    }
+
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .nav-item.active {
+      color: var(--gold);
+    }
+
+    .nav-item-icon {
+      font-size: 22px;
+    }
+
+    .nav-item-text {
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    /* === QUICK PROMPTS === */
+    .quick-prompts {
+      padding: 16px 20px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .quick-prompts-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .quick-prompts-list {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .quick-prompt-btn {
+      padding: 8px 14px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 13px;
+      color: var(--text-body);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-prompt-btn:hover {
+      background: var(--gold-bg);
+      border-color: var(--gold);
+      color: var(--gold-dark);
+    }
+
+    /* === STREAK === */
+    .streak-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--gold-bg);
+      border: 1px solid var(--gold);
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--gold-dark);
+      font-weight: 500;
+      margin-bottom: 16px;
+    }
+
+    /* === SAVED VERSES SCREEN === */
+    .saved-header {
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card);
+    }
+
+    .saved-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .saved-verse-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .saved-verse-text {
+      font-family: var(--font-serif);
+      font-size: 16px;
+      font-style: italic;
+      color: var(--text-dark);
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+    .saved-verse-ref {
+      font-size: 13px;
+      color: var(--gold-dark);
+      font-weight: 600;
+    }
+
+    .saved-verse-date {
+      font-size: 11px;
+      color: var(--text-light);
+      margin-top: 8px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .empty-state-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+
+    .empty-state-text {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="phone-frame">
+    <div class="notch"></div>
+    
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="status-bar-time">9:41</span>
+      <div class="status-bar-icons">
+        <span>📶</span>
+        <span>🔋</span>
+      </div>
+    </div>
+
+    <!-- WELCOME SCREEN -->
+    <div class="screen welcome-screen active" id="welcomeScreen">
+      <div class="welcome-logo">S</div>
+      <h1 class="welcome-title">SOLACE</h1>
+      <p class="welcome-subtitle">Seu refúgio quando você precisar</p>
+
+      <p class="welcome-verse">Conversas, conselhos e consolo com uma IA que te ouve de verdade.</p>
+      <p class="welcome-verse-ref">100% privado e criptografado</p>
+
+      <button class="welcome-btn" onclick="showScreen('chatScreen')">Começar</button>
+
+      <div class="welcome-features">
+        <div class="welcome-feature">
+          <div class="welcome-feature-icon">💬</div>
+          <div class="welcome-feature-text">Alguém<br>para ouvir</div>
+        </div>
+        <div class="welcome-feature">
+          <div class="welcome-feature-icon">🔒</div>
+          <div class="welcome-feature-text">100%<br>Privado</div>
+        </div>
+        <div class="welcome-feature">
+          <div class="welcome-feature-icon">🕐</div>
+          <div class="welcome-feature-text">Disponível<br>24 horas</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT SCREEN -->
+    <div class="screen" id="chatScreen">
+      <div class="chat-header">
+        <div class="chat-header-left">
+          <div class="chat-avatar">S</div>
+          <div class="chat-header-info">
+            <h2>Solace</h2>
+            <div class="chat-header-status">Pronta para ouvir</div>
+          </div>
+        </div>
+        <button class="chat-menu-btn" onclick="toggleMenu()">☰</button>
+      </div>
+
+      <div class="quick-prompts" id="quickPrompts">
+        <div class="quick-prompts-title">Como posso te ajudar hoje?</div>
+        <div class="quick-prompts-list">
+          <button class="quick-prompt-btn" onclick="sendQuickPrompt('Estou ansioso')">😰 Ansiedade</button>
+          <button class="quick-prompt-btn" onclick="sendQuickPrompt('Me sinto culpado')">😔 Culpa</button>
+          <button class="quick-prompt-btn" onclick="sendQuickPrompt('Preciso de um versículo')">📖 Versículo</button>
+          <button class="quick-prompt-btn" onclick="sendQuickPrompt('Quero orar')">🙏 Oração</button>
+        </div>
+      </div>
+
+      <div class="chat-messages" id="chatMessages">
+        <div class="message message-ai">
+          Olá! Que bom ter você aqui. 
+          <br><br>
+          Este é um espaço seguro para você compartilhar o que está no seu coração. Como você está se sentindo hoje?
+        </div>
+        <div class="typing-indicator" id="typingIndicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+
+      <div class="chat-input-area">
+        <div class="chat-input-wrapper">
+          <textarea 
+            class="chat-input" 
+            id="chatInput" 
+            placeholder="Compartilhe o que está no seu coração..."
+            rows="1"
+            onkeydown="handleKeyDown(event)"
+          ></textarea>
+          <button class="chat-send-btn" onclick="sendMessage()">➤</button>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <button class="nav-item active" onclick="showScreen('chatScreen')">
+          <span class="nav-item-icon">💬</span>
+          <span class="nav-item-text">Conversa</span>
+        </button>
+        <button class="nav-item" onclick="showScreen('devocionalScreen')">
+          <span class="nav-item-icon">📖</span>
+          <span class="nav-item-text">Devocional</span>
+        </button>
+        <button class="nav-item" onclick="showScreen('savedScreen')">
+          <span class="nav-item-icon">⭐</span>
+          <span class="nav-item-text">Salvos</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- DEVOCIONAL SCREEN -->
+    <div class="screen devocional-screen" id="devocionalScreen">
+      <div class="devocional-header">
+        <button class="devocional-back" onclick="showScreen('chatScreen')">←</button>
+        <span class="devocional-title">Devocional do Dia</span>
+        <button class="devocional-fav" onclick="toggleFavorite(this)">☆</button>
+      </div>
+
+      <div class="devocional-content">
+        <div class="streak-badge">🔥 7 dias na Palavra</div>
+        
+        <p class="devocional-date">Domingo, 8 de Dezembro de 2024</p>
+
+        <div class="devocional-verse-card">
+          <p class="devocional-verse-text">"O Senhor é o meu pastor; nada me faltará."</p>
+          <p class="devocional-verse-ref">Salmo 23:1</p>
+        </div>
+
+        <div class="devocional-section">
+          <h4 class="devocional-section-title">Para Meditar</h4>
+          <p class="devocional-section-text">
+            Davi não era apenas um rei, ele havia sido pastor. Ele sabia o que significava cuidar de ovelhas vulneráveis. Quando ele diz que o Senhor é seu pastor, ele está dizendo: "Deus cuida de mim como eu cuidava das minhas ovelhas."
+            <br><br>
+            Você está se sentindo vulnerável hoje? Lembre-se: o Bom Pastor conhece cada uma de suas necessidades.
+          </p>
+        </div>
+
+        <div class="devocional-section">
+          <h4 class="devocional-section-title">Uma Oração Para Hoje</h4>
+          <div class="devocional-prayer">
+            "Senhor, eu confesso que muitas vezes tento ser meu próprio pastor. Ajuda-me a descansar no Teu cuidado. Tu conheces minhas necessidades antes mesmo de eu pedir. Obrigado por ser meu Bom Pastor. Amém."
+          </div>
+        </div>
+      </div>
+
+      <div class="devocional-cta">
+        <button class="devocional-cta-btn" onclick="showScreen('chatScreen'); sendQuickPrompt('Quero conversar sobre o Salmo 23')">
+          Conversar sobre este versículo
+        </button>
+      </div>
+
+      <div class="bottom-nav">
+        <button class="nav-item" onclick="showScreen('chatScreen')">
+          <span class="nav-item-icon">💬</span>
+          <span class="nav-item-text">Conversa</span>
+        </button>
+        <button class="nav-item active" onclick="showScreen('devocionalScreen')">
+          <span class="nav-item-icon">📖</span>
+          <span class="nav-item-text">Devocional</span>
+        </button>
+        <button class="nav-item" onclick="showScreen('savedScreen')">
+          <span class="nav-item-icon">⭐</span>
+          <span class="nav-item-text">Salvos</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SAVED VERSES SCREEN -->
+    <div class="screen" id="savedScreen">
+      <div class="saved-header">
+        <button class="devocional-back" onclick="showScreen('chatScreen')">←</button>
+        <span class="devocional-title">Versículos Salvos</span>
+      </div>
+
+      <div class="saved-content" id="savedContent">
+        <div class="saved-verse-card">
+          <p class="saved-verse-text">"Perto está o Senhor dos que têm o coração quebrantado."</p>
+          <p class="saved-verse-ref">Salmo 34:18</p>
+          <p class="saved-verse-date">Salvo em 5 de dezembro</p>
+        </div>
+        <div class="saved-verse-card">
+          <p class="saved-verse-text">"Não andeis ansiosos por coisa alguma."</p>
+          <p class="saved-verse-ref">Filipenses 4:6</p>
+          <p class="saved-verse-date">Salvo em 3 de dezembro</p>
+        </div>
+        <div class="saved-verse-card">
+          <p class="saved-verse-text">"O Senhor é a minha luz e a minha salvação; a quem temerei?"</p>
+          <p class="saved-verse-ref">Salmo 27:1</p>
+          <p class="saved-verse-date">Salvo em 1 de dezembro</p>
+        </div>
+      </div>
+
+      <div class="bottom-nav">
+        <button class="nav-item" onclick="showScreen('chatScreen')">
+          <span class="nav-item-icon">💬</span>
+          <span class="nav-item-text">Conversa</span>
+        </button>
+        <button class="nav-item" onclick="showScreen('devocionalScreen')">
+          <span class="nav-item-icon">📖</span>
+          <span class="nav-item-text">Devocional</span>
+        </button>
+        <button class="nav-item active" onclick="showScreen('savedScreen')">
+          <span class="nav-item-icon">⭐</span>
+          <span class="nav-item-text">Salvos</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- MENU OVERLAY -->
+    <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+    <div class="menu-panel" id="menuPanel">
+      <div class="menu-header">
+        <h3>Menu</h3>
+        <button class="menu-close" onclick="toggleMenu()">✕</button>
+      </div>
+      <div class="menu-items">
+        <div class="menu-item" onclick="newConversation()">
+          <div class="menu-item-icon">💬</div>
+          <div class="menu-item-text">
+            <h4>Nova conversa</h4>
+            <p>Começar do zero</p>
+          </div>
+        </div>
+        <div class="menu-item" onclick="showScreen('devocionalScreen'); toggleMenu()">
+          <div class="menu-item-icon">📖</div>
+          <div class="menu-item-text">
+            <h4>Devocional do dia</h4>
+            <p>Versículo e meditação</p>
+          </div>
+        </div>
+        <div class="menu-item" onclick="showScreen('savedScreen'); toggleMenu()">
+          <div class="menu-item-icon">⭐</div>
+          <div class="menu-item-text">
+            <h4>Versículos salvos</h4>
+            <p>Suas promessas guardadas</p>
+          </div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-item-icon">📊</div>
+          <div class="menu-item-text">
+            <h4>Minha jornada</h4>
+            <p>7 dias consecutivos</p>
+          </div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-item-icon">⚙️</div>
+          <div class="menu-item-text">
+            <h4>Configurações</h4>
+            <p>Privacidade e notificações</p>
+          </div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-item-icon">❓</div>
+          <div class="menu-item-text">
+            <h4>Sobre a Solace</h4>
+            <p>Nossa missão e limites</p>
+          </div>
+        </div>
+      </div>
+      <div class="menu-footer">
+        <p>Solace v1.0 • Feito para a glória de Deus</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Respostas da IA baseadas em palavras-chave
+    const responses = {
+      'ansioso': {
+        text: `Entendo como você está se sentindo. A ansiedade pode ser muito pesada.
+        
+<span class="verse">"Não andeis ansiosos de coisa alguma; antes, as vossas petições sejam em tudo conhecidas diante de Deus, pela oração e súplicas, com ação de graças."<br>— Filipenses 4:6</span>
+
+Algumas coisas que podem ajudar agora:
+
+• <strong>Respire devagar</strong> — inspire por 4 segundos, segure por 4, expire por 6
+• <strong>Nomeie o medo</strong> — o que especificamente te preocupa?
+• <strong>Lembre da soberania de Deus</strong> — Ele está no controle
+
+Quer me contar mais sobre o que está causando essa ansiedade?
+
+<span class="disclaimer">⚠️ Não sou pastor nem substituo ajuda profissional. Se a ansiedade for intensa, converse também com seu pastor ou um profissional de saúde.</span>`
+      },
+      'culpado': {
+        text: `Que peso você deve estar carregando. Esse sentimento de culpa é muito doloroso.
+
+<span class="verse">"Se confessarmos os nossos pecados, ele é fiel e justo para nos perdoar os pecados e nos purificar de toda injustiça."<br>— 1 João 1:9</span>
+
+Algumas verdades importantes:
+
+• <strong>A graça de Cristo é maior</strong> que qualquer pecado
+• <strong>Arrependimento sincero</strong> é sinal de vida espiritual
+• <strong>A fidelidade de Deus</strong> não depende da sua performance
+
+O que está pesando no seu coração? Quer compartilhar?
+
+<span class="disclaimer">⚠️ Não sou pastor. Para pecados que persistem, considere buscar aconselhamento pastoral em sua igreja local.</span>`
+      },
+      'versículo': {
+        text: `Aqui está uma promessa da Palavra de Deus para você hoje:
+
+<span class="verse">"Perto está o Senhor dos que têm o coração quebrantado e salva os contritos de espírito."<br>— Salmo 34:18</span>
+
+<span class="verse">"Porque eu bem sei os pensamentos que tenho a vosso respeito, diz o Senhor; pensamentos de paz, e não de mal, para vos dar o fim que esperais."<br>— Jeremias 29:11</span>
+
+Quer que eu busque versículos sobre algum tema específico? Posso procurar sobre:
+• Ansiedade e paz
+• Perdão e graça
+• Direção e sabedoria
+• Força e coragem`
+      },
+      'orar': {
+        text: `Vamos orar juntos. Você pode usar estas palavras ou adaptá-las ao seu coração:
+
+<span class="verse">"Senhor, eu venho diante de Ti neste momento. Tu conheces cada detalhe do meu coração — minhas lutas, meus medos, minhas esperanças. Ajuda-me a descansar em Ti. Não sei o que o futuro reserva, mas sei que Tu estás no controle. Dá-me paz que excede todo entendimento. Em nome de Jesus, amém."</span>
+
+Lembre-se: oração não precisa ser eloquente. Deus ouve até nossos gemidos inexprimíveis (Romanos 8:26).
+
+Sobre o que você gostaria de orar especificamente?`
+      },
+      'salmo 23': {
+        text: `O Salmo 23 é uma das passagens mais amadas da Bíblia. Davi, que foi pastor antes de ser rei, usa essa imagem para descrever o cuidado de Deus.
+
+<span class="verse">"O Senhor é o meu pastor; nada me faltará. Deitar-me faz em verdes pastos, guia-me mansamente a águas tranquilas."<br>— Salmo 23:1-2</span>
+
+<strong>O que isso significa para você hoje:</strong>
+
+• <strong>"Nada me faltará"</strong> — Não significa ter tudo, mas que Deus supre o que realmente precisamos
+• <strong>"Verdes pastos"</strong> — Deus nos leva a lugares de descanso e restauração
+• <strong>"Águas tranquilas"</strong> — Paz em meio ao caos
+
+Qual parte do Salmo 23 toca mais seu coração agora?`
+      },
+      'default': {
+        text: `Obrigado por compartilhar isso comigo. Estou aqui para ouvir.
+
+<span class="verse">"Lançando sobre ele toda a vossa ansiedade, porque ele tem cuidado de vós."<br>— 1 Pedro 5:7</span>
+
+Você não está sozinho. Deus se importa com cada detalhe da sua vida.
+
+Quer me contar mais sobre o que está no seu coração?
+
+<span class="disclaimer">⚠️ Lembre-se: não substituo sua igreja local. Se precisar de ajuda pastoral, procure seus líderes.</span>`
+      }
+    };
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+      
+      // Update bottom nav
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      const navItems = document.querySelectorAll(`#${screenId} .nav-item, .nav-item`);
+    }
+
+    function toggleMenu() {
+      document.getElementById('menuOverlay').classList.toggle('active');
+      document.getElementById('menuPanel').classList.toggle('active');
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('chatInput');
+      const message = input.value.trim();
+      if (!message) return;
+
+      // Hide quick prompts
+      document.getElementById('quickPrompts').style.display = 'none';
+
+      // Add user message
+      addMessage(message, 'user');
+      input.value = '';
+
+      // Show typing indicator
+      showTyping();
+
+      // Simulate AI response
+      setTimeout(() => {
+        hideTyping();
+        const response = getResponse(message);
+        addMessage(response, 'ai');
+      }, 1500 + Math.random() * 1000);
+    }
+
+    function sendQuickPrompt(text) {
+      document.getElementById('chatInput').value = text;
+      sendMessage();
+    }
+
+    function addMessage(text, type) {
+      const messagesContainer = document.getElementById('chatMessages');
+      const typingIndicator = document.getElementById('typingIndicator');
+      
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message message-${type}`;
+      messageDiv.innerHTML = text;
+      
+      messagesContainer.insertBefore(messageDiv, typingIndicator);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function showTyping() {
+      document.getElementById('typingIndicator').classList.add('active');
+      const messagesContainer = document.getElementById('chatMessages');
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function hideTyping() {
+      document.getElementById('typingIndicator').classList.remove('active');
+    }
+
+    function getResponse(message) {
+      const lowerMessage = message.toLowerCase();
+      
+      if (lowerMessage.includes('ansios') || lowerMessage.includes('preocupad') || lowerMessage.includes('medo')) {
+        return responses['ansioso'].text;
+      } else if (lowerMessage.includes('culpa') || lowerMessage.includes('pequei') || lowerMessage.includes('pecado')) {
+        return responses['culpado'].text;
+      } else if (lowerMessage.includes('versículo') || lowerMessage.includes('versiculo') || lowerMessage.includes('promessa')) {
+        return responses['versículo'].text;
+      } else if (lowerMessage.includes('orar') || lowerMessage.includes('oração') || lowerMessage.includes('oracao')) {
+        return responses['orar'].text;
+      } else if (lowerMessage.includes('salmo 23') || lowerMessage.includes('pastor')) {
+        return responses['salmo 23'].text;
+      }
+      
+      return responses['default'].text;
+    }
+
+    function newConversation() {
+      const messagesContainer = document.getElementById('chatMessages');
+      const typingIndicator = document.getElementById('typingIndicator');
+      
+      // Remove all messages except the first one and typing indicator
+      messagesContainer.innerHTML = `
+        <div class="message message-ai">
+          Olá! Que bom ter você aqui novamente. 
+          <br><br>
+          Este é um espaço seguro para você compartilhar o que está no seu coração. Como posso te ajudar hoje?
+        </div>
+        <div class="typing-indicator" id="typingIndicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      `;
+      
+      document.getElementById('quickPrompts').style.display = 'block';
+      toggleMenu();
+    }
+
+    function toggleFavorite(btn) {
+      if (btn.textContent === '☆') {
+        btn.textContent = '★';
+        btn.style.color = 'var(--gold)';
+      } else {
+        btn.textContent = '☆';
+        btn.style.color = '';
+      }
+    }
+
+    // Update time
+    function updateTime() {
+      const now = new Date();
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      document.querySelector('.status-bar-time').textContent = `${hours}:${minutes}`;
+    }
+    
+    updateTime();
+    setInterval(updateTime, 60000);
+  </script>
+
+</body>
+</html>
