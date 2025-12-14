@@ -98,6 +98,67 @@
       color: var(--gold-light);
     }
 
+    /* Mobile Menu */
+    .nav-toggle {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 10px;
+      z-index: 1001;
+    }
+
+    .nav-toggle span {
+      width: 24px;
+      height: 2px;
+      background: var(--text-white);
+      transition: all 0.3s;
+    }
+
+    .nav-toggle.active span:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+
+    .nav-toggle.active span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .nav-toggle.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(5px, -5px);
+    }
+
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(10, 10, 10, 0.98);
+      z-index: 999;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+    }
+
+    .mobile-menu.active {
+      display: flex;
+    }
+
+    .mobile-menu a {
+      color: var(--text-white);
+      text-decoration: none;
+      font-size: 24px;
+      font-weight: 600;
+      padding: 12px 24px;
+      transition: color 0.3s;
+    }
+
+    .mobile-menu a:hover {
+      color: var(--gold);
+    }
+
     /* === SECTIONS === */
     .section {
       min-height: 100vh;
@@ -931,21 +992,85 @@
         display: none;
       }
 
+      .nav-toggle {
+        display: flex;
+      }
+
       .section {
-        padding: 60px 24px;
+        padding: 80px 20px;
+        min-height: auto;
       }
 
       .section-title {
-        font-size: 32px;
+        font-size: 28px;
+        line-height: 1.2;
+      }
+
+      .section-subtitle {
+        font-size: 16px;
+      }
+
+      .hero {
+        padding-top: 100px;
+        min-height: 100vh;
       }
 
       .hero .section-title {
+        font-size: 32px;
+      }
+
+      .hero-stats {
+        flex-direction: column;
+        gap: 24px;
+        margin-top: 40px;
+      }
+
+      .hero-stat-value {
         font-size: 36px;
+      }
+
+      .hero-cta {
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+        margin-top: 40px;
+      }
+
+      .hero-cta .btn {
+        width: 100%;
+        text-align: center;
       }
 
       .problem-grid,
       .team-grid {
         grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .problem-card {
+        padding: 24px;
+      }
+
+      .problem-icon {
+        font-size: 36px;
+        margin-bottom: 16px;
+      }
+
+      .problem-title {
+        font-size: 20px;
+      }
+
+      .market-numbers {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .market-card {
+        padding: 24px;
+      }
+
+      .market-value {
+        font-size: 40px;
       }
 
       .advantage-container,
@@ -953,15 +1078,160 @@
       .model-container,
       .ask-container {
         grid-template-columns: 1fr;
+        gap: 32px;
+      }
+
+      .advantage-item {
+        padding: 16px;
+      }
+
+      .phone-mockup {
+        max-width: 280px;
+      }
+
+      .feature-card {
+        padding: 20px;
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .feature-icon {
+        margin: 0 auto;
+      }
+
+      .model-pricing {
+        padding: 32px 24px;
+      }
+
+      .model-price {
+        font-size: 48px;
       }
 
       .projections-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .projection-card {
+        padding: 24px 20px;
+      }
+
+      .projection-users {
+        font-size: 28px;
+      }
+
+      .million-highlight {
+        padding: 40px 20px;
+        border-radius: 20px;
+      }
+
+      .million-number {
+        font-size: 48px;
+      }
+
+      .million-label {
+        font-size: 18px;
       }
 
       .million-stats {
         flex-direction: column;
-        gap: 32px;
+        gap: 24px;
+        margin-top: 32px;
+      }
+
+      .million-stat-value {
+        font-size: 32px;
+      }
+
+      .ask-amount {
+        padding: 32px 24px;
+      }
+
+      .ask-value {
+        font-size: 48px;
+      }
+
+      .ask-use-item {
+        padding: 16px;
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+      }
+
+      .cta-buttons {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .cta-buttons .btn {
+        width: 100%;
+      }
+
+      .contact-info {
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .footer {
+        padding: 24px 20px;
+        font-size: 12px;
+      }
+
+      /* Fix inline styles for mobile */
+      #investimento > div:last-of-type {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+      }
+
+      table {
+        font-size: 13px;
+      }
+
+      table th, table td {
+        padding: 12px 8px !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .section {
+        padding: 60px 16px;
+      }
+
+      .section-title {
+        font-size: 24px;
+      }
+
+      .hero .section-title {
+        font-size: 26px;
+      }
+
+      .hero-stat-value {
+        font-size: 32px;
+      }
+
+      .btn {
+        padding: 14px 24px;
+        font-size: 14px;
+      }
+
+      .market-value {
+        font-size: 32px;
+      }
+
+      .million-number {
+        font-size: 36px;
+      }
+
+      .ask-value {
+        font-size: 36px;
+      }
+
+      .projection-users {
+        font-size: 24px;
+      }
+
+      .projection-revenue {
+        font-size: 20px;
       }
     }
 
@@ -1003,7 +1273,22 @@
       <a href="#projecoes" class="nav-link">Projecoes</a>
       <a href="#investimento" class="nav-link">Investimento</a>
     </div>
+    <div class="nav-toggle" onclick="toggleMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
   </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#problema" onclick="closeMenu()">Problema</a>
+    <a href="#mercado" onclick="closeMenu()">Mercado</a>
+    <a href="#produto" onclick="closeMenu()">Produto</a>
+    <a href="#modelo" onclick="closeMenu()">Modelo</a>
+    <a href="#projecoes" onclick="closeMenu()">Projecoes</a>
+    <a href="#investimento" onclick="closeMenu()">Investimento</a>
+  </div>
 
   <!-- Hero Section -->
   <section class="section hero" id="hero">
@@ -1544,6 +1829,23 @@
   </footer>
 
   <script>
+    // Mobile menu functions
+    function toggleMenu() {
+      const toggle = document.querySelector('.nav-toggle');
+      const menu = document.getElementById('mobileMenu');
+      toggle.classList.toggle('active');
+      menu.classList.toggle('active');
+      document.body.style.overflow = menu.classList.contains('active') ? 'hidden' : '';
+    }
+
+    function closeMenu() {
+      const toggle = document.querySelector('.nav-toggle');
+      const menu = document.getElementById('mobileMenu');
+      toggle.classList.remove('active');
+      menu.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
     // Smooth scroll for navigation
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function (e) {
