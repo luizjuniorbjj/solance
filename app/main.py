@@ -108,9 +108,9 @@ app.add_middleware(
 # ROTAS
 # ============================================
 
-# Health check
-@app.get("/", tags=["Status"])
-async def root():
+# Health check (API status)
+@app.get("/api", tags=["Status"])
+async def api_status():
     return {
         "name": APP_NAME,
         "version": APP_VERSION,
@@ -142,6 +142,7 @@ app.include_router(memories_router)
 # Caminho para o frontend
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 
+@app.get("/", tags=["Frontend"])
 @app.get("/app", tags=["Frontend"])
 @app.get("/app/", tags=["Frontend"])
 async def serve_frontend():
