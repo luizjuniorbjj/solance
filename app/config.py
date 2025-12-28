@@ -99,6 +99,14 @@ PRODUCTION_ORIGINS = [
 ]
 
 # ============================================
+# EMAIL SETTINGS (Resend)
+# ============================================
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
+EMAIL_FROM = "SoulHaven <noreply@soulhavenapp.com>"
+EMAIL_REPLY_TO = "contato@soulhavenapp.com"
+APP_URL = os.getenv("APP_URL", "https://soulhavenapp.com")
+
+# ============================================
 # ADMIN SETTINGS
 # ============================================
 # Emails que têm acesso ao painel admin

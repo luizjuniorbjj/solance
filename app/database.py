@@ -1159,6 +1159,72 @@ class Database:
                 user_id, action, json.dumps(details or {}, cls=UUIDEncoder), ip
             )
 
+    # ============================================
+    # PASSWORD RESET
+    # ============================================
+
+    async def save_password_reset_token(self, user_id: str, token: str, expires_hours: int = 1):
+        """Salva token de recuperacao de senha"""
+        async with self.pool.acquire() as conn:
+            # Criar tabela se nao existir
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    token VARCHAR(100) NOT NULL UNIQUE,
+                    expires_at TIMESTAMP NOT NULL,
+                    used BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+            """)
+
+            # Invalidar tokens anteriores do usuario
+            await conn.execute(
+                "UPDATE password_reset_tokens SET used = TRUE WHERE user_id = $1 AND used = FALSE",
+                user_id
+            )
+
+            # Criar novo token
+            await conn.execute(
+                """
+                INSERT INTO password_reset_tokens (user_id, token, expires_at)
+                VALUES ($1, $2, NOW() + INTERVAL '%s hours')
+                """ % expires_hours,
+                user_id, token
+            )
+
+    async def verify_password_reset_token(self, token: str) -> Optional[dict]:
+        """Verifica se token de reset e valido e retorna user_id"""
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT prt.user_id, u.email, u.id
+                FROM password_reset_tokens prt
+                JOIN users u ON u.id = prt.user_id
+                WHERE prt.token = $1
+                AND prt.used = FALSE
+                AND prt.expires_at > NOW()
+                """,
+                token
+            )
+            return dict(row) if row else None
+
+    async def use_password_reset_token(self, token: str):
+        """Marca token como usado"""
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                "UPDATE password_reset_tokens SET used = TRUE WHERE token = $1",
+                token
+            )
+
+    async def update_user_password(self, user_id: str, password_hash: str):
+        """Atualiza senha do usuario"""
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                "UPDATE users SET password_hash = $1 WHERE id = $2",
+                password_hash, user_id
+            )
+
 
 # ============================================
 # CONNECTION POOL

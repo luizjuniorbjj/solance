@@ -32,6 +32,7 @@ from app.config import (
     APPLE_PRIVATE_KEY,
     APPLE_REDIRECT_URI
 )
+from app.email_service import email_service
 
 router = APIRouter(prefix="/auth", tags=["Autenticação"])
 
@@ -159,6 +160,13 @@ async def register(request: RegisterRequest, db: Database = Depends(get_db)):
         details={"email": request.email, "accepted_terms": True}
     )
 
+    # Envia email de boas-vindas (async, nao bloqueia)
+    try:
+        nome = request.nome or request.email.split("@")[0]
+        await email_service.send_welcome_email(request.email, nome)
+    except Exception as e:
+        print(f"[AUTH] Erro ao enviar email de boas-vindas: {e}")
+
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token
@@ -258,14 +266,53 @@ async def request_password_reset(request: PasswordResetRequest, db: Database = D
     """
     user = await db.get_user_by_email(request.email)
 
-    # Sempre retorna sucesso para não revelar se email existe
+    # Sempre retorna sucesso para nao revelar se email existe
     if user:
         token = generate_secure_token()
-        # TODO: Salvar token no banco e enviar email
-        # await db.save_password_reset_token(user["id"], token)
-        # await send_reset_email(request.email, token)
+        await db.save_password_reset_token(user["id"], token)
 
-    return {"message": "Se o email existir, você receberá instruções para resetar a senha"}
+        # Buscar nome do usuario
+        profile = await db.get_user_profile(user["id"])
+        nome = profile.get("nome") if profile else request.email.split("@")[0]
+
+        # Enviar email
+        try:
+            await email_service.send_password_reset_email(request.email, nome, token)
+        except Exception as e:
+            print(f"[AUTH] Erro ao enviar email de reset: {e}")
+
+    return {"message": "Se o email existir, voce recebera instrucoes para resetar a senha"}
+
+
+@router.post("/password-reset/confirm")
+async def confirm_password_reset(request: PasswordResetConfirm, db: Database = Depends(get_db)):
+    """
+    Confirma reset de senha com token
+    """
+    # Verificar token
+    token_data = await db.verify_password_reset_token(request.token)
+    if not token_data:
+        raise HTTPException(status_code=400, detail="Token invalido ou expirado")
+
+    # Validar nova senha
+    if len(request.new_password) < 8:
+        raise HTTPException(status_code=400, detail="Senha deve ter pelo menos 8 caracteres")
+
+    # Atualizar senha
+    password_hash = hash_password(request.new_password)
+    await db.update_user_password(token_data["user_id"], password_hash)
+
+    # Marcar token como usado
+    await db.use_password_reset_token(request.token)
+
+    # Log de auditoria
+    await db.log_audit(
+        user_id=token_data["user_id"],
+        action="password_reset",
+        details={"method": "email_token"}
+    )
+
+    return {"message": "Senha alterada com sucesso"}
 
 
 @router.post("/logout")
