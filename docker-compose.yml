@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # PostgreSQL Database
+  # ============================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: soulhaven-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: soulhaven
+      POSTGRES_PASSWORD: soulhaven_secret_2024
+      POSTGRES_DB: soulhaven
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    ports:
+      - "5434:5432"  # Porta externa 5434 para evitar conflito
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U soulhaven -d soulhaven"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # Redis (Cache - Opcional para produção)
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: soulhaven-cache
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # pgAdmin (Interface Web para PostgreSQL)
+  # ============================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: soulhaven-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@soulhaven.app
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+  # ============================================
+  # SoulHaven API (Backend)
+  # ============================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: soulhaven-api
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://soulhaven:soulhaven_secret_2024@postgres:5432/soulhaven
+      - REDIS_URL=redis://redis:6379
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - SECRET_KEY=${SECRET_KEY}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - DEBUG=true
+      - ADMIN_EMAILS=${ADMIN_EMAILS}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - STRIPE_PRICE_ID=${STRIPE_PRICE_ID}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app:ro  # Hot reload em desenvolvimento
+      - ./frontend:/app/frontend:ro  # Servir frontend
+
+volumes:
+  postgres_data:
+    name: soulhaven_postgres_data
+  redis_data:
+    name: soulhaven_redis_data
+  pgadmin_data:
+    name: soulhaven_pgadmin_data
+
+networks:
+  default:
+    name: soulhaven-network

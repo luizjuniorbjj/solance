@@ -1,0 +1,3 @@
+"""
+SoulHaven - Rotas da API
+"""

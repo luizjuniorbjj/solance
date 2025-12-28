@@ -1,4 +1,35 @@
-fastapi
-uvicorn
-anthropic
-pydantic
+# SoulHaven - Dependências
+
+# Web Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+
+# AI
+anthropic>=0.40.0
+
+# OAuth
+httpx==0.26.0
+python-multipart==0.0.6
+
+# Database
+asyncpg==0.29.0
+
+# Validation
+pydantic==2.5.3
+email-validator==2.1.0
+
+# Security
+bcrypt==4.1.2
+python-jose[cryptography]==3.3.0
+cryptography==41.0.7
+PyJWT==2.8.0
+
+# Utilities
+python-dotenv==1.0.0
+
+# Payments
+stripe==7.0.0
+
+# Para produção (opcional)
+# gunicorn==21.2.0
+# redis==5.0.1

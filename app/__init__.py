@@ -1,0 +1,3 @@
+"""
+SoulHaven - Pacote principal
+"""

@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoulHaven Admin</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8f9fa;
+      --text-primary: #1a1a2e;
+      --text-secondary: #6b7280;
+      --border: #e5e7eb;
+      --gold: #b8860b;
+      --gold-light: #daa520;
+      --green: #10b981;
+      --red: #ef4444;
+      --blue: #3b82f6;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .logo h1 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .logo span {
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--gold);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--gold-light);
+    }
+
+    .btn-secondary {
+      background: white;
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-secondary);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .stat-change {
+      font-size: 12px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stat-change.positive {
+      color: var(--green);
+    }
+
+    .stat-change.negative {
+      color: var(--red);
+    }
+
+    /* Main Content */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-header h2 {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .card-body {
+      padding: 0;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      background: var(--bg-secondary);
+    }
+
+    td {
+      font-size: 14px;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover {
+      background: var(--bg-secondary);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .badge-premium {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge-free {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .badge-active {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .badge-inactive {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    /* Activity List */
+    .activity-list {
+      padding: 0;
+    }
+
+    .activity-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .activity-item:last-child {
+      border-bottom: none;
+    }
+
+    .activity-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .activity-icon.login {
+      background: #dbeafe;
+      color: var(--blue);
+    }
+
+    .activity-icon.message {
+      background: #d1fae5;
+      color: var(--green);
+    }
+
+    .activity-icon.register {
+      background: #fef3c7;
+      color: var(--gold);
+    }
+
+    .activity-content {
+      flex: 1;
+    }
+
+    .activity-text {
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+
+    .activity-time {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Search */
+    .search-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 0 16px;
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+
+    /* Actions */
+    .action-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .action-btn.premium {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .action-btn.premium:hover {
+      background: #fcd34d;
+    }
+
+    .action-btn.danger {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .action-btn.danger:hover {
+      background: #fecaca;
+    }
+
+    .action-btn.secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .action-btn.secondary:hover {
+      background: #d1d5db;
+    }
+
+    .actions-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .actions-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 100%;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      min-width: 160px;
+      z-index: 100;
+    }
+
+    .actions-menu.show {
+      display: block;
+    }
+
+    .actions-menu button {
+      display: block;
+      width: 100%;
+      padding: 10px 14px;
+      text-align: left;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .actions-menu button:hover {
+      background: var(--bg-secondary);
+    }
+
+    .actions-menu button.danger {
+      color: var(--red);
+    }
+
+    .logo-img {
+      height: 40px;
+      width: auto;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .modal h3 {
+      margin-bottom: 12px;
+    }
+
+    .modal p {
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    /* Login Form */
+    .login-container {
+      max-width: 400px;
+      margin: 100px auto;
+      padding: 40px;
+      background: white;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .login-container h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .login-container p {
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--gold);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .login-btn:hover {
+      background: var(--gold-light);
+    }
+
+    .error-msg {
+      color: var(--red);
+      font-size: 14px;
+      margin-top: 12px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <!-- Login -->
+  <div id="loginScreen" class="container">
+    <div class="login-container">
+      <img src="/static/icons/logo-full.png" alt="SoulHaven" style="height: 100px; margin-bottom: 16px;">
+      <h1>Admin</h1>
+      <p>Painel de administracao</p>
+
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="loginEmail" placeholder="admin@soulhaven.app" required>
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" id="loginPassword" placeholder="Sua senha" required>
+        </div>
+        <button type="submit" class="login-btn">Entrar</button>
+        <div id="loginError" class="error-msg" style="display: none;"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de confirmacao -->
+  <div id="confirmModal" class="modal-overlay">
+    <div class="modal">
+      <h3 id="modalTitle">Confirmar acao</h3>
+      <p id="modalMessage">Tem certeza que deseja realizar esta acao?</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" id="modalConfirmBtn" onclick="confirmModalAction()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard" class="container" style="display: none;">
+    <header>
+      <div class="logo">
+        <img src="/static/icons/icon-512x512.png" alt="SoulHaven" class="logo-img">
+        <div>
+          <h1>SoulHaven <span>Admin</span></h1>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" onclick="refreshData()">Atualizar</button>
+        <button class="btn btn-secondary" onclick="logout()">Sair</button>
+      </div>
+    </header>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total de Usuarios</div>
+        <div class="stat-value" id="statTotalUsers">-</div>
+        <div class="stat-change positive" id="statNewUsers">+0 esta semana</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Usuarios Premium</div>
+        <div class="stat-value" id="statPremiumUsers">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Ativos Hoje</div>
+        <div class="stat-value" id="statActiveToday">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Conversas Hoje</div>
+        <div class="stat-value" id="statConversationsToday">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total de Mensagens</div>
+        <div class="stat-value" id="statTotalMessages">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Media por Conversa</div>
+        <div class="stat-value" id="statAvgMessages">-</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+      <button class="btn btn-primary" id="tabUsers" onclick="showTab('users')" style="opacity: 1;">Usuarios</button>
+      <button class="btn btn-secondary" id="tabFeedbacks" onclick="showTab('feedbacks')">Feedbacks <span id="feedbackBadge" style="background: var(--red); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-left: 4px; display: none;">0</span></button>
+    </div>
+
+    <!-- Users Tab -->
+    <div id="usersTab" class="main-grid">
+      <!-- Users Table -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Usuarios</h2>
+          <input type="text" id="userSearch" placeholder="Buscar por email..." style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;" onkeyup="searchUsers()">
+        </div>
+        <div class="card-body">
+          <table>
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Plano</th>
+                <th>Mensagens</th>
+                <th>Ultimo Login</th>
+                <th>Acoes</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <tr><td colspan="5" class="loading">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Activity -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Atividade Recente</h2>
+        </div>
+        <div class="card-body activity-list" id="activityList">
+          <div class="loading">Carregando...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feedbacks Tab -->
+    <div id="feedbacksTab" style="display: none;">
+      <!-- Feedback Stats -->
+      <div class="stats-grid" style="margin-bottom: 20px;">
+        <div class="stat-card">
+          <div class="stat-label">Total de Feedbacks</div>
+          <div class="stat-value" id="statTotalFeedbacks">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pendentes</div>
+          <div class="stat-value" id="statPendingFeedbacks" style="color: var(--red);">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Revisados</div>
+          <div class="stat-value" id="statReviewedFeedbacks" style="color: #10b981;">-</div>
+        </div>
+      </div>
+
+      <!-- Feedbacks List -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Feedbacks Reportados</h2>
+          <select id="feedbackFilter" onchange="loadFeedbacks()" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;">
+            <option value="">Todos</option>
+            <option value="pending">Pendentes</option>
+            <option value="reviewed">Revisados</option>
+          </select>
+        </div>
+        <div class="card-body">
+          <div id="feedbacksList">
+            <div class="loading">Carregando...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Detalhes do Feedback -->
+  <div id="feedbackDetailModal" class="modal-overlay">
+    <div class="modal" style="max-width: 600px;">
+      <h3>Detalhes do Feedback</h3>
+      <div id="feedbackDetailContent" style="margin: 16px 0;">
+        <!-- Conteúdo preenchido via JS -->
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeFeedbackDetail()">Fechar</button>
+        <button class="btn btn-primary" id="markReviewedBtn" onclick="markFeedbackReviewed()">Marcar como Revisado</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = window.location.origin;
+    let token = localStorage.getItem('soulhaven_admin_token');
+
+    // Check auth on load
+    if (token) {
+      showDashboard();
+      loadData();
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        if (!response.ok) {
+          throw new Error('Credenciais invalidas');
+        }
+
+        const data = await response.json();
+        token = data.access_token;
+        localStorage.setItem('soulhaven_admin_token', token);
+
+        // Verify admin access
+        const testResponse = await fetch(`${API_URL}/admin/stats/users`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (testResponse.status === 403) {
+          throw new Error('Acesso negado. Voce nao e administrador.');
+        }
+
+        showDashboard();
+        loadData();
+      } catch (error) {
+        document.getElementById('loginError').textContent = error.message;
+        document.getElementById('loginError').style.display = 'block';
+      }
+    }
+
+    function showDashboard() {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+    }
+
+    function logout() {
+      token = null;
+      localStorage.removeItem('soulhaven_admin_token');
+      document.getElementById('loginScreen').style.display = 'block';
+      document.getElementById('dashboard').style.display = 'none';
+    }
+
+    async function loadData() {
+      await Promise.all([
+        loadUserStats(),
+        loadConversationStats(),
+        loadUsers(),
+        loadActivity(),
+        loadFeedbackStats()
+      ]);
+    }
+
+    async function refreshData() {
+      await loadData();
+      if (document.getElementById('feedbacksTab').style.display !== 'none') {
+        loadFeedbacks();
+      }
+    }
+
+    // Tab switching
+    function showTab(tab) {
+      if (tab === 'users') {
+        document.getElementById('usersTab').style.display = 'grid';
+        document.getElementById('feedbacksTab').style.display = 'none';
+        document.getElementById('tabUsers').className = 'btn btn-primary';
+        document.getElementById('tabFeedbacks').className = 'btn btn-secondary';
+      } else {
+        document.getElementById('usersTab').style.display = 'none';
+        document.getElementById('feedbacksTab').style.display = 'block';
+        document.getElementById('tabUsers').className = 'btn btn-secondary';
+        document.getElementById('tabFeedbacks').className = 'btn btn-primary';
+        loadFeedbacks();
+      }
+    }
+
+    async function loadUserStats() {
+      try {
+        const response = await fetch(`${API_URL}/admin/stats/users`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.status === 403) {
+          logout();
+          return;
+        }
+
+        const data = await response.json();
+        document.getElementById('statTotalUsers').textContent = data.total_users;
+        document.getElementById('statPremiumUsers').textContent = data.premium_users;
+        document.getElementById('statActiveToday').textContent = data.active_today;
+        document.getElementById('statNewUsers').textContent = `+${data.new_this_week} esta semana`;
+      } catch (error) {
+        console.error('Error loading user stats:', error);
+      }
+    }
+
+    async function loadConversationStats() {
+      try {
+        const response = await fetch(`${API_URL}/admin/stats/conversations`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+        document.getElementById('statConversationsToday').textContent = data.conversations_today;
+        document.getElementById('statTotalMessages').textContent = data.total_messages.toLocaleString();
+        document.getElementById('statAvgMessages').textContent = data.avg_messages_per_conversation;
+      } catch (error) {
+        console.error('Error loading conversation stats:', error);
+      }
+    }
+
+    async function loadUsers(search = '') {
+      try {
+        const url = search
+          ? `${API_URL}/admin/users?search=${encodeURIComponent(search)}`
+          : `${API_URL}/admin/users`;
+
+        const response = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const users = await response.json();
+
+        const tbody = document.getElementById('usersTableBody');
+
+        if (users.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">Nenhum usuario encontrado</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = users.map(user => `
+          <tr>
+            <td>
+              <div><strong>${user.nome || user.email.split('@')[0]}</strong></div>
+              <div style="font-size: 12px; color: var(--text-secondary);">${user.email}</div>
+              ${user.is_active === false ? '<span class="badge badge-inactive" style="margin-top: 4px;">Desativado</span>' : ''}
+            </td>
+            <td>
+              <span class="badge ${user.is_premium ? 'badge-premium' : 'badge-free'}">
+                ${user.is_premium ? 'Premium' : 'Gratuito'}
+              </span>
+            </td>
+            <td>${user.total_messages}</td>
+            <td style="font-size: 12px; color: var(--text-secondary);">
+              ${user.last_login ? new Date(user.last_login).toLocaleDateString('pt-BR') : 'Nunca'}
+            </td>
+            <td>
+              <div class="actions-dropdown">
+                <button class="action-btn secondary" onclick="toggleActionsMenu('${user.id}')">Acoes ▾</button>
+                <div id="menu-${user.id}" class="actions-menu">
+                  <button onclick="togglePremium('${user.id}', ${!user.is_premium}); closeAllMenus();">
+                    ${user.is_premium ? '⭐ Remover Premium' : '⭐ Dar Premium'}
+                  </button>
+                  <button onclick="toggleUserActive('${user.id}', ${user.is_active !== false}); closeAllMenus();">
+                    ${user.is_active === false ? '✓ Ativar Conta' : '✗ Desativar Conta'}
+                  </button>
+                  <button onclick="resetUserPassword('${user.id}', '${user.email}'); closeAllMenus();">
+                    🔑 Resetar Senha
+                  </button>
+                  <button class="danger" onclick="confirmDeleteUser('${user.id}', '${user.email}'); closeAllMenus();">
+                    🗑️ Remover Usuario
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      } catch (error) {
+        console.error('Error loading users:', error);
+      }
+    }
+
+    async function loadActivity() {
+      try {
+        const response = await fetch(`${API_URL}/admin/audit/recent?limit=20`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const logs = await response.json();
+
+        const container = document.getElementById('activityList');
+
+        if (logs.length === 0) {
+          container.innerHTML = '<div class="loading">Nenhuma atividade recente</div>';
+          return;
+        }
+
+        container.innerHTML = logs.map(log => {
+          let iconClass = 'login';
+          let icon = '👤';
+
+          if (log.action === 'message_sent') {
+            iconClass = 'message';
+            icon = '💬';
+          } else if (log.action === 'register') {
+            iconClass = 'register';
+            icon = '✨';
+          } else if (log.action === 'oauth_login') {
+            icon = '🔐';
+          }
+
+          const time = new Date(log.created_at);
+          const timeStr = time.toLocaleString('pt-BR');
+
+          return `
+            <div class="activity-item">
+              <div class="activity-icon ${iconClass}">${icon}</div>
+              <div class="activity-content">
+                <div class="activity-text"><strong>${log.user_email || 'Usuario'}</strong> - ${log.action.replace('_', ' ')}</div>
+                <div class="activity-time">${timeStr}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (error) {
+        console.error('Error loading activity:', error);
+      }
+    }
+
+    function searchUsers() {
+      const search = document.getElementById('userSearch').value;
+      loadUsers(search);
+    }
+
+    async function togglePremium(userId, isPremium) {
+      try {
+        const response = await fetch(`${API_URL}/admin/users/${userId}/premium?is_premium=${isPremium}`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          loadUsers();
+          loadUserStats();
+        }
+      } catch (error) {
+        console.error('Error toggling premium:', error);
+      }
+    }
+
+    // Menu dropdown
+    function toggleActionsMenu(userId) {
+      closeAllMenus();
+      const menu = document.getElementById(`menu-${userId}`);
+      if (menu) menu.classList.toggle('show');
+    }
+
+    function closeAllMenus() {
+      document.querySelectorAll('.actions-menu').forEach(m => m.classList.remove('show'));
+    }
+
+    // Close menus when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.actions-dropdown')) {
+        closeAllMenus();
+      }
+    });
+
+    // Modal
+    let pendingAction = null;
+
+    function showModal(title, message, action, isDanger = false) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalMessage').textContent = message;
+      const btn = document.getElementById('modalConfirmBtn');
+      btn.className = isDanger ? 'btn btn-primary' : 'btn btn-primary';
+      btn.style.background = isDanger ? 'var(--red)' : 'var(--gold)';
+      pendingAction = action;
+      document.getElementById('confirmModal').classList.add('show');
+    }
+
+    function closeModal() {
+      document.getElementById('confirmModal').classList.remove('show');
+      pendingAction = null;
+    }
+
+    function confirmModalAction() {
+      if (pendingAction) {
+        pendingAction();
+      }
+      closeModal();
+    }
+
+    // Desativar/Ativar usuario
+    async function toggleUserActive(userId, isCurrentlyActive) {
+      const action = isCurrentlyActive ? 'desativar' : 'ativar';
+      showModal(
+        `${isCurrentlyActive ? 'Desativar' : 'Ativar'} Usuario`,
+        `Tem certeza que deseja ${action} este usuario?`,
+        async () => {
+          try {
+            const response = await fetch(`${API_URL}/admin/users/${userId}/active?is_active=${!isCurrentlyActive}`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+              loadUsers();
+              alert(`Usuario ${action === 'desativar' ? 'desativado' : 'ativado'} com sucesso!`);
+            } else {
+              alert('Erro ao atualizar usuario');
+            }
+          } catch (error) {
+            console.error('Error:', error);
+            alert('Erro ao atualizar usuario');
+          }
+        },
+        isCurrentlyActive
+      );
+    }
+
+    // Resetar senha
+    async function resetUserPassword(userId, email) {
+      showModal(
+        'Resetar Senha',
+        `Enviar email de reset de senha para ${email}?`,
+        async () => {
+          try {
+            const response = await fetch(`${API_URL}/admin/users/${userId}/reset-password`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+              alert('Email de reset enviado com sucesso!');
+            } else {
+              alert('Erro ao enviar email de reset');
+            }
+          } catch (error) {
+            console.error('Error:', error);
+            alert('Erro ao enviar email de reset');
+          }
+        }
+      );
+    }
+
+    // Ver conversas do usuario
+    function viewUserConversations(userId, email) {
+      alert(`Funcionalidade em desenvolvimento.\n\nUsuario: ${email}\nID: ${userId}`);
+      // TODO: Implementar visualizacao de conversas
+    }
+
+    // Confirmar exclusao
+    function confirmDeleteUser(userId, email) {
+      showModal(
+        'Remover Usuario',
+        `ATENCAO: Esta acao e irreversivel! Todos os dados de ${email} serao removidos permanentemente. Deseja continuar?`,
+        async () => {
+          try {
+            const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+              loadUsers();
+              loadUserStats();
+              alert('Usuario removido com sucesso!');
+            } else {
+              const data = await response.json();
+              alert(data.detail || 'Erro ao remover usuario');
+            }
+          } catch (error) {
+            console.error('Error:', error);
+            alert('Erro ao remover usuario');
+          }
+        },
+        true
+      );
+    }
+
+    // ============================================
+    // FEEDBACKS
+    // ============================================
+    let currentFeedbackId = null;
+    let feedbacksData = [];
+
+    async function loadFeedbackStats() {
+      try {
+        const response = await fetch(`${API_URL}/admin/feedbacks/stats`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        document.getElementById('statTotalFeedbacks').textContent = data.total;
+        document.getElementById('statPendingFeedbacks').textContent = data.pending;
+        document.getElementById('statReviewedFeedbacks').textContent = data.reviewed;
+
+        // Badge de pendentes
+        const badge = document.getElementById('feedbackBadge');
+        if (data.pending > 0) {
+          badge.textContent = data.pending;
+          badge.style.display = 'inline';
+        } else {
+          badge.style.display = 'none';
+        }
+      } catch (error) {
+        console.error('Error loading feedback stats:', error);
+      }
+    }
+
+    async function loadFeedbacks() {
+      try {
+        const status = document.getElementById('feedbackFilter').value;
+        const url = status
+          ? `${API_URL}/admin/feedbacks?status=${status}`
+          : `${API_URL}/admin/feedbacks`;
+
+        const response = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) return;
+
+        feedbacksData = await response.json();
+        const container = document.getElementById('feedbacksList');
+
+        if (feedbacksData.length === 0) {
+          container.innerHTML = '<div class="loading">Nenhum feedback encontrado</div>';
+          return;
+        }
+
+        const typeColors = {
+          'not_christian': '#dc2626',
+          'wrong_info': '#f59e0b',
+          'not_helpful': '#6b7280',
+          'inappropriate': '#dc2626',
+          'other': '#3b82f6'
+        };
+
+        const typeIcons = {
+          'not_christian': '✝️',
+          'wrong_info': '❌',
+          'not_helpful': '😕',
+          'inappropriate': '⚠️',
+          'other': '💬'
+        };
+
+        container.innerHTML = feedbacksData.map(fb => `
+          <div style="padding: 16px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s;"
+               onclick="showFeedbackDetail('${fb.id}')"
+               onmouseover="this.style.borderColor='var(--gold)'"
+               onmouseout="this.style.borderColor='var(--border)'">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 18px;">${typeIcons[fb.feedback_type] || '📝'}</span>
+                <span style="background: ${typeColors[fb.feedback_type] || '#6b7280'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">
+                  ${fb.feedback_label}
+                </span>
+                <span style="color: var(--text-secondary); font-size: 12px;">${fb.user_email}</span>
+              </div>
+              <span style="font-size: 12px; color: ${fb.status === 'pending' ? 'var(--red)' : '#10b981'};">
+                ${fb.status === 'pending' ? 'Pendente' : 'Revisado'}
+              </span>
+            </div>
+            <div style="color: var(--text-primary); font-size: 14px; margin-bottom: 8px;">
+              "${fb.message_content}"
+            </div>
+            ${fb.details ? `<div style="color: var(--text-secondary); font-size: 13px; font-style: italic;">Obs: ${fb.details}</div>` : ''}
+            <div style="color: var(--text-muted); font-size: 11px; margin-top: 8px;">
+              ${new Date(fb.created_at).toLocaleString('pt-BR')}
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Error loading feedbacks:', error);
+      }
+    }
+
+    function showFeedbackDetail(id) {
+      currentFeedbackId = id;
+      const fb = feedbacksData.find(f => f.id === id);
+      if (!fb) return;
+
+      const typeLabels = {
+        'not_christian': { label: 'Nao esta de acordo com a fe crista', icon: '✝️', color: '#dc2626' },
+        'wrong_info': { label: 'Informacao incorreta', icon: '❌', color: '#f59e0b' },
+        'not_helpful': { label: 'Nao foi util', icon: '😕', color: '#6b7280' },
+        'inappropriate': { label: 'Conteudo inapropriado', icon: '⚠️', color: '#dc2626' },
+        'other': { label: 'Outro problema', icon: '💬', color: '#3b82f6' }
+      };
+
+      const typeInfo = typeLabels[fb.feedback_type] || { label: fb.feedback_type, icon: '📝', color: '#6b7280' };
+
+      document.getElementById('feedbackDetailContent').innerHTML = `
+        <div style="margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            <span style="font-size: 24px;">${typeInfo.icon}</span>
+            <span style="background: ${typeInfo.color}; color: white; padding: 4px 12px; border-radius: 6px; font-weight: 500;">
+              ${typeInfo.label}
+            </span>
+          </div>
+          <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">
+            Reportado por: <strong>${fb.user_email}</strong>
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted);">
+            ${new Date(fb.created_at).toLocaleString('pt-BR')}
+          </div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label style="font-size: 13px; font-weight: 500; color: var(--text-secondary); display: block; margin-bottom: 6px;">
+            Resposta da IA reportada:
+          </label>
+          <div style="background: var(--bg-secondary); padding: 12px; border-radius: 8px; font-size: 14px; line-height: 1.6; max-height: 200px; overflow-y: auto;">
+            ${fb.message_full || fb.message_content}
+          </div>
+        </div>
+
+        ${fb.details ? `
+          <div style="margin-bottom: 16px;">
+            <label style="font-size: 13px; font-weight: 500; color: var(--text-secondary); display: block; margin-bottom: 6px;">
+              Observacoes do usuario:
+            </label>
+            <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 14px; color: #92400e;">
+              ${fb.details}
+            </div>
+          </div>
+        ` : ''}
+
+        <div style="font-size: 13px; color: ${fb.status === 'pending' ? 'var(--red)' : '#10b981'}; font-weight: 500;">
+          Status: ${fb.status === 'pending' ? 'Pendente de revisao' : 'Revisado'}
+          ${fb.reviewed_at ? ` em ${new Date(fb.reviewed_at).toLocaleString('pt-BR')}` : ''}
+        </div>
+      `;
+
+      // Esconder botão se já foi revisado
+      document.getElementById('markReviewedBtn').style.display = fb.status === 'reviewed' ? 'none' : 'block';
+
+      document.getElementById('feedbackDetailModal').classList.add('show');
+    }
+
+    function closeFeedbackDetail() {
+      document.getElementById('feedbackDetailModal').classList.remove('show');
+      currentFeedbackId = null;
+    }
+
+    async function markFeedbackReviewed() {
+      if (!currentFeedbackId) return;
+
+      try {
+        const response = await fetch(`${API_URL}/admin/feedbacks/${currentFeedbackId}/review`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          closeFeedbackDetail();
+          loadFeedbacks();
+          loadFeedbackStats();
+          alert('Feedback marcado como revisado!');
+        } else {
+          alert('Erro ao marcar feedback');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Erro ao marcar feedback');
+      }
+    }
+  </script>
+</body>
+</html>

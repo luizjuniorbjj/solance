@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoulHaven - Pitch Deck para Investidores</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Cormorant+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold: #b8860b;
+      --gold-light: #d4a855;
+      --gold-dark: #8b6914;
+      --gold-bg: #faf6ed;
+      --bg-dark: #0a0a0a;
+      --bg-card: #141414;
+      --bg-card-hover: #1a1a1a;
+      --text-white: #ffffff;
+      --text-gray: #a0a0a0;
+      --text-muted: #6b6b6b;
+      --success: #22c55e;
+      --gradient-gold: linear-gradient(135deg, #b8860b, #d4a855);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-white);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* === NAVIGATION === */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 20px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      background: rgba(10, 10, 10, 0.9);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-white);
+      text-decoration: none;
+    }
+
+    .nav-logo-icon {
+      height: 40px;
+      width: auto;
+    }
+
+    .nav-logo-icon img {
+      height: 100%;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 40px;
+    }
+
+    .nav-link {
+      color: var(--text-gray);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    .nav-link:hover {
+      color: var(--gold-light);
+    }
+
+    /* === SECTIONS === */
+    .section {
+      min-height: 100vh;
+      padding: 120px 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 56px;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      max-width: 900px;
+    }
+
+    .section-subtitle {
+      font-size: 20px;
+      color: var(--text-gray);
+      max-width: 700px;
+      line-height: 1.7;
+    }
+
+    .highlight {
+      color: var(--gold);
+    }
+
+    .highlight-bg {
+      background: var(--gradient-gold);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* === HERO === */
+    #hero {
+      text-align: center;
+      align-items: center;
+      background: radial-gradient(ellipse at center top, rgba(184, 134, 11, 0.15) 0%, transparent 60%);
+    }
+
+    #hero .section-title {
+      font-size: 72px;
+      max-width: 100%;
+    }
+
+    .hero-tagline {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-style: italic;
+      color: var(--gold-light);
+      margin-bottom: 40px;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 60px;
+      margin-top: 60px;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 48px;
+      font-weight: 800;
+      background: var(--gradient-gold);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-gray);
+      margin-top: 8px;
+    }
+
+    /* === PROBLEM === */
+    #problem {
+      background: linear-gradient(180deg, var(--bg-dark) 0%, #0d0d0d 100%);
+    }
+
+    .problem-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      margin-top: 60px;
+    }
+
+    .problem-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 40px;
+      transition: all 0.3s;
+    }
+
+    .problem-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-5px);
+    }
+
+    .problem-icon {
+      font-size: 40px;
+      margin-bottom: 20px;
+    }
+
+    .problem-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .problem-desc {
+      color: var(--text-gray);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    /* === SOLUTION === */
+    #solution {
+      background: radial-gradient(ellipse at center, rgba(184, 134, 11, 0.08) 0%, transparent 70%);
+    }
+
+    .solution-features {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 30px;
+      margin-top: 60px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 40px;
+    }
+
+    .feature-badge {
+      display: inline-block;
+      background: var(--gradient-gold);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .feature-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .feature-desc {
+      color: var(--text-gray);
+      line-height: 1.7;
+    }
+
+    /* === DIFFERENTIALS === */
+    #differentials {
+      background: var(--bg-dark);
+    }
+
+    .diff-table {
+      width: 100%;
+      margin-top: 60px;
+      border-collapse: collapse;
+    }
+
+    .diff-table th,
+    .diff-table td {
+      padding: 20px 30px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .diff-table th {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .diff-table td {
+      font-size: 16px;
+    }
+
+    .diff-table tr:hover {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .diff-us {
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    .diff-them {
+      color: var(--text-muted);
+    }
+
+    /* === MARKET === */
+    #market {
+      background: linear-gradient(180deg, #0d0d0d 0%, var(--bg-dark) 100%);
+    }
+
+    .market-numbers {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 30px;
+      margin-top: 60px;
+    }
+
+    .market-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .market-value {
+      font-size: 48px;
+      font-weight: 800;
+      background: var(--gradient-gold);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .market-label {
+      color: var(--text-gray);
+      margin-top: 12px;
+      font-size: 15px;
+    }
+
+    /* === BUSINESS MODEL === */
+    #business {
+      background: radial-gradient(ellipse at center bottom, rgba(184, 134, 11, 0.1) 0%, transparent 60%);
+    }
+
+    .pricing-card {
+      background: var(--bg-card);
+      border: 2px solid var(--gold);
+      border-radius: 24px;
+      padding: 60px;
+      max-width: 500px;
+      margin: 60px auto 0;
+      text-align: center;
+    }
+
+    .pricing-value {
+      font-size: 72px;
+      font-weight: 800;
+      background: var(--gradient-gold);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .pricing-period {
+      font-size: 20px;
+      color: var(--text-gray);
+    }
+
+    .pricing-features {
+      margin-top: 40px;
+      text-align: left;
+    }
+
+    .pricing-feature {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .pricing-feature:last-child {
+      border-bottom: none;
+    }
+
+    .pricing-check {
+      color: var(--success);
+      font-size: 20px;
+    }
+
+    /* === FINANCIALS === */
+    #financials {
+      background: var(--bg-dark);
+    }
+
+    .financial-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      margin-top: 60px;
+    }
+
+    .financial-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 40px;
+    }
+
+    .financial-label {
+      font-size: 14px;
+      color: var(--text-gray);
+      margin-bottom: 12px;
+    }
+
+    .financial-value {
+      font-size: 36px;
+      font-weight: 800;
+    }
+
+    .financial-value.gold {
+      color: var(--gold);
+    }
+
+    .financial-value.green {
+      color: var(--success);
+    }
+
+    /* === TEAM === */
+    #team {
+      background: linear-gradient(180deg, var(--bg-dark) 0%, #0d0d0d 100%);
+    }
+
+    /* === ASK === */
+    #ask {
+      text-align: center;
+      align-items: center;
+      background: radial-gradient(ellipse at center, rgba(184, 134, 11, 0.15) 0%, transparent 60%);
+    }
+
+    .ask-value {
+      font-size: 96px;
+      font-weight: 900;
+      background: var(--gradient-gold);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 40px 0;
+    }
+
+    .ask-equity {
+      font-size: 24px;
+      color: var(--text-gray);
+    }
+
+    .ask-uses {
+      display: flex;
+      gap: 40px;
+      margin-top: 60px;
+    }
+
+    .ask-use {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 30px 40px;
+    }
+
+    .ask-use-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .ask-use-label {
+      color: var(--text-gray);
+      margin-top: 8px;
+    }
+
+    /* === CTA === */
+    #cta {
+      text-align: center;
+      align-items: center;
+      background: var(--bg-dark);
+      border-top: 1px solid rgba(184, 134, 11, 0.3);
+    }
+
+    .cta-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 48px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .cta-button {
+      display: inline-block;
+      background: var(--gradient-gold);
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+      padding: 20px 50px;
+      border-radius: 50px;
+      text-decoration: none;
+      margin-top: 40px;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .cta-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 40px rgba(184, 134, 11, 0.3);
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 1024px) {
+      .section {
+        padding: 80px 40px;
+      }
+
+      .section-title {
+        font-size: 42px;
+      }
+
+      #hero .section-title {
+        font-size: 48px;
+      }
+
+      .problem-grid,
+      .solution-features,
+      .market-numbers,
+      .financial-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .hero-stats {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav {
+        padding: 15px 20px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .section {
+        padding: 60px 20px;
+      }
+
+      .section-title {
+        font-size: 32px;
+      }
+
+      #hero .section-title {
+        font-size: 36px;
+      }
+
+      .hero-tagline {
+        font-size: 20px;
+      }
+
+      .problem-grid,
+      .solution-features,
+      .market-numbers,
+      .financial-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .diff-table {
+        font-size: 14px;
+      }
+
+      .diff-table th,
+      .diff-table td {
+        padding: 15px;
+      }
+
+      .ask-value {
+        font-size: 56px;
+      }
+
+      .ask-uses {
+        flex-direction: column;
+        gap: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav">
+    <a href="#hero" class="nav-logo">
+      <div class="nav-logo-icon">
+        <img src="frontend/static/icons/logo-header.png" alt="SoulHaven">
+      </div>
+    </a>
+    <div class="nav-links">
+      <a href="#problem" class="nav-link">Problema</a>
+      <a href="#solution" class="nav-link">Solução</a>
+      <a href="#differentials" class="nav-link">Diferenciais</a>
+      <a href="#market" class="nav-link">Mercado</a>
+      <a href="#business" class="nav-link">Modelo</a>
+      <a href="#ask" class="nav-link">Investimento</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section id="hero" class="section">
+    <div class="section-label">Pitch Deck 2025</div>
+    <h1 class="section-title">
+      <span class="highlight-bg">SoulHaven</span>
+    </h1>
+    <p class="hero-tagline">"Orientando você ao verdadeiro Refúgio"</p>
+    <p class="section-subtitle">
+      A primeira IA cristã humanizada com memória e personalização.<br>
+      Companheiro de fé que conhece sua jornada.<br>
+      <strong>100% fundamentado na Bíblia.</strong>
+    </p>
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-value">170M+</div>
+        <div class="stat-label">Cristãos no Brasil</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">$0</div>
+        <div class="stat-label">Concorrentes BR</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">62%</div>
+        <div class="stat-label">Margem Bruta</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem -->
+  <section id="problem" class="section">
+    <div class="section-label">O Problema</div>
+    <h2 class="section-title">
+      Cristãos usam ChatGPT todo dia.<br>
+      <span class="highlight">Mas ele responde errado.</span>
+    </h2>
+    <p class="section-subtitle">
+      Viés secular, sem memória, respostas genéricas. O ChatGPT não entende a cosmovisão cristã.
+    </p>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="problem-icon">🤖</div>
+        <h3 class="problem-title">Respostas Artificiais</h3>
+        <p class="problem-desc">Apps existentes são secos e robóticos. Parecem enciclopédias, não companheiros. Falta calor humano e acolhimento pastoral.</p>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">🧠</div>
+        <h3 class="problem-title">Sem Memória</h3>
+        <p class="problem-desc">Toda conversa começa do zero. A IA não lembra quem você é, sua jornada de fé, suas lutas. Não existe relacionamento.</p>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">⚠️</div>
+        <h3 class="problem-title">Viés Secular</h3>
+        <p class="problem-desc">ChatGPT tem viés progressista que conflita com valores bíblicos. Cita versículos errados ou fora de contexto.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Solution -->
+  <section id="solution" class="section">
+    <div class="section-label">A Solução</div>
+    <h2 class="section-title">
+      SoulHaven: IA que <span class="highlight">conhece você</span><br>
+      e caminha junto na fé
+    </h2>
+    <p class="section-subtitle">
+      Não é chatbot. É discipulador pessoal com IA.
+    </p>
+    <div class="solution-features">
+      <div class="feature-card">
+        <span class="feature-badge">Exclusivo</span>
+        <h3 class="feature-title">Memória de Longo Prazo</h3>
+        <p class="feature-desc">Lembra sua jornada de fé, suas lutas, vitórias, pedidos de oração. Cada conversa continua de onde parou. Relacionamento real.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-badge">Personalização</span>
+        <h3 class="feature-title">Perfil Profundo</h3>
+        <p class="feature-desc">Conhece sua denominação, tempo de fé, preferências de comunicação. Adapta o tom e a abordagem para você.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-badge">Fundamento</span>
+        <h3 class="feature-title">100% Bíblico</h3>
+        <p class="feature-desc">Toda resposta fundamentada na Bíblia. Corrige em amor quando necessário. A Palavra de Deus é a verdade absoluta.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-badge">Tom Único</span>
+        <h3 class="feature-title">Pastoral e Acolhedor</h3>
+        <p class="feature-desc">Fala como amigo sábio, não como robô. Valida sentimentos antes de aconselhar. Calor humano genuíno.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Differentials -->
+  <section id="differentials" class="section">
+    <div class="section-label">Diferenciais</div>
+    <h2 class="section-title">
+      O que nos torna <span class="highlight">únicos</span>
+    </h2>
+    <table class="diff-table">
+      <tr>
+        <th>Aspecto</th>
+        <th>Concorrentes</th>
+        <th>SoulHaven</th>
+      </tr>
+      <tr>
+        <td>Memória</td>
+        <td class="diff-them">Esquece tudo</td>
+        <td class="diff-us">Lembra sua jornada completa</td>
+      </tr>
+      <tr>
+        <td>Personalização</td>
+        <td class="diff-them">Igual para todos</td>
+        <td class="diff-us">Conhece você profundamente</td>
+      </tr>
+      <tr>
+        <td>Tom</td>
+        <td class="diff-them">Robótico, acadêmico</td>
+        <td class="diff-us">Pastoral, acolhedor</td>
+      </tr>
+      <tr>
+        <td>Correção</td>
+        <td class="diff-them">Evita (medo de ofender)</td>
+        <td class="diff-us">Fala verdade em amor</td>
+      </tr>
+      <tr>
+        <td>Idioma</td>
+        <td class="diff-them">Inglês traduzido</td>
+        <td class="diff-us">Português brasileiro nativo</td>
+      </tr>
+      <tr>
+        <td>Segurança</td>
+        <td class="diff-them">Questionável</td>
+        <td class="diff-us">Criptografia AES-256</td>
+      </tr>
+    </table>
+  </section>
+
+  <!-- Market -->
+  <section id="market" class="section">
+    <div class="section-label">Mercado</div>
+    <h2 class="section-title">
+      <span class="highlight">170 milhões</span> de cristãos<br>
+      sem alternativa de qualidade
+    </h2>
+    <p class="section-subtitle">
+      O Brasil é o maior país cristão da América Latina. Apps de bem-estar mental crescem 25% ao ano. Nenhum concorrente brasileiro sério.
+    </p>
+    <div class="market-numbers">
+      <div class="market-card">
+        <div class="market-value">170M</div>
+        <div class="market-label">Cristãos no Brasil</div>
+      </div>
+      <div class="market-card">
+        <div class="market-value">$2B</div>
+        <div class="market-label">Mercado de apps de bem-estar</div>
+      </div>
+      <div class="market-card">
+        <div class="market-value">25%</div>
+        <div class="market-label">Crescimento anual</div>
+      </div>
+      <div class="market-card">
+        <div class="market-value">0</div>
+        <div class="market-label">Concorrentes diretos BR</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Business Model -->
+  <section id="business" class="section">
+    <div class="section-label">Modelo de Negócio</div>
+    <h2 class="section-title">
+      SaaS simples e <span class="highlight">escalável</span>
+    </h2>
+    <div class="pricing-card">
+      <div class="pricing-value">$5.99</div>
+      <div class="pricing-period">por mês</div>
+      <div class="pricing-features">
+        <div class="pricing-feature">
+          <span class="pricing-check">✓</span>
+          <span>7 dias grátis para experimentar</span>
+        </div>
+        <div class="pricing-feature">
+          <span class="pricing-check">✓</span>
+          <span>Conversas ilimitadas</span>
+        </div>
+        <div class="pricing-feature">
+          <span class="pricing-check">✓</span>
+          <span>Memória e personalização</span>
+        </div>
+        <div class="pricing-feature">
+          <span class="pricing-check">✓</span>
+          <span>Devocional diário</span>
+        </div>
+        <div class="pricing-feature">
+          <span class="pricing-check">✓</span>
+          <span>Pedidos de oração</span>
+        </div>
+        <div class="pricing-feature">
+          <span class="pricing-check">✓</span>
+          <span>Privacidade total</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Financials -->
+  <section id="financials" class="section">
+    <div class="section-label">Projeções Financeiras</div>
+    <h2 class="section-title">
+      Margens saudáveis e <span class="highlight">escaláveis</span>
+    </h2>
+    <div class="financial-grid">
+      <div class="financial-card">
+        <div class="financial-label">Custo por usuário/mês</div>
+        <div class="financial-value">~$1.50</div>
+      </div>
+      <div class="financial-card">
+        <div class="financial-label">Receita por usuário/mês</div>
+        <div class="financial-value gold">$5.99</div>
+      </div>
+      <div class="financial-card">
+        <div class="financial-label">Margem bruta</div>
+        <div class="financial-value green">62-73%</div>
+      </div>
+      <div class="financial-card">
+        <div class="financial-label">Break-even</div>
+        <div class="financial-value">~3.800</div>
+        <div class="financial-label">assinantes</div>
+      </div>
+      <div class="financial-card">
+        <div class="financial-label">Meta Ano 1</div>
+        <div class="financial-value gold">10.000</div>
+        <div class="financial-label">assinantes</div>
+      </div>
+      <div class="financial-card">
+        <div class="financial-label">Receita Ano 1</div>
+        <div class="financial-value green">$720K</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ask -->
+  <section id="ask" class="section">
+    <div class="section-label">Investimento</div>
+    <h2 class="section-title">Estamos buscando</h2>
+    <div class="ask-value">$200K</div>
+    <p class="ask-equity">por 10-15% de equity</p>
+    <div class="ask-uses">
+      <div class="ask-use">
+        <div class="ask-use-value">40%</div>
+        <div class="ask-use-label">Desenvolvimento do App</div>
+      </div>
+      <div class="ask-use">
+        <div class="ask-use-value">35%</div>
+        <div class="ask-use-label">Marketing & Aquisição</div>
+      </div>
+      <div class="ask-use">
+        <div class="ask-use-value">15%</div>
+        <div class="ask-use-label">Infraestrutura Cloud</div>
+      </div>
+      <div class="ask-use">
+        <div class="ask-use-value">10%</div>
+        <div class="ask-use-label">Legal & Operações</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="cta" class="section">
+    <h2 class="cta-title">
+      Vamos construir o futuro da<br>
+      <span class="highlight">fé digital</span> juntos?
+    </h2>
+    <p class="section-subtitle">
+      SoulHaven: Orientando milhões ao verdadeiro Refúgio.
+    </p>
+    <a href="mailto:investor@soulhaven.app" class="cta-button">
+      Fale Conosco
+    </a>
+  </section>
+
+</body>
+</html>

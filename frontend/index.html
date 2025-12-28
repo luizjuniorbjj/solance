@@ -1,0 +1,4591 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#d4a056">
+  <meta name="description" content="SoulHaven - Seu companheiro cristao de IA para apoio espiritual, oracao e reflexao biblica">
+
+  <!-- PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SoulHaven">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="SoulHaven">
+  <meta name="msapplication-TileColor" content="#d4a056">
+  <meta name="msapplication-tap-highlight" content="no">
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+
+  <!-- PWA Icons -->
+  <link rel="icon" type="image/x-icon" href="/static/icons/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/icon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/icon-16x16.png">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/static/icons/icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/icon-180x180.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="/static/icons/icon-167x167.png">
+
+  <!-- Splash Screens iOS -->
+  <link rel="apple-touch-startup-image" href="/static/icons/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)">
+  <link rel="apple-touch-startup-image" href="/static/icons/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)">
+  <link rel="apple-touch-startup-image" href="/static/icons/splash-1242x2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)">
+  <link rel="apple-touch-startup-image" href="/static/icons/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
+
+  <title>SoulHaven - Orientando voce ao verdadeiro Refugio</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ============================================
+       CSS VARIABLES - LIGHT THEME
+    ============================================ */
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f7f7f8;
+      --bg-tertiary: #ececf1;
+      --bg-input: #ffffff;
+      --bg-hover: #f0f0f0;
+
+      --text-primary: #1a1a1a;
+      --text-secondary: #666666;
+      --text-muted: #999999;
+
+      --gold: #b8860b;
+      --gold-light: #d4a855;
+      --gold-dark: #8b6914;
+
+      --border: #e5e5e5;
+      --border-light: #d9d9d9;
+
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+
+      --sidebar-width: 260px;
+      --header-height: 56px;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+
+      --transition: 0.2s ease;
+    }
+
+    /* ============================================
+       RESET & BASE
+    ============================================ */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ============================================
+       APP LAYOUT
+    ============================================ */
+    .app {
+      display: flex;
+      height: 100vh;
+      height: 100dvh;
+    }
+
+    /* ============================================
+       SIDEBAR - LIGHT
+    ============================================ */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      transition: transform var(--transition);
+    }
+
+    .sidebar-header {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .new-chat-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      box-shadow: var(--shadow);
+    }
+
+    .new-chat-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--gold);
+    }
+
+    .new-chat-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .sidebar-section {
+      margin-bottom: 16px;
+    }
+
+    .sidebar-section-title {
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .conversation-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background var(--transition);
+      color: var(--text-secondary);
+    }
+
+    .conversation-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .conversation-item.active {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .conversation-item svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .conversation-title {
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    .conversation-actions {
+      display: none;
+      gap: 4px;
+    }
+
+    .conversation-item:hover .conversation-actions {
+      display: flex;
+    }
+
+    .conversation-action-btn {
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .conversation-action-btn:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .conversation-action-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Modal de edição de conversa */
+    .edit-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s;
+    }
+
+    .edit-modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .edit-modal-content {
+      background: var(--bg-primary);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .edit-modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .edit-modal-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      margin-bottom: 16px;
+      outline: none;
+    }
+
+    .edit-modal-input:focus {
+      border-color: var(--gold);
+    }
+
+    .edit-modal-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .edit-modal-btn {
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .edit-modal-btn.cancel {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+
+    .edit-modal-btn.cancel:hover {
+      background: var(--bg-hover);
+    }
+
+    .edit-modal-btn.save {
+      background: var(--gold);
+      border: none;
+      color: white;
+    }
+
+    .edit-modal-btn.save:hover {
+      background: var(--gold-dark);
+    }
+
+    .edit-modal-btn.delete {
+      background: #dc3545;
+      border: none;
+      color: white;
+      margin-right: auto;
+    }
+
+    .edit-modal-btn.delete:hover {
+      background: #c82333;
+    }
+
+    .sidebar-footer {
+      padding: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+
+    .user-profile:hover {
+      background: var(--bg-hover);
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-plan {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Sidebar Upgrade Button */
+    .sidebar-upgrade-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .sidebar-upgrade-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    /* ============================================
+       USER DROPDOWN MENU
+    ============================================ */
+    .sidebar-footer {
+      position: relative;
+    }
+
+    .user-dropdown {
+      position: absolute;
+      bottom: 100%;
+      left: 12px;
+      right: 12px;
+      margin-bottom: 8px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(10px);
+      transition: all 0.2s ease;
+      z-index: 1000;
+      overflow: hidden;
+    }
+
+    .user-dropdown.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .dropdown-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .dropdown-avatar {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .dropdown-user-info {
+      flex: 1;
+    }
+
+    .dropdown-user-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .dropdown-user-email {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .dropdown-menu {
+      padding: 8px 0;
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      color: var(--text-primary);
+      font-size: 14px;
+      cursor: pointer;
+      transition: background var(--transition);
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .dropdown-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .dropdown-item svg {
+      width: 18px;
+      height: 18px;
+      color: var(--text-secondary);
+    }
+
+    .dropdown-item.upgrade {
+      color: var(--gold-dark);
+    }
+
+    .dropdown-item.upgrade svg {
+      color: var(--gold);
+    }
+
+    .dropdown-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 8px 0;
+    }
+
+    .dropdown-item.logout {
+      color: #dc3545;
+    }
+
+    .dropdown-item.logout svg {
+      color: #dc3545;
+    }
+
+    .dropdown-item.install-app {
+      color: #0d6efd;
+    }
+
+    .dropdown-item.install-app svg {
+      color: #0d6efd;
+    }
+
+    .user-profile .chevron {
+      width: 16px;
+      height: 16px;
+      color: var(--text-muted);
+      transition: transform 0.2s ease;
+    }
+
+    .user-profile.active .chevron {
+      transform: rotate(180deg);
+    }
+
+    /* ============================================
+       MAIN CONTENT
+    ============================================ */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background: var(--bg-primary);
+    }
+
+    /* ============================================
+       HEADER - LIGHT
+    ============================================ */
+    .header {
+      height: var(--header-height);
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-primary);
+      position: relative;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .menu-btn {
+      display: none;
+      width: 40px;
+      height: 40px;
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+
+    .menu-btn:hover {
+      background: var(--bg-hover);
+    }
+
+    .menu-btn svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-logo {
+      height: 36px;
+      width: auto;
+    }
+
+    .header-logo img {
+      height: 100%;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .header-text {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .header-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .header-upgrade-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .header-upgrade-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .header-upgrade-btn svg {
+      width: 14px;
+      height: 14px;
+      color: var(--gold);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .header-btn {
+      width: 36px;
+      height: 36px;
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+    }
+
+    .header-btn:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .header-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* ============================================
+       CHAT AREA
+    ============================================ */
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-primary);
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 24px 16px;
+      max-width: 768px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Welcome Screen */
+    .welcome-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .welcome-logo {
+      height: 100px;
+      width: auto;
+      margin-bottom: 24px;
+    }
+
+    .welcome-logo img {
+      height: 100%;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .welcome-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .welcome-subtitle {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+      max-width: 400px;
+    }
+
+    .quick-prompts {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .quick-prompt {
+      padding: 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      text-align: left;
+      transition: all var(--transition);
+    }
+
+    .quick-prompt:hover {
+      border-color: var(--gold);
+      background: var(--bg-primary);
+      box-shadow: var(--shadow);
+    }
+
+    .quick-prompt-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .quick-prompt-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Messages */
+    .message {
+      display: flex;
+      gap: 16px;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .message:last-child {
+      border-bottom: none;
+    }
+
+    .message-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .message.user .message-avatar {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .message.assistant .message-avatar {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: white;
+    }
+
+    .message-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .message-role {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-primary);
+    }
+
+    .message.assistant .message-role {
+      color: var(--gold-dark);
+    }
+
+    .message-text {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text-primary);
+    }
+
+    .message-text p {
+      margin-bottom: 12px;
+    }
+
+    .message-text p:last-child {
+      margin-bottom: 0;
+    }
+
+    .message-text strong {
+      font-weight: 600;
+    }
+
+    .message-text em {
+      color: var(--gold-dark);
+      font-style: italic;
+    }
+
+    /* Typing Indicator */
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 8px 0;
+    }
+
+    .typing-indicator span {
+      width: 8px;
+      height: 8px;
+      background: var(--gold);
+      border-radius: 50%;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-indicator span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
+      }
+      30% {
+        transform: translateY(-8px);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+    }
+
+    /* ============================================
+       FEEDBACK BUTTON
+    ============================================ */
+    .message-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .message:hover .message-actions {
+      opacity: 1;
+    }
+
+    .feedback-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .feedback-btn:hover {
+      color: var(--gold-dark);
+      border-color: var(--gold);
+      background: var(--bg-secondary);
+    }
+
+    .feedback-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Feedback Modal */
+    .feedback-modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .feedback-modal-overlay.show {
+      display: flex;
+    }
+
+    .feedback-modal {
+      background: var(--bg-primary);
+      border-radius: 16px;
+      max-width: 480px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .feedback-modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .feedback-modal-header h3 {
+      margin: 0 0 4px 0;
+      font-size: 18px;
+      color: var(--text-primary);
+    }
+
+    .feedback-modal-header p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .feedback-modal-body {
+      padding: 20px 24px;
+    }
+
+    .feedback-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .feedback-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border: 2px solid transparent;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .feedback-option:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .feedback-option.selected {
+      border-color: var(--gold);
+      background: rgba(184, 134, 11, 0.1);
+    }
+
+    .feedback-option input {
+      display: none;
+    }
+
+    .feedback-option-icon {
+      font-size: 20px;
+    }
+
+    .feedback-option-text {
+      flex: 1;
+    }
+
+    .feedback-option-text strong {
+      display: block;
+      font-size: 14px;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .feedback-option-text span {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .feedback-details {
+      margin-top: 16px;
+    }
+
+    .feedback-details label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .feedback-details textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text-primary);
+      resize: vertical;
+    }
+
+    .feedback-details textarea:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+
+    .feedback-modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .feedback-cancel-btn {
+      padding: 10px 20px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .feedback-cancel-btn:hover {
+      background: var(--bg-secondary);
+    }
+
+    .feedback-submit-btn {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .feedback-submit-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(184, 134, 11, 0.3);
+    }
+
+    .feedback-submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .feedback-success {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .feedback-success-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .feedback-success h4 {
+      margin: 0 0 8px 0;
+      color: var(--text-primary);
+    }
+
+    .feedback-success p {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    /* ============================================
+       INPUT AREA
+    ============================================ */
+    .input-container {
+      padding: 16px;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border);
+    }
+
+    .input-wrapper {
+      max-width: 768px;
+      margin: 0 auto;
+    }
+
+    .input-box {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      transition: all var(--transition);
+      box-shadow: var(--shadow);
+    }
+
+    .input-box:focus-within {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(184, 134, 11, 0.15);
+    }
+
+    .input-field {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: inherit;
+      font-size: 15px;
+      color: var(--text-primary);
+      resize: none;
+      max-height: 200px;
+      line-height: 1.5;
+    }
+
+    .input-field::placeholder {
+      color: var(--text-muted);
+    }
+
+    .send-btn {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      border: none;
+      border-radius: var(--radius-sm);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+
+    .send-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 2px 8px rgba(184, 134, 11, 0.3);
+    }
+
+    .send-btn:disabled {
+      background: var(--bg-tertiary);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .send-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Input actions container */
+    .input-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    /* Microphone button */
+    .mic-btn {
+      width: 36px;
+      height: 36px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+
+    .mic-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(184, 134, 11, 0.05);
+    }
+
+    .mic-btn.recording {
+      background: #dc3545;
+      border-color: #dc3545;
+      color: white;
+      animation: pulse-recording 1.5s infinite;
+    }
+
+    .mic-btn.recording:hover {
+      background: #c82333;
+      border-color: #c82333;
+    }
+
+    .mic-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .mic-btn.recording .mic-icon {
+      display: none;
+    }
+
+    .mic-btn.recording .mic-stop-icon {
+      display: block !important;
+    }
+
+    @keyframes pulse-recording {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    /* Voice indicator */
+    .voice-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(184, 134, 11, 0.1);
+      border-radius: var(--radius-sm);
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--gold-dark);
+    }
+
+    .voice-pulse {
+      width: 10px;
+      height: 10px;
+      background: #dc3545;
+      border-radius: 50%;
+      animation: voice-pulse 1s infinite;
+    }
+
+    @keyframes voice-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    /* Hide mic button if not supported */
+    .mic-btn.hidden {
+      display: none;
+    }
+
+    .input-hint {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ============================================
+       MOBILE OVERLAY
+    ============================================ */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.3);
+      z-index: 998;
+    }
+
+    /* ============================================
+       RESPONSIVE - MOBILE
+    ============================================ */
+    @media (max-width: 768px) {
+      /* Hide sidebar by default on mobile */
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 280px !important;
+        z-index: 1000;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .sidebar-overlay.open {
+        display: block;
+      }
+
+      /* Main content takes full width */
+      .main {
+        margin-left: 0 !important;
+        width: 100% !important;
+      }
+
+      .menu-btn {
+        display: flex !important;
+      }
+
+      .header-text {
+        display: none;
+      }
+
+      /* Header upgrade button - smaller on mobile */
+      .header-center {
+        position: static;
+        transform: none;
+        flex: 1;
+        display: flex;
+        justify-content: center;
+      }
+
+      .header-upgrade-btn {
+        padding: 4px 10px;
+        font-size: 11px;
+      }
+
+      .header-upgrade-btn svg {
+        width: 11px;
+        height: 11px;
+      }
+
+      /* Hide header right buttons on small screens */
+      .header-right {
+        display: none;
+      }
+
+      .chat-messages {
+        padding: 12px;
+      }
+
+      .message {
+        padding: 12px 0;
+      }
+
+      .message-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+        flex-shrink: 0;
+      }
+
+      .message-content {
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      /* Welcome screen mobile */
+      .welcome-screen {
+        padding: 20px 16px;
+      }
+
+      .welcome-logo {
+        height: 70px;
+        margin-bottom: 12px;
+      }
+
+      .header-logo {
+        height: 28px;
+      }
+
+      .welcome-title {
+        font-size: 18px;
+        margin-bottom: 8px;
+      }
+
+      .welcome-subtitle {
+        font-size: 13px;
+        margin-bottom: 20px;
+        padding: 0 10px;
+      }
+
+      .quick-prompts {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 0 8px;
+      }
+
+      .quick-prompt {
+        padding: 10px;
+      }
+
+      .quick-prompt-title {
+        font-size: 12px;
+      }
+
+      .quick-prompt-desc {
+        font-size: 10px;
+      }
+
+      /* Input area mobile */
+      .input-container {
+        padding: 8px 12px 12px;
+      }
+
+      .input-box {
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+
+      .input-box textarea {
+        font-size: 14px;
+      }
+
+      .send-btn {
+        width: 32px;
+        height: 32px;
+      }
+
+      .chat-disclaimer {
+        font-size: 9px;
+        padding: 4px 8px;
+      }
+
+      /* User profile in sidebar footer */
+      .user-profile {
+        padding: 8px 10px;
+        gap: 8px;
+      }
+
+      .user-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+      }
+
+      .user-name {
+        font-size: 13px;
+      }
+
+      .user-plan {
+        font-size: 11px;
+      }
+
+      .sidebar-upgrade-btn {
+        padding: 3px 8px;
+        font-size: 10px;
+      }
+
+      .chevron {
+        width: 14px;
+        height: 14px;
+      }
+
+      /* Conversation list */
+      .conversation-item {
+        padding: 10px 12px;
+        font-size: 13px;
+      }
+
+      /* Upgrade modal mobile */
+      .upgrade-modal {
+        padding: 0;
+        align-items: flex-end;
+      }
+
+      .upgrade-container {
+        max-width: 100%;
+        max-height: 95vh;
+        border-radius: 20px 20px 0 0;
+        margin: 0;
+      }
+
+      .upgrade-header {
+        padding: 20px 16px;
+      }
+
+      .upgrade-header h2 {
+        font-size: 20px;
+      }
+
+      .upgrade-icon {
+        width: 48px;
+        height: 48px;
+        margin-bottom: 12px;
+      }
+
+      .upgrade-icon svg {
+        width: 24px;
+        height: 24px;
+      }
+
+      .upgrade-content {
+        padding: 16px;
+      }
+
+      .upgrade-price .price {
+        font-size: 36px;
+      }
+
+      .upgrade-price .price span {
+        font-size: 16px;
+      }
+
+      .upgrade-price {
+        margin-bottom: 16px;
+        padding-bottom: 16px;
+      }
+
+      .upgrade-features {
+        margin-bottom: 16px;
+      }
+
+      .upgrade-features h3 {
+        font-size: 12px;
+        margin-bottom: 12px;
+      }
+
+      .feature-item {
+        margin-bottom: 10px;
+        gap: 10px;
+      }
+
+      .feature-check {
+        width: 18px;
+        height: 18px;
+      }
+
+      .feature-check svg {
+        width: 10px;
+        height: 10px;
+      }
+
+      .feature-text strong {
+        font-size: 13px;
+      }
+
+      .feature-text p {
+        font-size: 11px;
+      }
+
+      .upgrade-btn {
+        padding: 12px 20px;
+        font-size: 14px;
+      }
+
+      .upgrade-footer {
+        padding: 12px 16px;
+        font-size: 10px;
+      }
+    }
+
+    /* Extra small screens (phones) */
+    @media (max-width: 480px) {
+      .sidebar {
+        width: 85vw !important;
+        max-width: 280px;
+      }
+
+      .welcome-title {
+        font-size: 16px;
+      }
+
+      .welcome-subtitle {
+        font-size: 12px;
+      }
+
+      .quick-prompts {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      .quick-prompt {
+        padding: 10px 12px;
+      }
+
+      .header-upgrade-btn {
+        padding: 3px 8px;
+        font-size: 10px;
+        gap: 4px;
+      }
+
+      .header-upgrade-btn svg {
+        width: 10px;
+        height: 10px;
+      }
+    }
+
+    /* ============================================
+       SCROLLBAR - LIGHT
+    ============================================ */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    /* ============================================
+       AUTH MODAL - LIGHT THEME
+    ============================================ */
+    .auth-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #ffffff;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      z-index: 1000;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 400px;
+      padding: 32px 24px;
+      padding-bottom: 40px;
+      text-align: center;
+      min-height: min-content;
+    }
+
+    .auth-header {
+      margin-bottom: 32px;
+    }
+
+    .auth-logo {
+      height: 140px;
+      width: auto;
+      margin: 0 auto 24px;
+    }
+
+    .auth-logo img {
+      height: 100%;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .auth-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+    }
+
+    .auth-header p {
+      color: #666666;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    /* Social Login Buttons */
+    .social-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .social-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      padding: 14px 20px;
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      color: #1f2937;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .social-btn:hover {
+      background: #f9fafb;
+      border-color: #9ca3af;
+    }
+
+    .social-btn svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    /* Divider */
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 24px 0;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e5e7eb;
+    }
+
+    /* Email Form */
+    .email-form {
+      margin-bottom: 20px;
+    }
+
+    .email-input-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .email-input-group input {
+      flex: 1;
+      padding: 14px 16px;
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      color: #1f2937;
+      font-size: 15px;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .email-input-group input:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(184, 134, 11, 0.1);
+    }
+
+    .email-input-group input::placeholder {
+      color: #9ca3af;
+    }
+
+    .continue-btn {
+      padding: 14px 24px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+
+    .continue-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(184, 134, 11, 0.25);
+    }
+
+    /* Terms */
+    .auth-terms {
+      margin-top: 32px;
+      font-size: 12px;
+      color: #9ca3af;
+      line-height: 1.6;
+    }
+
+    .auth-terms a {
+      color: #6e7681;
+      text-decoration: underline;
+    }
+
+    .auth-terms a:hover {
+      color: var(--gold);
+    }
+
+    /* Hidden forms */
+    .auth-form-hidden {
+      display: none;
+    }
+
+    .auth-form-hidden.active {
+      display: block;
+    }
+
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+      background: transparent;
+      border: none;
+      color: #6e7681;
+      font-size: 14px;
+      cursor: pointer;
+      margin-bottom: 24px;
+      font-family: inherit;
+    }
+
+    .back-btn:hover {
+      color: var(--gold);
+    }
+
+    .back-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px;
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      color: #1f2937;
+      font-size: 15px;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(184, 134, 11, 0.1);
+    }
+
+    .form-group input::placeholder {
+      color: #9ca3af;
+    }
+
+    /* Health Disclaimer */
+    .health-disclaimer {
+      background: rgba(231, 76, 60, 0.08);
+      border: 1px solid rgba(231, 76, 60, 0.2);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 16px 0;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .health-disclaimer .disclaimer-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .health-disclaimer p {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .health-disclaimer strong {
+      color: #333;
+    }
+
+    /* Terms Checkbox */
+    .terms-checkbox {
+      margin: 16px 0;
+    }
+
+    .checkbox-container {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .checkbox-container input[type="checkbox"] {
+      display: none;
+    }
+
+    .checkbox-container .checkmark {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #d1d5db;
+      border-radius: 4px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      margin-top: 2px;
+    }
+
+    .checkbox-container input[type="checkbox"]:checked + .checkmark {
+      background: var(--gold);
+      border-color: var(--gold);
+    }
+
+    .checkbox-container input[type="checkbox"]:checked + .checkmark::after {
+      content: '';
+      width: 5px;
+      height: 9px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    .checkbox-text {
+      color: #666;
+    }
+
+    .checkbox-text a {
+      color: var(--gold);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .checkbox-text a:hover {
+      text-decoration: underline;
+    }
+
+    .auth-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 8px;
+      font-family: inherit;
+    }
+
+    .auth-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(184, 134, 11, 0.3);
+    }
+
+    .auth-link {
+      margin-top: 16px;
+      font-size: 14px;
+      color: #6e7681;
+    }
+
+    .auth-link button {
+      background: none;
+      border: none;
+      color: var(--gold);
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    .auth-link button:hover {
+      text-decoration: underline;
+    }
+
+    .login-options {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: -4px 0 16px 0;
+    }
+
+    .remember-me {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .remember-me input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--gold);
+      cursor: pointer;
+    }
+
+    .forgot-link {
+      background: none;
+      border: none;
+      color: var(--gold);
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .forgot-link:hover {
+      text-decoration: underline;
+    }
+
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    .success-icon svg {
+      width: 32px;
+      height: 32px;
+      color: white;
+      stroke: white;
+    }
+
+    /* Welcome buttons (Entrar / Cadastrar) */
+    .welcome-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      max-width: 320px;
+      margin-top: 24px;
+    }
+
+    .auth-btn.primary {
+      background: #1a1a1a;
+      color: white;
+    }
+
+    .auth-btn.primary:hover {
+      background: #333;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .auth-btn.secondary {
+      background: white;
+      color: #1a1a1a;
+      border: 1px solid #d0d0d0;
+    }
+
+    .auth-btn.secondary:hover {
+      background: #f5f5f5;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Close button */
+    .close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #666;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+
+    .close-btn:hover {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    .close-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Full width email input */
+    .email-input-full {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid #d0d0d0;
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: inherit;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+
+    .email-input-full:focus {
+      outline: none;
+      border-color: #1a1a1a;
+    }
+
+    /* Field error message */
+    .field-error {
+      display: block;
+      color: #dc3545;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    /* Confirm Modal (Logout) */
+    .confirm-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 20px;
+    }
+
+    .confirm-modal.active {
+      display: flex;
+    }
+
+    .confirm-container {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .confirm-container h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 12px;
+    }
+
+    .confirm-container p {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 24px;
+    }
+
+    .confirm-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .confirm-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 24px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .confirm-btn.primary {
+      background: #1a1a1a;
+      color: white;
+      border: none;
+    }
+
+    .confirm-btn.primary:hover {
+      background: #333;
+    }
+
+    .confirm-btn.secondary {
+      background: white;
+      color: #1a1a1a;
+      border: 1px solid #d0d0d0;
+    }
+
+    .confirm-btn.secondary:hover {
+      background: #f5f5f5;
+    }
+
+    /* Mobile responsive for auth */
+    @media (max-width: 768px) {
+      .auth-modal {
+        align-items: flex-start;
+        padding: 0;
+      }
+
+      .auth-container {
+        padding: 24px 20px;
+        padding-bottom: 40px;
+        max-width: 100%;
+        min-height: 100vh;
+        min-height: 100dvh;
+      }
+
+      .auth-header {
+        margin-bottom: 28px;
+      }
+
+      .auth-header h1 {
+        font-size: 24px;
+      }
+
+      .auth-header p {
+        font-size: 15px;
+        padding: 0 8px;
+      }
+
+      .auth-logo {
+        height: 100px;
+        margin-bottom: 20px;
+      }
+
+      .social-buttons {
+        gap: 10px;
+      }
+
+      .social-btn {
+        padding: 14px 16px;
+        font-size: 15px;
+      }
+
+      .email-form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .email-input-full {
+        width: 100%;
+        padding: 14px 16px;
+        font-size: 16px;
+      }
+
+      .auth-btn {
+        width: 100%;
+        padding: 14px 20px;
+        font-size: 16px;
+      }
+
+      .auth-divider {
+        margin: 20px 0;
+      }
+
+      .form-group input {
+        padding: 14px;
+        font-size: 16px;
+      }
+
+      .health-disclaimer {
+        padding: 14px;
+        font-size: 13px;
+      }
+
+      .terms-checkbox {
+        font-size: 14px;
+      }
+
+      .welcome-buttons {
+        gap: 12px;
+      }
+
+      .back-btn {
+        margin-bottom: 8px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .auth-container {
+        padding: 20px 16px;
+      }
+
+      .auth-header h1 {
+        font-size: 22px;
+      }
+
+      .auth-header p {
+        font-size: 14px;
+      }
+
+      .social-btn {
+        padding: 12px 14px;
+        font-size: 14px;
+      }
+
+      .auth-btn {
+        padding: 12px 16px;
+        font-size: 15px;
+      }
+    }
+
+    /* ============================================
+       UPGRADE MODAL
+    ============================================ */
+    .upgrade-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 20px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .upgrade-modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .upgrade-container {
+      background: white;
+      border-radius: 20px;
+      max-width: 480px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      transform: scale(0.9) translateY(20px);
+      transition: transform 0.3s ease;
+    }
+
+    .upgrade-modal.active .upgrade-container {
+      transform: scale(1) translateY(0);
+    }
+
+    .upgrade-header {
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      padding: 32px 24px;
+      text-align: center;
+      color: white;
+      position: relative;
+    }
+
+    .upgrade-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .upgrade-close:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .upgrade-close svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .upgrade-icon {
+      width: 64px;
+      height: 64px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    .upgrade-icon svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .upgrade-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .upgrade-header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .upgrade-content {
+      padding: 24px;
+    }
+
+    .upgrade-price {
+      text-align: center;
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .upgrade-price .price {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--gold-dark);
+    }
+
+    .upgrade-price .price span {
+      font-size: 18px;
+      font-weight: 400;
+      color: var(--text-secondary);
+    }
+
+    .upgrade-price .period {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .upgrade-features {
+      margin-bottom: 24px;
+    }
+
+    .upgrade-features h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .feature-check {
+      width: 20px;
+      height: 20px;
+      background: #dcfce7;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .feature-check svg {
+      width: 12px;
+      height: 12px;
+      color: #16a34a;
+    }
+
+    .feature-text {
+      flex: 1;
+    }
+
+    .feature-text strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .feature-text span {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .upgrade-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 12px;
+    }
+
+    .upgrade-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(184, 134, 11, 0.4);
+    }
+
+    .upgrade-trial {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .upgrade-trial strong {
+      color: var(--gold-dark);
+    }
+
+    .upgrade-footer {
+      padding: 16px 24px;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .upgrade-footer p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .upgrade-footer a {
+      color: var(--gold);
+      text-decoration: none;
+    }
+
+    .upgrade-footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+      .upgrade-container {
+        max-height: 100vh;
+        border-radius: 16px 16px 0 0;
+      }
+
+      .upgrade-header {
+        padding: 24px 20px;
+      }
+
+      .upgrade-header h2 {
+        font-size: 20px;
+      }
+
+      .upgrade-price .price {
+        font-size: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Feedback Modal -->
+  <div id="feedbackModal" class="feedback-modal-overlay">
+    <div class="feedback-modal">
+      <div id="feedbackForm">
+        <div class="feedback-modal-header">
+          <h3>Reportar Problema</h3>
+          <p>Ajude-nos a melhorar o SoulHaven</p>
+        </div>
+        <div class="feedback-modal-body">
+          <div class="feedback-options">
+            <label class="feedback-option" onclick="selectFeedbackOption(this, 'not_christian')">
+              <input type="radio" name="feedback_type" value="not_christian">
+              <span class="feedback-option-icon">✝️</span>
+              <div class="feedback-option-text">
+                <strong>Nao esta de acordo com a fe crista</strong>
+                <span>A resposta contradiz principios biblicos</span>
+              </div>
+            </label>
+            <label class="feedback-option" onclick="selectFeedbackOption(this, 'wrong_info')">
+              <input type="radio" name="feedback_type" value="wrong_info">
+              <span class="feedback-option-icon">❌</span>
+              <div class="feedback-option-text">
+                <strong>Informacao incorreta</strong>
+                <span>Dados errados ou imprecisos</span>
+              </div>
+            </label>
+            <label class="feedback-option" onclick="selectFeedbackOption(this, 'not_helpful')">
+              <input type="radio" name="feedback_type" value="not_helpful">
+              <span class="feedback-option-icon">😕</span>
+              <div class="feedback-option-text">
+                <strong>Nao foi util</strong>
+                <span>A resposta nao ajudou ou foi generica</span>
+              </div>
+            </label>
+            <label class="feedback-option" onclick="selectFeedbackOption(this, 'inappropriate')">
+              <input type="radio" name="feedback_type" value="inappropriate">
+              <span class="feedback-option-icon">⚠️</span>
+              <div class="feedback-option-text">
+                <strong>Conteudo inapropriado</strong>
+                <span>Resposta ofensiva ou inadequada</span>
+              </div>
+            </label>
+            <label class="feedback-option" onclick="selectFeedbackOption(this, 'other')">
+              <input type="radio" name="feedback_type" value="other">
+              <span class="feedback-option-icon">💬</span>
+              <div class="feedback-option-text">
+                <strong>Outro problema</strong>
+                <span>Descreva nos detalhes abaixo</span>
+              </div>
+            </label>
+          </div>
+          <div class="feedback-details">
+            <label>Detalhes (opcional)</label>
+            <textarea id="feedbackDetails" placeholder="Descreva o problema ou o que esperava como resposta..."></textarea>
+          </div>
+        </div>
+        <div class="feedback-modal-footer">
+          <button class="feedback-cancel-btn" onclick="closeFeedbackModal()">Cancelar</button>
+          <button class="feedback-submit-btn" id="feedbackSubmitBtn" onclick="submitFeedback()" disabled>Enviar Feedback</button>
+        </div>
+      </div>
+      <div id="feedbackSuccess" class="feedback-success" style="display: none;">
+        <div class="feedback-success-icon">✅</div>
+        <h4>Obrigado pelo feedback!</h4>
+        <p>Sua contribuicao nos ajuda a melhorar o SoulHaven.</p>
+        <button class="feedback-submit-btn" onclick="closeFeedbackModal()" style="margin-top: 20px;">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auth Modal -->
+  <div id="authModal" class="auth-modal" style="display: none;">
+    <div class="auth-container">
+      <!-- Welcome Screen (Initial) -->
+      <div id="welcomeAuth" class="auth-form-hidden active">
+        <div class="auth-header">
+          <div class="auth-logo">
+            <img src="/static/icons/logo-full.png" alt="SoulHaven">
+          </div>
+          <h1>Bem-vindo ao SoulHaven</h1>
+          <p>Entre ou cadastre-se para receber respostas mais inteligentes, salvar conversas e muito mais.</p>
+        </div>
+
+        <div class="welcome-buttons">
+          <button class="auth-btn primary" onclick="showAuthOptions('login')">Entrar</button>
+          <button class="auth-btn secondary" onclick="showAuthOptions('register')">Cadastre-se gratuitamente</button>
+        </div>
+      </div>
+
+      <!-- Auth Options Screen (removido OAuth temporariamente) -->
+      <div id="authOptions" class="auth-form-hidden">
+        <!-- Redirecionado direto para login/register -->
+      </div>
+
+      <!-- Login Form -->
+      <div id="loginForm" class="auth-form-hidden">
+        <button class="back-btn" onclick="showWelcomeAuth()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Voltar
+        </button>
+
+        <div class="auth-header">
+          <div class="auth-logo">
+            <img src="/static/icons/logo-full.png" alt="SoulHaven">
+          </div>
+          <h1>Entrar</h1>
+          <p>Bem-vindo de volta!</p>
+        </div>
+
+        <form onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" placeholder="seu@email.com" required>
+          </div>
+          <div class="form-group">
+            <label for="loginPassword">Senha</label>
+            <input type="password" id="loginPassword" placeholder="Sua senha" required>
+          </div>
+          <div class="login-options">
+            <label class="remember-me">
+              <input type="checkbox" id="rememberMe">
+              <span class="checkmark-small"></span>
+              <span>Lembrar meus dados</span>
+            </label>
+            <button type="button" class="forgot-link" onclick="showForgotPassword()">Esqueci minha senha</button>
+          </div>
+          <button type="submit" class="auth-btn primary">Entrar</button>
+        </form>
+
+        <p class="auth-link">
+          Ainda nao tem conta? <button onclick="showRegisterForm()">Criar conta</button>
+        </p>
+      </div>
+
+      <!-- Register Form -->
+      <div id="registerForm" class="auth-form-hidden">
+        <button class="back-btn" onclick="showWelcomeAuth()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Voltar
+        </button>
+
+        <div class="auth-header">
+          <div class="auth-logo">
+            <img src="/static/icons/logo-full.png" alt="SoulHaven">
+          </div>
+          <h1>Criar conta</h1>
+          <p>7 dias de teste gratuito</p>
+        </div>
+
+        <form onsubmit="handleRegister(event)">
+          <div class="form-group">
+            <label for="registerNome">Nome</label>
+            <input type="text" id="registerNome" placeholder="Como podemos te chamar?" required>
+          </div>
+          <div class="form-group">
+            <label for="registerEmail">Email</label>
+            <input type="email" id="registerEmail" placeholder="seu@email.com" required>
+          </div>
+          <div class="form-group">
+            <label for="registerPassword">Senha</label>
+            <input type="password" id="registerPassword" placeholder="Minimo 8 caracteres" minlength="8" required>
+          </div>
+          <div class="form-group">
+            <label for="registerPasswordConfirm">Confirmar senha</label>
+            <input type="password" id="registerPasswordConfirm" placeholder="Digite a senha novamente" minlength="8" required>
+            <span id="passwordMatchError" class="field-error" style="display: none;">As senhas nao coincidem</span>
+          </div>
+
+          <!-- Disclaimer de Saúde Mental -->
+          <div class="health-disclaimer">
+            <div class="disclaimer-icon">⚕️</div>
+            <p>O SoulHaven oferece <strong>apoio emocional e espiritual</strong>, não substitui tratamento médico, psicológico ou pastoral presencial.</p>
+          </div>
+
+          <!-- Aceite de Termos -->
+          <div class="terms-checkbox">
+            <label class="checkbox-container">
+              <input type="checkbox" id="acceptTerms" required>
+              <span class="checkmark"></span>
+              <span class="checkbox-text">
+                Li e aceito os <a href="/static/termos.html" target="_blank">Termos de Uso</a> e a
+                <a href="/static/privacidade.html" target="_blank">Política de Privacidade</a>
+              </span>
+            </label>
+          </div>
+
+          <button type="submit" class="auth-btn primary">Criar conta gratis</button>
+        </form>
+
+        <p class="auth-link">
+          Ja tem conta? <button onclick="showLoginForm()">Entrar</button>
+        </p>
+      </div>
+
+      <!-- Forgot Password Form -->
+      <div id="forgotPasswordForm" class="auth-form-hidden">
+        <button class="back-btn" onclick="showLoginForm()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Voltar
+        </button>
+
+        <div class="auth-header">
+          <div class="auth-logo">
+            <img src="/static/icons/logo-full.png" alt="SoulHaven">
+          </div>
+          <h1>Recuperar senha</h1>
+          <p>Digite seu email para receber as instrucoes de recuperacao</p>
+        </div>
+
+        <form onsubmit="handleForgotPassword(event)">
+          <div class="form-group">
+            <label for="forgotEmail">Email</label>
+            <input type="email" id="forgotEmail" placeholder="seu@email.com" required>
+          </div>
+          <button type="submit" class="auth-btn primary">Enviar instrucoes</button>
+        </form>
+
+        <p class="auth-link">
+          Lembrou a senha? <button onclick="showLoginForm()">Voltar ao login</button>
+        </p>
+      </div>
+
+      <!-- Reset Password Success -->
+      <div id="forgotPasswordSuccess" class="auth-form-hidden">
+        <div class="auth-header">
+          <div class="success-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <h1>Email enviado!</h1>
+          <p>Verifique sua caixa de entrada e siga as instrucoes para redefinir sua senha.</p>
+        </div>
+
+        <button class="auth-btn primary" onclick="showLoginForm()">Voltar ao login</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upgrade Modal -->
+  <div id="upgradeModal" class="upgrade-modal">
+    <div class="upgrade-container">
+      <div class="upgrade-header">
+        <button class="upgrade-close" onclick="hideUpgradeModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+        <div class="upgrade-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </div>
+        <h2>SoulHaven Premium</h2>
+        <p>Eleve sua jornada espiritual ao proximo nivel</p>
+      </div>
+
+      <div class="upgrade-content">
+        <div class="upgrade-price">
+          <div class="price">$5<span>.99</span></div>
+          <div class="period">por mes, cancele quando quiser</div>
+        </div>
+
+        <div class="upgrade-features">
+          <h3>O que esta incluso</h3>
+
+          <div class="feature-item">
+            <div class="feature-check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <div class="feature-text">
+              <strong>Mensagens ilimitadas</strong>
+              <span>Converse o quanto precisar, sem limites</span>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <div class="feature-text">
+              <strong>Memoria completa</strong>
+              <span>Lembra de todas suas conversas e preferencias</span>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <div class="feature-text">
+              <strong>Devocionais personalizados</strong>
+              <span>Conteudo diario baseado em suas necessidades</span>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <div class="feature-text">
+              <strong>Companheiro sempre disponivel</strong>
+              <span>Apoio espiritual 24 horas por dia</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="upgrade-btn" onclick="processUpgrade()">
+          Assinar Premium
+        </button>
+
+        <div class="upgrade-trial">
+          <strong>7 dias gratis</strong> para novos assinantes
+        </div>
+      </div>
+
+      <div class="upgrade-footer">
+        <p>
+          Pagamento seguro via Stripe. Cancele a qualquer momento.
+          <br>
+          <a href="#">Termos de uso</a> | <a href="#">Politica de privacidade</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logout Confirmation Modal -->
+  <div id="logoutModal" class="confirm-modal">
+    <div class="confirm-container">
+      <h2>Tem certeza de que deseja sair?</h2>
+      <p id="logoutUserEmail">Sair do SoulHaven com seu@email.com?</p>
+      <div class="confirm-buttons">
+        <button class="confirm-btn primary" onclick="confirmLogout()">Sair</button>
+        <button class="confirm-btn secondary" onclick="hideLogoutModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="appContainer" class="app">
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <button class="new-chat-btn" onclick="newChat()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Nova conversa
+        </button>
+      </div>
+
+      <div class="sidebar-content" id="conversationsList">
+        <!-- Conversas serao carregadas dinamicamente -->
+        <div class="sidebar-section">
+          <div class="sidebar-section-title" style="text-align: center; color: var(--text-muted);">
+            Carregando conversas...
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <!-- User Dropdown Menu -->
+        <div class="user-dropdown" id="userDropdown">
+          <div class="dropdown-header">
+            <div class="dropdown-avatar" id="dropdownAvatar">U</div>
+            <div class="dropdown-user-info">
+              <div class="dropdown-user-name" id="dropdownUserName">Usuario</div>
+              <div class="dropdown-user-email" id="dropdownUserEmail">usuario@email.com</div>
+            </div>
+          </div>
+          <div class="dropdown-menu">
+            <button class="dropdown-item upgrade" onclick="showUpgradeModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              Fazer upgrade do plano
+            </button>
+            <button class="dropdown-item" onclick="showProfileSettings()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              Meu perfil
+            </button>
+            <button class="dropdown-item" onclick="showSettings()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+              Configuracoes
+            </button>
+            <button class="dropdown-item install-app" id="installAppBtn" onclick="installApp()" style="display: none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Instalar Aplicativo
+            </button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item logout" onclick="logout()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              Sair
+            </button>
+          </div>
+        </div>
+
+        <!-- User Profile Button (like ChatGPT) -->
+        <div class="user-profile" id="userProfileBtn" onclick="toggleUserDropdown()">
+          <div class="user-avatar" id="userAvatar">U</div>
+          <div class="user-info">
+            <div class="user-name" id="userName">Usuario</div>
+            <div class="user-plan" id="userPlan">Gratuito</div>
+          </div>
+          <!-- Upgrade Button (visible when not premium) -->
+          <button class="sidebar-upgrade-btn" id="sidebarUpgradeBtn" onclick="event.stopPropagation(); showUpgradeModal();">
+            Fazer upgrade
+          </button>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="18 15 12 9 6 15"/>
+          </svg>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-left">
+          <button class="menu-btn" onclick="toggleSidebar()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 12h18M3 6h18M3 18h18"/>
+            </svg>
+          </button>
+          <div class="header-title">
+            <div class="header-logo">
+              <img src="/static/icons/logo-header.png" alt="SoulHaven">
+            </div>
+          </div>
+        </div>
+        <!-- Header Center - Upgrade Button (like ChatGPT) -->
+        <div class="header-center">
+          <button class="header-upgrade-btn" id="headerUpgradeBtn" onclick="showUpgradeModal()">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            Assinar Premium
+          </button>
+        </div>
+        <div class="header-right">
+          <button class="header-btn" title="Devocional">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+          </button>
+          <button class="header-btn" title="Pedidos de Oracao">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Chat Container -->
+      <div class="chat-container" id="chatContainer">
+        <!-- Welcome Screen -->
+        <div class="welcome-screen" id="welcomeScreen">
+          <div class="welcome-logo">
+            <img src="/static/icons/logo-full.png" alt="SoulHaven">
+          </div>
+          <h1 class="welcome-title">Ola! Como posso ajudar?</h1>
+          <p class="welcome-subtitle">
+            Sou o SoulHaven, seu companheiro cristao de IA.
+            Estou aqui para caminhar com voce na fe.
+          </p>
+          <div class="quick-prompts">
+            <div class="quick-prompt" onclick="sendQuickPrompt('Estou me sentindo ansioso')">
+              <div class="quick-prompt-title">Ansiedade</div>
+              <div class="quick-prompt-desc">Estou me sentindo ansioso</div>
+            </div>
+            <div class="quick-prompt" onclick="sendQuickPrompt('Preciso de um versiculo para hoje')">
+              <div class="quick-prompt-title">Versiculo</div>
+              <div class="quick-prompt-desc">Preciso de uma palavra</div>
+            </div>
+            <div class="quick-prompt" onclick="sendQuickPrompt('Me ajuda a orar')">
+              <div class="quick-prompt-title">Oracao</div>
+              <div class="quick-prompt-desc">Quero orar com voce</div>
+            </div>
+            <div class="quick-prompt" onclick="sendQuickPrompt('Tenho duvidas sobre minha fe')">
+              <div class="quick-prompt-title">Duvidas</div>
+              <div class="quick-prompt-desc">Sobre fe e teologia</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="chat-messages" id="chatMessages" style="display: none;"></div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="input-container">
+        <div class="input-wrapper">
+          <div class="input-box">
+            <textarea
+              class="input-field"
+              id="messageInput"
+              placeholder="Mensagem para SoulHaven..."
+              rows="1"
+              onkeydown="handleKeyDown(event)"
+              oninput="autoResize(this)"
+            ></textarea>
+            <div class="input-actions">
+              <button class="mic-btn" id="micBtn" onclick="toggleVoiceInput()" title="Falar mensagem">
+                <svg class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                  <line x1="12" y1="19" x2="12" y2="23"/>
+                  <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+                <svg class="mic-stop-icon" viewBox="0 0 24 24" fill="currentColor" style="display:none">
+                  <rect x="6" y="6" width="12" height="12" rx="2"/>
+                </svg>
+              </button>
+              <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="voice-indicator" id="voiceIndicator" style="display:none">
+            <div class="voice-pulse"></div>
+            <span>Ouvindo...</span>
+          </div>
+          <p class="input-hint">
+            SoulHaven pode cometer erros. Consulte sempre sua igreja local.
+          </p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ============================================
+    // STATE
+    // ============================================
+    const state = {
+      messages: [],
+      conversationId: null,
+      isLoading: false,
+      token: localStorage.getItem('soulhaven_token'),
+      user: JSON.parse(localStorage.getItem('soulhaven_user') || 'null')
+    };
+
+    // Usar o mesmo host/porta que está servindo a página (funciona em localhost e IP)
+    const API_URL = window.location.origin;
+
+    // ============================================
+    // AUTH FUNCTIONS
+    // ============================================
+    async function login(email, password) {
+      try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || 'Erro ao fazer login');
+        }
+
+        const data = await response.json();
+        state.token = data.access_token;
+        localStorage.setItem('soulhaven_token', data.access_token);
+
+        // Mostrar app imediatamente
+        hideAuthModal();
+        showApp();
+
+        // Carregar perfil e conversas em paralelo (mais rápido)
+        loadUserProfile();
+        loadConversations();
+        return true;
+      } catch (error) {
+        alert(error.message);
+        return false;
+      }
+    }
+
+    async function register(email, password, nome, acceptedTerms = true) {
+      try {
+        const response = await fetch(`${API_URL}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, nome, accepted_terms: acceptedTerms })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || 'Erro ao criar conta');
+        }
+
+        return await login(email, password);
+      } catch (error) {
+        alert(error.message);
+        return false;
+      }
+    }
+
+    async function loadUserProfile() {
+      try {
+        const response = await fetch(`${API_URL}/auth/me`, {
+          headers: { 'Authorization': `Bearer ${state.token}` }
+        });
+
+        if (response.ok) {
+          state.user = await response.json();
+          localStorage.setItem('soulhaven_user', JSON.stringify(state.user));
+          updateUserUI();
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      }
+    }
+
+    function logout() {
+      // Close dropdown first
+      const dropdown = document.getElementById('userDropdown');
+      const profileBtn = document.getElementById('userProfileBtn');
+      if (dropdown) dropdown.classList.remove('active');
+      if (profileBtn) profileBtn.classList.remove('active');
+
+      // Show confirmation modal
+      const email = state.user?.email || 'seu@email.com';
+      document.getElementById('logoutUserEmail').textContent = `Sair do SoulHaven com ${email}?`;
+      document.getElementById('logoutModal').classList.add('active');
+    }
+
+    function hideLogoutModal() {
+      document.getElementById('logoutModal').classList.remove('active');
+    }
+
+    function confirmLogout() {
+      hideLogoutModal();
+      // Clear state
+      state.token = null;
+      state.user = null;
+      state.messages = [];
+      state.conversationId = null;
+      localStorage.removeItem('soulhaven_token');
+      localStorage.removeItem('soulhaven_user');
+      showAuthModal();
+    }
+
+    function updateUserUI() {
+      if (state.user) {
+        const displayName = state.user.nome || state.user.email.split('@')[0];
+        const initial = displayName[0].toUpperCase();
+
+        // Update sidebar profile
+        document.getElementById('userName').textContent = displayName;
+        document.getElementById('userAvatar').textContent = initial;
+
+        // Update plan text and upgrade buttons visibility
+        const userPlan = document.getElementById('userPlan');
+        const headerUpgradeBtn = document.getElementById('headerUpgradeBtn');
+        const sidebarUpgradeBtn = document.getElementById('sidebarUpgradeBtn');
+
+        if (state.user.is_premium) {
+          // Premium: show "Premium" text, hide upgrade buttons
+          if (userPlan) {
+            userPlan.style.display = 'block';
+            userPlan.textContent = 'Premium';
+          }
+          if (headerUpgradeBtn) headerUpgradeBtn.style.display = 'none';
+          if (sidebarUpgradeBtn) sidebarUpgradeBtn.style.display = 'none';
+        } else {
+          // Free: show "Gratuito" text and upgrade buttons
+          if (userPlan) {
+            userPlan.style.display = 'block';
+            userPlan.textContent = 'Gratuito';
+          }
+          if (headerUpgradeBtn) headerUpgradeBtn.style.display = 'flex';
+          if (sidebarUpgradeBtn) sidebarUpgradeBtn.style.display = 'block';
+        }
+
+        // Update dropdown
+        document.getElementById('dropdownUserName').textContent = displayName;
+        document.getElementById('dropdownAvatar').textContent = initial;
+        document.getElementById('dropdownUserEmail').textContent = state.user.email || '';
+      }
+    }
+
+    // ============================================
+    // USER DROPDOWN FUNCTIONS
+    // ============================================
+    function toggleUserDropdown() {
+      const dropdown = document.getElementById('userDropdown');
+      const profileBtn = document.getElementById('userProfileBtn');
+
+      dropdown.classList.toggle('active');
+      profileBtn.classList.toggle('active');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      const dropdown = document.getElementById('userDropdown');
+      const profileBtn = document.getElementById('userProfileBtn');
+
+      if (dropdown && !dropdown.contains(event.target) && !profileBtn.contains(event.target)) {
+        dropdown.classList.remove('active');
+        profileBtn.classList.remove('active');
+      }
+    });
+
+    function showUpgradeModal() {
+      // Close dropdown if open
+      const dropdown = document.getElementById('userDropdown');
+      if (dropdown && dropdown.classList.contains('active')) {
+        toggleUserDropdown();
+      }
+      document.getElementById('upgradeModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function hideUpgradeModal() {
+      document.getElementById('upgradeModal').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // Fechar modal clicando fora
+    document.getElementById('upgradeModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        hideUpgradeModal();
+      }
+    });
+
+    async function processUpgrade() {
+      const btn = document.querySelector('.upgrade-btn');
+      const originalText = btn.textContent;
+
+      btn.textContent = 'Processando...';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch(`${API_URL}/payment/create-checkout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${state.token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || 'Erro ao criar sessão de pagamento');
+        }
+
+        const data = await response.json();
+
+        // Redirecionar para o checkout do Stripe
+        if (data.checkout_url) {
+          window.location.href = data.checkout_url;
+        } else {
+          throw new Error('URL de checkout não recebida');
+        }
+
+      } catch (error) {
+        console.error('Erro no upgrade:', error);
+        btn.textContent = originalText;
+        btn.disabled = false;
+
+        // Verificar se é erro de Stripe não configurado
+        if (error.message.includes('Invalid API Key') || error.message.includes('No API key')) {
+          alert('Sistema de pagamento em configuração.\n\nPor favor, tente novamente em alguns minutos.');
+        } else {
+          alert('Erro ao processar: ' + error.message);
+        }
+      }
+    }
+
+    // ============================================
+    // LIMITE FREE - AVISOS
+    // ============================================
+    function showLimitWarning(type, used, limit) {
+      const remaining = limit - used;
+
+      // Remover aviso anterior se existir
+      const existingWarning = document.querySelector('.limit-warning-toast');
+      if (existingWarning) existingWarning.remove();
+
+      let message = '';
+      let bgColor = '';
+
+      if (type === 'soft') {
+        message = `Voce tem ${remaining} mensagens gratuitas restantes`;
+        bgColor = '#f59e0b'; // amarelo
+      } else if (type === 'urgent') {
+        message = `Apenas ${remaining} mensagens restantes! Assine para continuar`;
+        bgColor = '#ef4444'; // vermelho
+      }
+
+      if (!message) return;
+
+      const toast = document.createElement('div');
+      toast.className = 'limit-warning-toast';
+      toast.innerHTML = `
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()">✕</button>
+      `;
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${bgColor};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideUp 0.3s ease;
+      `;
+
+      document.body.appendChild(toast);
+
+      // Auto-remover após 5 segundos
+      setTimeout(() => {
+        if (toast.parentElement) {
+          toast.style.animation = 'slideDown 0.3s ease';
+          setTimeout(() => toast.remove(), 300);
+        }
+      }, 5000);
+    }
+
+    function showLimitReachedModal() {
+      // Criar modal de limite atingido
+      const modal = document.createElement('div');
+      modal.id = 'limitModal';
+      modal.className = 'upgrade-modal active';
+      modal.innerHTML = `
+        <div class="upgrade-container" style="text-align: center;">
+          <div style="font-size: 48px; margin-bottom: 16px;">💬</div>
+          <h2 style="margin-bottom: 8px;">Suas mensagens gratuitas acabaram</h2>
+          <p style="color: var(--text-secondary); margin-bottom: 24px;">
+            Voce aproveitou bem o SoulHaven! Para continuar conversando<br>
+            e ter acesso ilimitado, assine o plano Premium.
+          </p>
+          <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; margin-bottom: 24px;">
+            <div style="font-size: 32px; font-weight: 700; color: var(--gold);">$5.99<span style="font-size: 14px; font-weight: 400;">/mes</span></div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Mensagens ilimitadas • Companheiro sempre disponivel</div>
+          </div>
+          <button onclick="showUpgradeModal(); this.closest('.upgrade-modal').remove();" class="upgrade-btn" style="width: 100%; padding: 14px; font-size: 16px;">
+            Assinar Agora
+          </button>
+          <button onclick="this.closest('.upgrade-modal').remove();" style="width: 100%; padding: 12px; margin-top: 8px; background: none; border: none; color: var(--text-secondary); cursor: pointer;">
+            Talvez depois
+          </button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+      });
+    }
+
+    function showProfileSettings() {
+      toggleUserDropdown();
+      alert('Configuracoes de perfil em desenvolvimento.\n\nEm breve voce podera:\n- Editar seu nome\n- Definir preferencias de comunicacao\n- Adicionar informacoes pessoais');
+    }
+
+    function showSettings() {
+      toggleUserDropdown();
+      alert('Configuracoes em desenvolvimento.\n\nEm breve voce podera:\n- Alterar tema (claro/escuro)\n- Configurar notificacoes\n- Gerenciar dados');
+    }
+
+    function showAuthModal() {
+      document.getElementById('authModal').style.display = 'flex';
+      document.getElementById('appContainer').style.display = 'none';
+    }
+
+    function hideAuthModal() {
+      document.getElementById('authModal').style.display = 'none';
+    }
+
+    function showApp() {
+      document.getElementById('authModal').style.display = 'none';
+      document.getElementById('appContainer').style.display = 'flex';
+      updateUserUI();
+    }
+
+    // Track auth flow state
+    let authMode = 'login'; // 'login' or 'register'
+
+    function hideAllAuthForms() {
+      const forms = ['welcomeAuth', 'authOptions', 'loginForm', 'registerForm', 'forgotPasswordForm', 'forgotPasswordSuccess'];
+      forms.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('active');
+      });
+    }
+
+    function showWelcomeAuth() {
+      hideAllAuthForms();
+      document.getElementById('welcomeAuth').classList.add('active');
+    }
+
+    function showAuthOptions(mode) {
+      authMode = mode;
+      // Vai direto para login ou register (OAuth removido temporariamente)
+      if (mode === 'login') {
+        showLoginForm();
+      } else {
+        showRegisterForm();
+      }
+    }
+
+    function showMainAuth() {
+      showWelcomeAuth();
+    }
+
+    function showLoginForm(email = '') {
+      hideAllAuthForms();
+      document.getElementById('loginForm').classList.add('active');
+      if (email) {
+        document.getElementById('loginEmail').value = email;
+      } else {
+        // Carregar email salvo se não foi passado um email
+        loadSavedCredentials();
+      }
+    }
+
+    function showRegisterForm(email = '') {
+      hideAllAuthForms();
+      document.getElementById('registerForm').classList.add('active');
+      if (email) document.getElementById('registerEmail').value = email;
+    }
+
+    function showForgotPassword() {
+      hideAllAuthForms();
+      document.getElementById('forgotPasswordForm').classList.add('active');
+      // Preenche o email se já estava no login
+      const loginEmail = document.getElementById('loginEmail').value;
+      if (loginEmail) {
+        document.getElementById('forgotEmail').value = loginEmail;
+      }
+    }
+
+    function showForgotPasswordSuccess() {
+      hideAllAuthForms();
+      document.getElementById('forgotPasswordSuccess').classList.add('active');
+    }
+
+    async function handleForgotPassword(event) {
+      event.preventDefault();
+      const email = document.getElementById('forgotEmail').value.trim();
+
+      if (!email) {
+        alert('Por favor, digite seu email');
+        return;
+      }
+
+      const submitBtn = event.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando...';
+
+      try {
+        const response = await fetch('/api/auth/password-reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        // Sempre mostra sucesso por segurança (não revelar se email existe)
+        showForgotPasswordSuccess();
+      } catch (error) {
+        console.error('Erro ao enviar email:', error);
+        // Mostra sucesso mesmo com erro para não revelar informações
+        showForgotPasswordSuccess();
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    }
+
+    function handleEmailKeydown(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        continueWithEmail();
+      }
+    }
+
+    async function continueWithEmail() {
+      const email = document.getElementById('emailInput').value.trim();
+      if (!email) {
+        alert('Por favor, digite seu email');
+        return;
+      }
+      // Direct to login or register based on mode
+      if (authMode === 'login') {
+        showLoginForm(email);
+      } else {
+        showRegisterForm(email);
+      }
+    }
+
+    // OAuth
+    function loginWithGoogle() {
+      window.location.href = `${API_URL}/auth/google`;
+    }
+
+    function loginWithApple() {
+      window.location.href = `${API_URL}/auth/apple`;
+    }
+
+    function handleOAuthCallback() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      const refresh = urlParams.get('refresh');
+      const error = urlParams.get('error');
+
+      if (error) {
+        let errorMsg = 'Erro no login. Tente novamente.';
+        if (error === 'oauth_failed') errorMsg = 'Falha na autenticacao. Tente novamente.';
+        if (error === 'no_email') errorMsg = 'Email nao disponivel. Tente outro metodo.';
+        alert(errorMsg);
+        window.history.replaceState({}, document.title, '/app');
+        return false;
+      }
+
+      if (token && refresh) {
+        state.token = token;
+        localStorage.setItem('soulhaven_token', token);
+        localStorage.setItem('soulhaven_refresh', refresh);
+        window.history.replaceState({}, document.title, '/app');
+        loadUserProfile();
+        return true;
+      }
+
+      return false;
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const rememberMe = document.getElementById('rememberMe').checked;
+
+      // Salvar credenciais se "Lembrar meus dados" estiver marcado
+      if (rememberMe) {
+        localStorage.setItem('soulhaven_remember_email', email);
+        localStorage.setItem('soulhaven_remember', 'true');
+      } else {
+        localStorage.removeItem('soulhaven_remember_email');
+        localStorage.removeItem('soulhaven_remember');
+      }
+
+      await login(email, password);
+    }
+
+    // Carregar dados salvos ao abrir a tela de login
+    function loadSavedCredentials() {
+      const savedEmail = localStorage.getItem('soulhaven_remember_email');
+      const remember = localStorage.getItem('soulhaven_remember');
+
+      if (remember === 'true' && savedEmail) {
+        const emailInput = document.getElementById('loginEmail');
+        const rememberCheckbox = document.getElementById('rememberMe');
+        if (emailInput) emailInput.value = savedEmail;
+        if (rememberCheckbox) rememberCheckbox.checked = true;
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const nome = document.getElementById('registerNome').value;
+      const email = document.getElementById('registerEmail').value;
+      const password = document.getElementById('registerPassword').value;
+      const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
+      const acceptedTerms = document.getElementById('acceptTerms').checked;
+      const errorSpan = document.getElementById('passwordMatchError');
+
+      // Validate password match
+      if (password !== passwordConfirm) {
+        errorSpan.style.display = 'block';
+        document.getElementById('registerPasswordConfirm').focus();
+        return;
+      }
+      errorSpan.style.display = 'none';
+
+      if (!acceptedTerms) {
+        alert('Voce precisa aceitar os Termos de Uso e a Politica de Privacidade para continuar.');
+        return;
+      }
+
+      await register(email, password, nome, acceptedTerms);
+    }
+
+    // ============================================
+    // DOM & UI FUNCTIONS
+    // ============================================
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const welcomeScreen = document.getElementById('welcomeScreen');
+    const chatMessages = document.getElementById('chatMessages');
+    const chatContainer = document.getElementById('chatContainer');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const micBtn = document.getElementById('micBtn');
+    const voiceIndicator = document.getElementById('voiceIndicator');
+
+    // ============================================
+    // VOICE INPUT (Web Speech API)
+    // ============================================
+    let recognition = null;
+    let isRecording = false;
+    let finalTranscriptAccumulated = ''; // Acumula texto final entre resultados
+
+    // Check if browser supports speech recognition
+    function initVoiceInput() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        // Hide mic button if not supported
+        if (micBtn) micBtn.classList.add('hidden');
+        console.log('Speech recognition not supported');
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = 'pt-BR';
+      recognition.continuous = false; // Uma frase por vez
+      recognition.interimResults = true; // Mostra enquanto fala
+
+      // Guarda o texto que já estava no input antes de começar
+      let textBeforeRecording = '';
+
+      recognition.onstart = function() {
+        isRecording = true;
+        textBeforeRecording = messageInput.value.trim();
+        micBtn.classList.add('recording');
+        voiceIndicator.style.display = 'flex';
+        messageInput.placeholder = 'Fale sua mensagem...';
+      };
+
+      recognition.onend = function() {
+        isRecording = false;
+        micBtn.classList.remove('recording');
+        voiceIndicator.style.display = 'none';
+        messageInput.placeholder = 'Mensagem para SoulHaven...';
+      };
+
+      recognition.onresult = function(event) {
+        // Pega apenas o último resultado (índice 0 pois continuous=false)
+        const result = event.results[0];
+        const transcript = result[0].transcript.trim();
+
+        // Sempre substitui: texto anterior + nova transcrição
+        if (textBeforeRecording) {
+          messageInput.value = textBeforeRecording + ' ' + transcript;
+        } else {
+          messageInput.value = transcript;
+        }
+        autoResize(messageInput);
+      };
+
+      recognition.onerror = function(event) {
+        console.error('Speech recognition error:', event.error);
+        isRecording = false;
+        micBtn.classList.remove('recording');
+        voiceIndicator.style.display = 'none';
+        messageInput.placeholder = 'Mensagem para SoulHaven...';
+
+        if (event.error === 'not-allowed') {
+          alert('Permissao de microfone negada. Habilite nas configuracoes do navegador.');
+        } else if (event.error === 'no-speech') {
+          // Silently restart if no speech detected
+        }
+      };
+    }
+
+    function toggleVoiceInput() {
+      if (!recognition) {
+        alert('Seu navegador nao suporta reconhecimento de voz. Tente usar Chrome ou Edge.');
+        return;
+      }
+
+      if (isRecording) {
+        recognition.stop();
+      } else {
+        // Não limpa o input - permite adicionar ao texto existente
+        try {
+          recognition.start();
+        } catch (e) {
+          console.error('Error starting recognition:', e);
+        }
+      }
+    }
+
+    // Initialize voice input on load
+    initVoiceInput();
+
+    function toggleSidebar() {
+      sidebar.classList.toggle('open');
+      sidebarOverlay.classList.toggle('open');
+    }
+
+    function newChat() {
+      state.messages = [];
+      state.conversationId = null;
+      chatMessages.innerHTML = '';
+      chatMessages.style.display = 'none';
+      welcomeScreen.style.display = 'flex';
+      messageInput.value = '';
+      sendBtn.disabled = true;
+      if (window.innerWidth <= 768) toggleSidebar();
+    }
+
+    function autoResize(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+      sendBtn.disabled = !textarea.value.trim();
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        if (!sendBtn.disabled) sendMessage();
+      }
+    }
+
+    function sendQuickPrompt(text) {
+      messageInput.value = text;
+      autoResize(messageInput);
+      sendMessage();
+    }
+
+    function renderMessage(role, content) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${role}`;
+
+      const avatarText = role === 'user' ? (state.user?.nome?.[0] || 'U') : 'S';
+      const roleName = role === 'user' ? 'Voce' : 'SoulHaven';
+
+      const formattedContent = content
+        .split('\n\n')
+        .map(p => `<p>${p}</p>`)
+        .join('');
+
+      // Botão de feedback apenas para mensagens da IA
+      const feedbackButton = role === 'assistant' ? `
+        <div class="message-actions">
+          <button class="feedback-btn" onclick="openFeedbackModal(this)" data-content="${encodeURIComponent(content)}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"/>
+              <path d="M12 8v4M12 16h.01"/>
+            </svg>
+            Reportar
+          </button>
+        </div>
+      ` : '';
+
+      messageDiv.innerHTML = `
+        <div class="message-avatar">${avatarText}</div>
+        <div class="message-content">
+          <div class="message-role">${roleName}</div>
+          <div class="message-text">${formattedContent}</div>
+          ${feedbackButton}
+        </div>
+      `;
+
+      chatMessages.appendChild(messageDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'message assistant';
+      typingDiv.id = 'typingIndicator';
+
+      typingDiv.innerHTML = `
+        <div class="message-avatar">S</div>
+        <div class="message-content">
+          <div class="message-role">SoulHaven</div>
+          <div class="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      `;
+
+      chatMessages.appendChild(typingDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+      const typing = document.getElementById('typingIndicator');
+      if (typing) typing.remove();
+    }
+
+    async function sendMessage() {
+      const message = messageInput.value.trim();
+      if (!message || state.isLoading) return;
+
+      if (!state.token) {
+        showAuthModal();
+        return;
+      }
+
+      welcomeScreen.style.display = 'none';
+      chatMessages.style.display = 'block';
+
+      messageInput.value = '';
+      messageInput.style.height = 'auto';
+      sendBtn.disabled = true;
+
+      state.messages.push({ role: 'user', content: message });
+      renderMessage('user', message);
+
+      state.isLoading = true;
+      showTypingIndicator();
+
+      try {
+        const response = await fetch(`${API_URL}/chat/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${state.token}`
+          },
+          body: JSON.stringify({
+            message: message,
+            conversation_id: state.conversationId
+          })
+        });
+
+        if (response.status === 401) {
+          logout();
+          throw new Error('Sessao expirada. Faca login novamente.');
+        }
+
+        if (response.status === 402) {
+          hideTypingIndicator();
+          showLimitReachedModal();
+          state.isLoading = false;
+          return;
+        }
+
+        if (!response.ok) throw new Error('Erro na resposta');
+
+        const data = await response.json();
+        state.conversationId = data.conversation_id;
+        state.messages.push({ role: 'assistant', content: data.response });
+        hideTypingIndicator();
+        renderMessage('assistant', data.response);
+
+        // Verificar avisos de limite (usuários free)
+        if (data.limit_warning) {
+          showLimitWarning(data.limit_warning, data.messages_used, data.messages_limit);
+        }
+
+        // Atualizar lista de conversas
+        loadConversations();
+
+      } catch (error) {
+        console.error('Error:', error);
+        hideTypingIndicator();
+        renderMessage('assistant', 'Desculpe, nao consegui me conectar. Verifique se o servidor esta rodando em http://localhost:8000');
+      }
+
+      state.isLoading = false;
+    }
+
+    // ============================================
+    // CONVERSATIONS
+    // ============================================
+    async function loadConversations() {
+      if (!state.token) return;
+
+      try {
+        const response = await fetch(`${API_URL}/chat/conversations`, {
+          headers: { 'Authorization': `Bearer ${state.token}` }
+        });
+
+        if (!response.ok) return;
+
+        const conversations = await response.json();
+        renderConversationsList(conversations);
+      } catch (error) {
+        console.error('Error loading conversations:', error);
+      }
+    }
+
+    function renderConversationItem(conv) {
+      const title = conv.resumo ? conv.resumo.substring(0, 30) + (conv.resumo.length > 30 ? '...' : '') : 'Conversa';
+      const isActive = state.conversationId === conv.id ? 'active' : '';
+      return `
+        <div class="conversation-item ${isActive}" data-id="${conv.id}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" onclick="loadConversation('${conv.id}')">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span class="conversation-title" onclick="loadConversation('${conv.id}')">${title}</span>
+          <div class="conversation-actions">
+            <button class="conversation-action-btn" onclick="event.stopPropagation(); openEditConversation('${conv.id}', '${title.replace(/'/g, "\\'")}');" title="Editar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </button>
+            <button class="conversation-action-btn" onclick="event.stopPropagation(); deleteConversation('${conv.id}');" title="Excluir">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderConversationsList(conversations) {
+      const container = document.getElementById('conversationsList');
+
+      if (!conversations || conversations.length === 0) {
+        container.innerHTML = `
+          <div class="sidebar-section">
+            <div class="sidebar-section-title" style="text-align: center; color: var(--text-muted);">
+              Nenhuma conversa ainda
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // Agrupar por data
+      const today = new Date().toDateString();
+      const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+      const groups = { hoje: [], ontem: [], anteriores: [] };
+
+      conversations.forEach(conv => {
+        const convDate = new Date(conv.last_message_at).toDateString();
+        if (convDate === today) {
+          groups.hoje.push(conv);
+        } else if (convDate === yesterday) {
+          groups.ontem.push(conv);
+        } else {
+          groups.anteriores.push(conv);
+        }
+      });
+
+      let html = '';
+
+      if (groups.hoje.length > 0) {
+        html += `<div class="sidebar-section"><div class="sidebar-section-title">Hoje</div>`;
+        groups.hoje.forEach(conv => {
+          html += renderConversationItem(conv);
+        });
+        html += `</div>`;
+      }
+
+      if (groups.ontem.length > 0) {
+        html += `<div class="sidebar-section"><div class="sidebar-section-title">Ontem</div>`;
+        groups.ontem.forEach(conv => {
+          html += renderConversationItem(conv);
+        });
+        html += `</div>`;
+      }
+
+      if (groups.anteriores.length > 0) {
+        html += `<div class="sidebar-section"><div class="sidebar-section-title">Anteriores</div>`;
+        groups.anteriores.forEach(conv => {
+          html += renderConversationItem(conv);
+        });
+        html += `</div>`;
+      }
+
+      container.innerHTML = html;
+    }
+
+    async function loadConversation(conversationId) {
+      if (!state.token) return;
+
+      try {
+        const response = await fetch(`${API_URL}/chat/conversations/${conversationId}/messages`, {
+          headers: { 'Authorization': `Bearer ${state.token}` }
+        });
+
+        if (!response.ok) return;
+
+        const messages = await response.json();
+
+        // Limpar e atualizar estado
+        state.conversationId = conversationId;
+        state.messages = messages.map(m => ({ role: m.role, content: m.content }));
+
+        // Renderizar mensagens
+        chatMessages.innerHTML = '';
+        welcomeScreen.style.display = 'none';
+        chatMessages.style.display = 'block';
+
+        messages.forEach(msg => {
+          renderMessage(msg.role, msg.content);
+        });
+
+        // Atualizar sidebar
+        loadConversations();
+
+        // Fechar sidebar no mobile
+        if (window.innerWidth <= 768) toggleSidebar();
+
+      } catch (error) {
+        console.error('Error loading conversation:', error);
+      }
+    }
+
+    // ============================================
+    // PAYMENT CALLBACK HANDLER
+    // ============================================
+    function handlePaymentCallback() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const paymentStatus = urlParams.get('payment');
+
+      if (paymentStatus === 'success') {
+        // Limpar URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        // Mostrar mensagem de sucesso
+        setTimeout(() => {
+          showPaymentSuccessModal();
+          // Recarregar perfil para atualizar status premium
+          loadUserProfile();
+        }, 500);
+
+        return true;
+      } else if (paymentStatus === 'cancelled') {
+        // Limpar URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        // Mostrar mensagem de cancelamento
+        setTimeout(() => {
+          showToast('Pagamento cancelado. Você pode tentar novamente quando quiser.', 'info');
+        }, 500);
+
+        return true;
+      }
+
+      return false;
+    }
+
+    function showPaymentSuccessModal() {
+      const modal = document.createElement('div');
+      modal.className = 'upgrade-modal active';
+      modal.innerHTML = `
+        <div class="upgrade-container" style="text-align: center;">
+          <div style="font-size: 64px; margin-bottom: 16px;">🎉</div>
+          <h2 style="margin-bottom: 8px; color: var(--gold);">Bem-vindo ao Premium!</h2>
+          <p style="color: var(--text-secondary); margin-bottom: 24px;">
+            Sua assinatura foi ativada com sucesso!<br>
+            Agora você tem acesso ilimitado ao SoulHaven.
+          </p>
+          <div style="background: var(--bg-secondary); padding: 16px; border-radius: 12px; margin-bottom: 24px;">
+            <div style="font-size: 14px; color: var(--text-secondary);">
+              ✅ Mensagens ilimitadas<br>
+              ✅ Companheiro sempre disponivel
+            </div>
+          </div>
+          <button onclick="this.closest('.upgrade-modal').remove();" class="upgrade-btn" style="width: 100%; padding: 14px; font-size: 16px;">
+            Começar a Conversar
+          </button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+      });
+    }
+
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = 'limit-warning-toast';
+      toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 12px 20px;
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white;
+        border-radius: 8px;
+        font-size: 14px;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // ============================================
+    // CONVERSATION EDIT/DELETE
+    // ============================================
+    let editingConversationId = null;
+
+    function openEditConversation(convId, currentTitle) {
+      editingConversationId = convId;
+
+      // Criar modal se não existir
+      let modal = document.getElementById('editConvModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'editConvModal';
+        modal.className = 'edit-modal';
+        modal.innerHTML = `
+          <div class="edit-modal-content">
+            <div class="edit-modal-title">Editar conversa</div>
+            <input type="text" id="editConvInput" class="edit-modal-input" placeholder="Nome da conversa">
+            <div class="edit-modal-buttons">
+              <button class="edit-modal-btn delete" onclick="deleteConversation(editingConversationId); closeEditModal();">Excluir</button>
+              <button class="edit-modal-btn cancel" onclick="closeEditModal()">Cancelar</button>
+              <button class="edit-modal-btn save" onclick="saveConversationName()">Salvar</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+
+        // Fechar ao clicar fora
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) closeEditModal();
+        });
+      }
+
+      // Preencher input e mostrar
+      document.getElementById('editConvInput').value = currentTitle.replace('...', '');
+      modal.classList.add('active');
+      document.getElementById('editConvInput').focus();
+    }
+
+    function closeEditModal() {
+      const modal = document.getElementById('editConvModal');
+      if (modal) modal.classList.remove('active');
+      editingConversationId = null;
+    }
+
+    async function saveConversationName() {
+      if (!editingConversationId) return;
+
+      const newName = document.getElementById('editConvInput').value.trim();
+      if (!newName) {
+        alert('O nome não pode estar vazio');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/chat/conversations/${editingConversationId}/rename`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${state.token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ resumo: newName })
+        });
+
+        if (response.ok) {
+          closeEditModal();
+          loadConversations(); // Recarregar lista
+          showToast('Conversa renomeada!', 'success');
+        } else {
+          const error = await response.json();
+          alert(error.detail || 'Erro ao renomear');
+        }
+      } catch (error) {
+        console.error('Erro ao renomear:', error);
+        alert('Erro ao renomear conversa');
+      }
+    }
+
+    async function deleteConversation(convId) {
+      if (!confirm('Tem certeza que deseja excluir esta conversa?')) return;
+
+      try {
+        const response = await fetch(`${API_URL}/chat/conversations/${convId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${state.token}` }
+        });
+
+        if (response.ok) {
+          // Se excluiu a conversa atual, limpar tela
+          if (state.conversationId === convId) {
+            state.conversationId = null;
+            state.messages = [];
+            document.getElementById('chatMessages').innerHTML = '';
+            document.getElementById('welcomeScreen').style.display = 'flex';
+            document.getElementById('chatMessages').style.display = 'none';
+          }
+          loadConversations();
+          showToast('Conversa excluída!', 'success');
+        } else {
+          const error = await response.json();
+          alert(error.detail || 'Erro ao excluir');
+        }
+      } catch (error) {
+        console.error('Erro ao excluir:', error);
+        alert('Erro ao excluir conversa');
+      }
+    }
+
+    // ============================================
+    // INIT
+    // ============================================
+    function init() {
+      // Verificar retorno do OAuth
+      if (handleOAuthCallback()) {
+        showApp();
+        loadConversations();
+        return;
+      }
+
+      // Verificar retorno do pagamento Stripe
+      handlePaymentCallback();
+
+      if (state.token) {
+        showApp();
+        loadUserProfile();
+        loadConversations();
+      } else {
+        showAuthModal();
+      }
+    }
+
+    init();
+
+    // ============================================
+    // PWA - SERVICE WORKER REGISTRATION
+    // ============================================
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('[PWA] Service Worker registered:', registration.scope);
+          })
+          .catch((error) => {
+            console.log('[PWA] Service Worker registration failed:', error);
+          });
+      });
+    }
+
+    // Detectar se está instalado como PWA
+    let deferredPrompt = null;
+    const installBtn = document.getElementById('installAppBtn');
+
+    // Verifica se já está instalado como PWA
+    function isPWAInstalled() {
+      return window.matchMedia('(display-mode: standalone)').matches ||
+             window.navigator.standalone === true;
+    }
+
+    // Detecta se é iOS
+    function isIOS() {
+      return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    }
+
+    // Mostra/esconde botão de instalar
+    function updateInstallButton() {
+      if (installBtn) {
+        if (isPWAInstalled()) {
+          // Já instalado - esconde botão
+          installBtn.style.display = 'none';
+        } else {
+          // Sempre mostra o botão se não estiver instalado
+          installBtn.style.display = 'flex';
+          if (isIOS()) {
+            installBtn.querySelector('svg').nextSibling.textContent = ' Instalar no iPhone';
+          }
+        }
+      }
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Previne o mini-infobar de aparecer no mobile
+      e.preventDefault();
+      // Guarda o evento para usar depois
+      deferredPrompt = e;
+      console.log('[PWA] App pode ser instalado');
+      // Mostra botão de instalar no menu
+      updateInstallButton();
+    });
+
+    window.addEventListener('appinstalled', () => {
+      console.log('[PWA] App instalado com sucesso!');
+      deferredPrompt = null;
+      // Esconde botão após instalação
+      if (installBtn) installBtn.style.display = 'none';
+    });
+
+    // Chama na inicialização para verificar estado
+    updateInstallButton();
+
+    // Função para instalar o app
+    async function installApp() {
+      if (isPWAInstalled()) {
+        alert('O SoulHaven já está instalado no seu dispositivo!');
+        return;
+      }
+
+      if (isIOS()) {
+        // iOS não suporta beforeinstallprompt
+        alert(
+          'Para instalar o SoulHaven no iPhone:\n\n' +
+          '1. Toque no botão de compartilhar (quadrado com seta)\n' +
+          '2. Role para baixo e toque em "Adicionar à Tela de Início"\n' +
+          '3. Toque em "Adicionar"\n\n' +
+          'Pronto! O SoulHaven aparecerá como um app na sua tela inicial.'
+        );
+        return;
+      }
+
+      if (deferredPrompt) {
+        // Mostra o prompt de instalação nativo
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('[PWA] Resultado da instalação:', outcome);
+        if (outcome === 'accepted') {
+          deferredPrompt = null;
+          if (installBtn) installBtn.style.display = 'none';
+        }
+      } else {
+        // Navegador não suporta ou já está instalado
+        alert(
+          'Para instalar o SoulHaven:\n\n' +
+          'No Chrome: Menu (3 pontos) → "Adicionar à tela inicial" ou "Instalar app"\n\n' +
+          'No Edge: Menu (3 pontos) → "Apps" → "Instalar este site como app"\n\n' +
+          'No Safari: Botão compartilhar → "Adicionar à Tela de Início"'
+        );
+      }
+    }
+
+    // Verificar status de instalação quando a página carrega
+    window.addEventListener('load', () => {
+      // Pequeno delay para garantir que beforeinstallprompt teve tempo de disparar
+      setTimeout(updateInstallButton, 1000);
+    });
+
+    // ============================================
+    // FEEDBACK SYSTEM
+    // ============================================
+    let currentFeedbackContent = '';
+    let selectedFeedbackType = null;
+
+    function openFeedbackModal(button) {
+      currentFeedbackContent = decodeURIComponent(button.dataset.content);
+      selectedFeedbackType = null;
+
+      // Reset form
+      document.querySelectorAll('.feedback-option').forEach(opt => opt.classList.remove('selected'));
+      document.getElementById('feedbackDetails').value = '';
+      document.getElementById('feedbackSubmitBtn').disabled = true;
+      document.getElementById('feedbackForm').style.display = 'block';
+      document.getElementById('feedbackSuccess').style.display = 'none';
+
+      // Show modal
+      document.getElementById('feedbackModal').classList.add('show');
+    }
+
+    function closeFeedbackModal() {
+      document.getElementById('feedbackModal').classList.remove('show');
+      currentFeedbackContent = '';
+      selectedFeedbackType = null;
+    }
+
+    function selectFeedbackOption(element, type) {
+      document.querySelectorAll('.feedback-option').forEach(opt => opt.classList.remove('selected'));
+      element.classList.add('selected');
+      selectedFeedbackType = type;
+      document.getElementById('feedbackSubmitBtn').disabled = false;
+    }
+
+    async function submitFeedback() {
+      if (!selectedFeedbackType || !state.token) return;
+
+      const details = document.getElementById('feedbackDetails').value.trim();
+      const submitBtn = document.getElementById('feedbackSubmitBtn');
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando...';
+
+      try {
+        const response = await fetch(`${API_URL}/chat/feedback`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${state.token}`
+          },
+          body: JSON.stringify({
+            message_content: currentFeedbackContent,
+            feedback_type: selectedFeedbackType,
+            details: details || null,
+            conversation_id: state.conversationId || null
+          })
+        });
+
+        if (response.ok) {
+          // Show success
+          document.getElementById('feedbackForm').style.display = 'none';
+          document.getElementById('feedbackSuccess').style.display = 'block';
+        } else {
+          alert('Erro ao enviar feedback. Tente novamente.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Enviar Feedback';
+        }
+      } catch (error) {
+        console.error('Feedback error:', error);
+        alert('Erro ao enviar feedback. Tente novamente.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Enviar Feedback';
+      }
+    }
+
+    // Close modal on outside click
+    document.getElementById('feedbackModal').addEventListener('click', (e) => {
+      if (e.target.id === 'feedbackModal') {
+        closeFeedbackModal();
+      }
+    });
+  </script>
+</body>
+</html>
