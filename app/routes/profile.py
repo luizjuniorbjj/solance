@@ -67,6 +67,7 @@ class ProfileResponse(BaseModel):
     tempo_de_fe: Optional[str]
     batizado: Optional[bool]
     tom_preferido: str
+    usa_emoji: bool
     onboarding_completed: bool
 
 
@@ -97,6 +98,7 @@ async def get_profile(
         tempo_de_fe=profile.get("tempo_de_fe"),
         batizado=profile.get("batizado"),
         tom_preferido=profile.get("tom_preferido", "equilibrado"),
+        usa_emoji=profile.get("usa_emoji", True),
         onboarding_completed=onboarding_completed
     )
 

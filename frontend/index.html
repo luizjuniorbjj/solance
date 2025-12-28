@@ -333,6 +333,209 @@
       background: #c82333;
     }
 
+    /* Profile Settings Modal */
+    .profile-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s;
+    }
+
+    .profile-modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .profile-modal-content {
+      background: var(--bg-primary);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .profile-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .profile-modal-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .profile-modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    .profile-modal-close:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .profile-section {
+      margin-bottom: 24px;
+    }
+
+    .profile-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gold);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .profile-field {
+      margin-bottom: 16px;
+    }
+
+    .profile-field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .profile-field input,
+    .profile-field select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .profile-field input:focus,
+    .profile-field select:focus {
+      border-color: var(--gold);
+    }
+
+    .profile-field input::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.7;
+    }
+
+    .profile-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .profile-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+      margin-bottom: 12px;
+    }
+
+    .profile-toggle-label {
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+
+    .profile-toggle-switch {
+      position: relative;
+      width: 48px;
+      height: 26px;
+      background: var(--border);
+      border-radius: 13px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .profile-toggle-switch.active {
+      background: var(--gold);
+    }
+
+    .profile-toggle-switch::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+
+    .profile-toggle-switch.active::after {
+      transform: translateX(22px);
+    }
+
+    .profile-modal-footer {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .profile-btn {
+      padding: 12px 24px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .profile-btn.cancel {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+
+    .profile-btn.cancel:hover {
+      background: var(--bg-hover);
+    }
+
+    .profile-btn.save {
+      background: var(--gold);
+      border: none;
+      color: white;
+    }
+
+    .profile-btn.save:hover {
+      background: var(--gold-dark);
+    }
+
+    .profile-btn.save:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     .sidebar-footer {
       padding: 12px;
       border-top: 1px solid var(--border);
@@ -2621,6 +2824,29 @@
         font-size: 40px;
       }
     }
+
+    /* Toast animations */
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
+    @keyframes toastOut {
+      from {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+    }
   </style>
 </head>
 <body>
@@ -3521,9 +3747,256 @@
       });
     }
 
-    function showProfileSettings() {
+    // Profile Settings State
+    let profileData = {};
+
+    async function showProfileSettings() {
       toggleUserDropdown();
-      alert('Configuracoes de perfil em desenvolvimento.\n\nEm breve voce podera:\n- Editar seu nome\n- Definir preferencias de comunicacao\n- Adicionar informacoes pessoais');
+
+      // Criar modal se não existir
+      let modal = document.getElementById('profileModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'profileModal';
+        modal.className = 'profile-modal';
+        modal.innerHTML = `
+          <div class="profile-modal-content">
+            <div class="profile-modal-header">
+              <div class="profile-modal-title">Configuracoes do Perfil</div>
+              <button class="profile-modal-close" onclick="closeProfileModal()">&times;</button>
+            </div>
+
+            <!-- Dados Pessoais -->
+            <div class="profile-section">
+              <div class="profile-section-title">Dados Pessoais</div>
+              <div class="profile-row">
+                <div class="profile-field">
+                  <label>Nome</label>
+                  <input type="text" id="profileNome" placeholder="Seu nome">
+                </div>
+                <div class="profile-field">
+                  <label>Apelido</label>
+                  <input type="text" id="profileApelido" placeholder="Como quer ser chamado(a)">
+                </div>
+              </div>
+              <div class="profile-row">
+                <div class="profile-field">
+                  <label>Idade</label>
+                  <input type="number" id="profileIdade" placeholder="Sua idade" min="1" max="120">
+                </div>
+                <div class="profile-field">
+                  <label>Estado Civil</label>
+                  <select id="profileEstadoCivil">
+                    <option value="">Selecione...</option>
+                    <option value="solteiro">Solteiro(a)</option>
+                    <option value="casado">Casado(a)</option>
+                    <option value="divorciado">Divorciado(a)</option>
+                    <option value="viuvo">Viuvo(a)</option>
+                    <option value="namorando">Namorando</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Vida Espiritual -->
+            <div class="profile-section">
+              <div class="profile-section-title">Vida Espiritual</div>
+              <div class="profile-row">
+                <div class="profile-field">
+                  <label>Denominacao</label>
+                  <input type="text" id="profileDenominacao" placeholder="Ex: Batista, Presbiteriano...">
+                </div>
+                <div class="profile-field">
+                  <label>Tempo de Fe</label>
+                  <select id="profileTempoDeFe">
+                    <option value="">Selecione...</option>
+                    <option value="recem-convertido">Recem-convertido</option>
+                    <option value="menos de 1 ano">Menos de 1 ano</option>
+                    <option value="1-5 anos">1 a 5 anos</option>
+                    <option value="5-10 anos">5 a 10 anos</option>
+                    <option value="mais de 10 anos">Mais de 10 anos</option>
+                    <option value="desde crianca">Desde crianca</option>
+                  </select>
+                </div>
+              </div>
+              <div class="profile-toggle">
+                <span class="profile-toggle-label">Batizado(a)</span>
+                <div class="profile-toggle-switch" id="profileBatizado" onclick="toggleProfileSwitch('profileBatizado')"></div>
+              </div>
+            </div>
+
+            <!-- Preferencias de Comunicacao -->
+            <div class="profile-section">
+              <div class="profile-section-title">Preferencias de Comunicacao</div>
+              <div class="profile-field">
+                <label>Tom das respostas</label>
+                <select id="profileTomPreferido">
+                  <option value="acolhedor">Acolhedor - Mais caloroso e empático</option>
+                  <option value="equilibrado">Equilibrado - Mistura acolhimento e instrução</option>
+                  <option value="direto">Direto - Mais objetivo e pratico</option>
+                </select>
+              </div>
+              <div class="profile-toggle">
+                <span class="profile-toggle-label">Usar emojis nas respostas</span>
+                <div class="profile-toggle-switch" id="profileUsaEmoji" onclick="toggleProfileSwitch('profileUsaEmoji')"></div>
+              </div>
+            </div>
+
+            <div class="profile-modal-footer">
+              <button class="profile-btn cancel" onclick="closeProfileModal()">Cancelar</button>
+              <button class="profile-btn save" id="profileSaveBtn" onclick="saveProfileSettings()">Salvar</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+
+        // Fechar ao clicar fora
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) closeProfileModal();
+        });
+      }
+
+      // Carregar dados do perfil
+      await loadProfileData();
+
+      // Mostrar modal
+      modal.classList.add('active');
+    }
+
+    async function loadProfileData() {
+      try {
+        const response = await fetch(`${API_URL}/profile/`, {
+          headers: {
+            'Authorization': `Bearer ${state.token}`
+          }
+        });
+
+        if (response.ok) {
+          profileData = await response.json();
+
+          // Preencher campos
+          document.getElementById('profileNome').value = profileData.nome || '';
+          document.getElementById('profileApelido').value = profileData.apelido || '';
+          document.getElementById('profileIdade').value = profileData.idade || '';
+          document.getElementById('profileEstadoCivil').value = profileData.estado_civil || '';
+          document.getElementById('profileDenominacao').value = profileData.denominacao || '';
+          document.getElementById('profileTempoDeFe').value = profileData.tempo_de_fe || '';
+          document.getElementById('profileTomPreferido').value = profileData.tom_preferido || 'equilibrado';
+
+          // Toggles
+          const batizadoSwitch = document.getElementById('profileBatizado');
+          if (profileData.batizado) {
+            batizadoSwitch.classList.add('active');
+          } else {
+            batizadoSwitch.classList.remove('active');
+          }
+
+          const emojiSwitch = document.getElementById('profileUsaEmoji');
+          if (profileData.usa_emoji !== false) {
+            emojiSwitch.classList.add('active');
+          } else {
+            emojiSwitch.classList.remove('active');
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao carregar perfil:', error);
+      }
+    }
+
+    function toggleProfileSwitch(id) {
+      const switchEl = document.getElementById(id);
+      switchEl.classList.toggle('active');
+    }
+
+    async function saveProfileSettings() {
+      const saveBtn = document.getElementById('profileSaveBtn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Salvando...';
+
+      try {
+        const updateData = {
+          nome: document.getElementById('profileNome').value || null,
+          apelido: document.getElementById('profileApelido').value || null,
+          idade: parseInt(document.getElementById('profileIdade').value) || null,
+          estado_civil: document.getElementById('profileEstadoCivil').value || null,
+          denominacao: document.getElementById('profileDenominacao').value || null,
+          tempo_de_fe: document.getElementById('profileTempoDeFe').value || null,
+          tom_preferido: document.getElementById('profileTomPreferido').value,
+          batizado: document.getElementById('profileBatizado').classList.contains('active'),
+          usa_emoji: document.getElementById('profileUsaEmoji').classList.contains('active')
+        };
+
+        // Remover campos nulos
+        Object.keys(updateData).forEach(key => {
+          if (updateData[key] === null) delete updateData[key];
+        });
+
+        const response = await fetch(`${API_URL}/profile/`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${state.token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updateData)
+        });
+
+        if (response.ok) {
+          // Atualizar nome na UI
+          if (updateData.apelido || updateData.nome) {
+            state.userName = updateData.apelido || updateData.nome;
+            updateUserUI();
+          }
+
+          closeProfileModal();
+
+          // Feedback visual
+          showToast('Perfil atualizado com sucesso!');
+        } else {
+          const error = await response.json();
+          showToast(error.detail || 'Erro ao salvar perfil', 'error');
+        }
+      } catch (error) {
+        console.error('Erro ao salvar perfil:', error);
+        showToast('Erro ao salvar perfil', 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Salvar';
+      }
+    }
+
+    function closeProfileModal() {
+      const modal = document.getElementById('profileModal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function showToast(message, type = 'success') {
+      // Remove toast existente
+      const existing = document.querySelector('.toast-notification');
+      if (existing) existing.remove();
+
+      const toast = document.createElement('div');
+      toast.className = 'toast-notification';
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 12px 24px;
+        background: ${type === 'success' ? 'var(--gold)' : '#dc3545'};
+        color: white;
+        border-radius: var(--radius-md);
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 3000;
+        animation: toastIn 0.3s ease;
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.animation = 'toastOut 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
     }
 
     function showSettings() {
