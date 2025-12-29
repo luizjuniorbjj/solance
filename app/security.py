@@ -130,8 +130,9 @@ def decrypt_data(encrypted_data: bytes, user_id: str = "") -> str:
         fernet = Fernet(key)
         decrypted = fernet.decrypt(encrypted_data)
         return decrypted.decode('utf-8')
-    except Exception:
-        return ""  # Retorna vazio se falhar (dados corrompidos ou chave errada)
+    except Exception as e:
+        print(f"[DECRYPT_ERROR] Failed to decrypt for user {user_id[:8] if user_id else 'N/A'}...: {type(e).__name__}")
+        return "[Mensagem não pôde ser recuperada]"  # Mostrar erro ao usuário
 
 
 # ============================================
