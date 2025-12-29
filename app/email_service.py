@@ -64,6 +64,7 @@ class EmailService:
 
     def _base_template(self, content: str) -> str:
         """Template base para todos os emails"""
+        logo_url = f"{APP_URL}/static/icons/logo-email.png"
         return f"""
         <!DOCTYPE html>
         <html>
@@ -80,8 +81,8 @@ class EmailService:
                             <!-- Header -->
                             <tr>
                                 <td style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; text-align: center;">
-                                    <h1 style="margin: 0; color: #d4af37; font-size: 28px; font-weight: 600;">SoulHaven</h1>
-                                    <p style="margin: 8px 0 0 0; color: #a0a0a0; font-size: 14px;">Seu refugio espiritual</p>
+                                    <img src="{logo_url}" alt="SoulHaven" style="width: 180px; height: auto; margin-bottom: 12px;">
+                                    <p style="margin: 0; color: #d4af37; font-size: 14px; font-style: italic;">Orientando voce ao verdadeiro Refugio</p>
                                 </td>
                             </tr>
                             <!-- Content -->
