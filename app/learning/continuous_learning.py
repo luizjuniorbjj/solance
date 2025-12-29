@@ -383,18 +383,22 @@ class LearningEngine:
 
     async def _save_feedback(self, user_id: str, feedback: FeedbackType, context: str):
         """Salva feedback no banco"""
+        import uuid as uuid_module
         # Buscar última estratégia usada
         strategy = None
         try:
+            # Converter user_id para UUID
+            user_uuid = uuid_module.UUID(user_id) if isinstance(user_id, str) else user_id
             async with self.db.pool.acquire() as conn:
                 row = await conn.fetchrow("""
                     SELECT strategy_used FROM learning_interactions
                     WHERE user_id = $1
                     ORDER BY created_at DESC LIMIT 1
-                """, user_id)
+                """, user_uuid)
                 if row:
                     strategy = row["strategy_used"]
-        except:
+        except Exception as e:
+            print(f"[LEARNING] Error getting strategy: {e}")
             pass
 
         await self.db.save_learning_feedback(
@@ -414,7 +418,10 @@ class LearningEngine:
 
     async def _get_interaction_history(self, user_id: str, days: int) -> List[Dict]:
         """Busca histórico de interações"""
+        import uuid as uuid_module
         try:
+            # Converter user_id para UUID
+            user_uuid = uuid_module.UUID(user_id) if isinstance(user_id, str) else user_id
             async with self.db.pool.acquire() as conn:
                 # Verificar se tabela existe
                 table_exists = await conn.fetchval("""
@@ -431,9 +438,10 @@ class LearningEngine:
                     SELECT * FROM learning_interactions
                     WHERE user_id = $1 AND created_at > NOW() - INTERVAL '%s days'
                     ORDER BY created_at DESC
-                """ % days, user_id)
+                """ % days, user_uuid)
                 return [dict(row) for row in rows]
-        except:
+        except Exception as e:
+            print(f"[LEARNING] Error getting interaction history: {e}")
             return []
 
 

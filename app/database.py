@@ -955,6 +955,10 @@ class Database:
         ai_response_length: int = None
     ):
         """Salva uma interação para aprendizado"""
+        # Converter strings para UUID
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+        conv_uuid = UUID(conversation_id) if conversation_id and isinstance(conversation_id, str) else conversation_id
+
         async with self.pool.acquire() as conn:
             # Criar tabela se não existir
             await conn.execute("""
@@ -979,7 +983,7 @@ class Database:
                     emotion_before, emotion_after, response_time,
                     user_message_length, ai_response_length
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            """, user_id, conversation_id, strategy_used,
+            """, user_uuid, conv_uuid, strategy_used,
                 emotion_before, emotion_after, response_time,
                 user_message_length, ai_response_length
             )
@@ -992,6 +996,9 @@ class Database:
         context: str = None
     ):
         """Salva feedback implícito ou explícito para aprendizado"""
+        # Converter string para UUID
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+
         async with self.pool.acquire() as conn:
             # Criar tabela se não existir
             await conn.execute("""
@@ -1008,13 +1015,16 @@ class Database:
             await conn.execute("""
                 INSERT INTO learning_feedbacks (user_id, feedback_type, strategy_used, context)
                 VALUES ($1, $2, $3, $4)
-            """, user_id, feedback_type, strategy_used, context[:500] if context else None)
+            """, user_uuid, feedback_type, strategy_used, context[:500] if context else None)
 
     async def get_strategy_scores(self, user_id: str) -> dict:
         """
         Calcula scores de efetividade para cada estratégia baseado no histórico.
         Score alto = estratégia funciona bem para este usuário.
         """
+        # Converter string para UUID
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+
         async with self.pool.acquire() as conn:
             # Verificar se tabela existe
             table_exists = await conn.fetchval("""
@@ -1036,7 +1046,7 @@ class Database:
                 FROM learning_feedbacks
                 WHERE user_id = $1 AND strategy_used IS NOT NULL
                 GROUP BY strategy_used, feedback_type
-            """, user_id)
+            """, user_uuid)
 
             if not rows:
                 return {}
@@ -1072,6 +1082,9 @@ class Database:
 
     async def get_user_learning_stats(self, user_id: str) -> dict:
         """Retorna estatísticas de aprendizado do usuário"""
+        # Converter string para UUID
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+
         async with self.pool.acquire() as conn:
             # Verificar se tabelas existem
             table_exists = await conn.fetchval("""
@@ -1087,7 +1100,7 @@ class Database:
             # Total de interações
             total = await conn.fetchval(
                 "SELECT COUNT(*) FROM learning_interactions WHERE user_id = $1",
-                user_id
+                user_uuid
             )
 
             # Estratégias mais usadas
@@ -1097,7 +1110,7 @@ class Database:
                 WHERE user_id = $1 AND strategy_used IS NOT NULL
                 GROUP BY strategy_used
                 ORDER BY count DESC
-            """, user_id)
+            """, user_uuid)
 
             # Melhorias emocionais
             improvements = await conn.fetchval("""
@@ -1105,7 +1118,7 @@ class Database:
                 WHERE user_id = $1
                 AND emotion_before IN ('ansioso', 'triste', 'irritado', 'culpado', 'medo')
                 AND emotion_after IN ('esperancoso', 'grato', 'alegre', 'neutro')
-            """, user_id)
+            """, user_uuid)
 
             return {
                 "total_interactions": total or 0,
@@ -1115,10 +1128,13 @@ class Database:
 
     async def update_user_preferred_style(self, user_id: str, adjustments: dict):
         """Atualiza preferências de estilo baseado no aprendizado"""
+        # Converter string para UUID
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+
         async with self.pool.acquire() as conn:
             profile = await conn.fetchrow(
                 "SELECT * FROM user_profiles WHERE user_id = $1",
-                user_id
+                user_uuid
             )
 
             if not profile:
@@ -1141,7 +1157,7 @@ class Database:
 
             await conn.execute(
                 "UPDATE user_profiles SET tom_preferido = $1 WHERE user_id = $2",
-                new_tom, user_id
+                new_tom, user_uuid
             )
 
     # ============================================
