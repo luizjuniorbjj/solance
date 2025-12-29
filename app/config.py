@@ -124,3 +124,20 @@ APP_URL = os.getenv("APP_URL", "https://soulhavenapp.com")
 # ============================================
 # Emails que têm acesso ao painel admin
 ADMIN_EMAILS = os.getenv("ADMIN_EMAILS", "luizjuniorbjj@gmail.com").split(",")
+
+# ============================================
+# PUSH NOTIFICATIONS (VAPID)
+# ============================================
+VAPID_PUBLIC_KEY = os.getenv(
+    "VAPID_PUBLIC_KEY",
+    "BDjIT_RYliLCj-aJ7Y11Bqqx-6sfsXUY_Zm2ng3fmvco5yPhS79X_tRN-q9wkC-U189IoIUnC7C8k8Sd7vJqeUk"
+)
+VAPID_PRIVATE_KEY = os.getenv(
+    "VAPID_PRIVATE_KEY",
+    """-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgS7oe7VQ4Ejs6A2H/
+c0xMRNsJla2qRPt5/IqsexlGTWahRANCAAQ4yE/0WJYiwo/mie2NdQaqsfurH7F1
+GP2Ztp4N35r3KOcj4Uu/V/7UTfqvcJAvlNfPSKCFJwuwvJPEne7yanlJ
+-----END PRIVATE KEY-----"""
+)
+VAPID_CLAIMS_EMAIL = os.getenv("VAPID_CLAIMS_EMAIL", "contato@soulhavenapp.com")

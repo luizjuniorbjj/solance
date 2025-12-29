@@ -5,12 +5,14 @@ Painel para gerenciar usuários, conversas e métricas
 
 from typing import Optional, List
 from datetime import datetime, timedelta
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 
 from app.auth import get_current_user
 from app.database import get_db, Database
 from app.config import ADMIN_EMAILS
+from app.routes.push import send_push_notification
+from app.notification_scheduler import send_reminder_notifications, send_engagement_notifications
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -1246,4 +1248,285 @@ async def get_backup_stats(
         "messages": messages_count or 0,
         "memories": memories_count or 0,
         "estimated_size_mb": round((messages_count or 0) * 0.002, 2)  # ~2KB por mensagem
+    }
+
+
+# ============================================
+# PUSH NOTIFICATIONS - ADMIN
+# ============================================
+
+class BroadcastNotification(BaseModel):
+    title: str
+    body: str
+    url: Optional[str] = "/"
+    target: Optional[str] = "all"  # all, premium, free
+
+
+@router.get("/push/stats")
+async def get_push_stats(
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Estatísticas de push notifications.
+    """
+    async with db.pool.acquire() as conn:
+        # Contar subscriptions ativas
+        try:
+            subs = await conn.fetchrow("""
+                SELECT
+                    COUNT(*) as total,
+                    COUNT(DISTINCT user_id) as unique_users,
+                    COUNT(*) FILTER (WHERE is_active = TRUE) as active
+                FROM push_subscriptions
+            """)
+            subscriptions = {
+                "total": subs["total"] or 0,
+                "unique_users": subs["unique_users"] or 0,
+                "active": subs["active"] or 0
+            }
+        except:
+            subscriptions = {"total": 0, "unique_users": 0, "active": 0}
+
+        # Estatísticas de notificações enviadas
+        try:
+            notification_stats = await db.get_notification_stats(days=7)
+        except:
+            notification_stats = {}
+
+    return {
+        "subscriptions": subscriptions,
+        "notifications_last_7_days": notification_stats
+    }
+
+
+@router.get("/push/subscriptions")
+async def list_push_subscriptions(
+    limit: int = 50,
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Lista subscriptions de push.
+    """
+    subs = await db.get_all_push_subscriptions(limit=limit)
+
+    return [
+        {
+            "id": str(s.get("id", "")),
+            "user_id": str(s.get("user_id", "")),
+            "email": s.get("email"),
+            "is_premium": s.get("is_premium", False),
+            "endpoint": s.get("endpoint", "")[:50] + "...",
+            "is_active": s.get("is_active", True),
+            "created_at": s.get("created_at").isoformat() if s.get("created_at") else None,
+            "last_used_at": s.get("last_used_at").isoformat() if s.get("last_used_at") else None
+        }
+        for s in subs
+    ]
+
+
+@router.post("/push/broadcast")
+async def broadcast_notification(
+    notification: BroadcastNotification,
+    background_tasks: BackgroundTasks,
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Envia notificação para todos os usuários (ou grupo específico).
+    """
+    # Determinar filtro
+    filter_premium = None
+    if notification.target == "premium":
+        filter_premium = True
+    elif notification.target == "free":
+        filter_premium = False
+
+    # Buscar todas subscriptions
+    subscriptions = await db.get_all_push_subscriptions(
+        filter_premium=filter_premium,
+        limit=1000
+    )
+
+    if not subscriptions:
+        return {"success": False, "message": "Nenhuma subscription encontrada", "sent": 0}
+
+    # Enviar em background
+    async def send_all():
+        success_count = 0
+        for sub in subscriptions:
+            subscription_info = {
+                "endpoint": sub["endpoint"],
+                "keys": {
+                    "p256dh": sub["p256dh"],
+                    "auth": sub["auth"]
+                }
+            }
+
+            success = await send_push_notification(
+                subscription_info=subscription_info,
+                title=notification.title,
+                body=notification.body,
+                url=notification.url or "/",
+                db=db,
+                user_id=str(sub["user_id"]),
+                notification_type="broadcast"
+            )
+
+            if success:
+                success_count += 1
+
+        print(f"[PUSH BROADCAST] Sent to {success_count}/{len(subscriptions)} users")
+
+    background_tasks.add_task(send_all)
+
+    return {
+        "success": True,
+        "message": f"Enviando notificacao para {len(subscriptions)} dispositivos",
+        "target": notification.target,
+        "queued": len(subscriptions)
+    }
+
+
+@router.post("/push/send-to-user/{user_id}")
+async def send_notification_to_user(
+    user_id: str,
+    title: str,
+    body: str,
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Envia notificação para um usuário específico.
+    """
+    import uuid
+
+    try:
+        user_uuid = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="ID de usuario invalido")
+
+    # Verificar se usuário existe
+    user = await db.get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario nao encontrado")
+
+    # Buscar subscriptions do usuário
+    subscriptions = await db.get_user_push_subscriptions(user_id)
+
+    if not subscriptions:
+        raise HTTPException(
+            status_code=400,
+            detail="Usuario nao tem push habilitado"
+        )
+
+    success_count = 0
+    for sub in subscriptions:
+        subscription_info = {
+            "endpoint": sub["endpoint"],
+            "keys": {
+                "p256dh": sub["p256dh"],
+                "auth": sub["auth"]
+            }
+        }
+
+        success = await send_push_notification(
+            subscription_info=subscription_info,
+            title=title,
+            body=body,
+            db=db,
+            user_id=user_id,
+            notification_type="admin_direct"
+        )
+
+        if success:
+            success_count += 1
+
+    if success_count > 0:
+        return {
+            "success": True,
+            "message": f"Notificacao enviada para {success_count} dispositivo(s)",
+            "user_email": user.get("email")
+        }
+    else:
+        raise HTTPException(status_code=500, detail="Falha ao enviar notificacao")
+
+
+@router.get("/push/logs")
+async def get_notification_logs(
+    limit: int = 50,
+    notification_type: Optional[str] = None,
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Logs de notificações enviadas.
+    """
+    async with db.pool.acquire() as conn:
+        try:
+            if notification_type:
+                rows = await conn.fetch("""
+                    SELECT nl.*, u.email
+                    FROM notification_logs nl
+                    LEFT JOIN users u ON u.id = nl.user_id
+                    WHERE nl.notification_type = $1
+                    ORDER BY nl.sent_at DESC
+                    LIMIT $2
+                """, notification_type, limit)
+            else:
+                rows = await conn.fetch("""
+                    SELECT nl.*, u.email
+                    FROM notification_logs nl
+                    LEFT JOIN users u ON u.id = nl.user_id
+                    ORDER BY nl.sent_at DESC
+                    LIMIT $1
+                """, limit)
+        except:
+            return []
+
+    return [
+        {
+            "id": str(r.get("id", "")),
+            "user_email": r.get("email"),
+            "notification_type": r.get("notification_type"),
+            "title": r.get("title"),
+            "body": r.get("body")[:100] + "..." if r.get("body") and len(r.get("body", "")) > 100 else r.get("body"),
+            "success": r.get("success", True),
+            "error_message": r.get("error_message"),
+            "sent_at": r.get("sent_at").isoformat() if r.get("sent_at") else None
+        }
+        for r in rows
+    ]
+
+
+@router.post("/push/trigger-reminders")
+async def trigger_reminder_notifications(
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Dispara lembretes manualmente (para teste).
+    Normalmente enviados automaticamente pelo scheduler.
+    """
+    count = await send_reminder_notifications()
+    return {
+        "success": True,
+        "message": f"Lembretes enviados para {count} usuarios"
+    }
+
+
+@router.post("/push/trigger-engagement")
+async def trigger_engagement_notifications(
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Dispara notificacoes de engajamento manualmente (para teste).
+    Normalmente enviados automaticamente pelo scheduler.
+    """
+    count = await send_engagement_notifications()
+    return {
+        "success": True,
+        "message": f"Notificacoes de engajamento enviadas para {count} usuarios"
     }

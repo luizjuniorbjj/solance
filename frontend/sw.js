@@ -1,5 +1,5 @@
 // SoulHaven Service Worker
-const CACHE_NAME = 'soulhaven-v8';
+const CACHE_NAME = 'soulhaven-v9';
 const OFFLINE_URL = '/offline.html';
 
 // Arquivos para cachear
@@ -82,29 +82,97 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Push Notifications (para futuro)
+// ============================================
+// PUSH NOTIFICATIONS
+// ============================================
+
 self.addEventListener('push', (event) => {
+  console.log('[SW] Push received');
+
+  let data = {
+    title: 'SoulHaven',
+    body: 'Voce tem uma nova mensagem',
+    icon: '/static/icons/icon-192x192.png',
+    url: '/app'
+  };
+
   if (event.data) {
-    const data = event.data.json();
-    const options = {
-      body: data.body || 'Nova mensagem do SoulHaven',
-      icon: '/static/icons/icon-192x192.png',
-      badge: '/static/icons/icon-72x72.png',
-      vibrate: [100, 50, 100],
-      data: {
-        url: data.url || '/app'
-      }
-    };
-    event.waitUntil(
-      self.registration.showNotification(data.title || 'SoulHaven', options)
-    );
+    try {
+      data = { ...data, ...event.data.json() };
+    } catch (e) {
+      console.error('[SW] Error parsing push data:', e);
+      data.body = event.data.text();
+    }
   }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || '/static/icons/icon-192x192.png',
+    badge: '/static/icons/icon-72x72.png',
+    vibrate: [100, 50, 100],
+    tag: data.tag || 'soulhaven-notification',
+    renotify: true,
+    requireInteraction: false,
+    data: {
+      url: data.url || '/app',
+      timestamp: Date.now()
+    },
+    actions: [
+      {
+        action: 'open',
+        title: 'Abrir'
+      },
+      {
+        action: 'close',
+        title: 'Fechar'
+      }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
 });
 
-// Clique em notificação
+// Clique em notificacao
 self.addEventListener('notificationclick', (event) => {
+  console.log('[SW] Notification clicked:', event.action);
+
   event.notification.close();
+
+  // Se clicou em "fechar", nao faz nada
+  if (event.action === 'close') {
+    return;
+  }
+
+  // Abrir ou focar na janela do app
+  const urlToOpen = event.notification.data?.url || '/app';
+
   event.waitUntil(
-    clients.openWindow(event.notification.data.url || '/app')
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((windowClients) => {
+        // Procurar janela existente
+        for (const client of windowClients) {
+          if (client.url.includes('/app') && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        // Abrir nova janela se nao encontrou
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
+      })
   );
+});
+
+// Fechar notificacao
+self.addEventListener('notificationclose', (event) => {
+  console.log('[SW] Notification closed');
+});
+
+// Receber mensagens do cliente
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

@@ -4666,8 +4666,86 @@
     }
 
     async function registerPushNotifications() {
-      // Placeholder para implementacao futura de service worker
-      console.log('Push notifications registradas');
+      try {
+        // Verificar suporte
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+          console.log('[PUSH] Push notifications nao suportadas');
+          return;
+        }
+
+        // Verificar se esta logado
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.log('[PUSH] Usuario nao logado');
+          return;
+        }
+
+        // Aguardar service worker estar pronto
+        const registration = await navigator.serviceWorker.ready;
+        console.log('[PUSH] Service worker pronto');
+
+        // Buscar chave publica VAPID do servidor
+        const vapidResponse = await fetch(`${API_URL}/push/vapid-public-key`);
+        if (!vapidResponse.ok) {
+          console.error('[PUSH] Erro ao buscar VAPID key');
+          return;
+        }
+        const { publicKey } = await vapidResponse.json();
+
+        // Converter chave para Uint8Array
+        function urlBase64ToUint8Array(base64String) {
+          const padding = '='.repeat((4 - base64String.length % 4) % 4);
+          const base64 = (base64String + padding)
+            .replace(/-/g, '+')
+            .replace(/_/g, '/');
+          const rawData = window.atob(base64);
+          const outputArray = new Uint8Array(rawData.length);
+          for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+          }
+          return outputArray;
+        }
+
+        // Criar subscription
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicKey)
+        });
+
+        console.log('[PUSH] Subscription criada:', subscription.endpoint);
+
+        // Enviar subscription para o servidor
+        const response = await fetch(`${API_URL}/push/subscribe`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            endpoint: subscription.endpoint,
+            keys: {
+              p256dh: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')))),
+              auth: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth'))))
+            }
+          })
+        });
+
+        if (response.ok) {
+          console.log('[PUSH] Subscription registrada no servidor');
+        } else {
+          console.error('[PUSH] Erro ao registrar subscription:', await response.text());
+        }
+
+      } catch (error) {
+        console.error('[PUSH] Erro ao registrar push notifications:', error);
+      }
+    }
+
+    // Tentar registrar push ao carregar se ja tem permissao
+    async function initPushNotifications() {
+      if (Notification.permission === 'granted' && localStorage.getItem('token')) {
+        await registerPushNotifications();
+      }
     }
 
     function confirmDeleteAccount() {
@@ -5636,6 +5714,10 @@
         navigator.serviceWorker.register('/sw.js')
           .then((registration) => {
             console.log('[PWA] Service Worker registered:', registration.scope);
+            // Inicializar push notifications apos service worker registrado
+            setTimeout(() => {
+              initPushNotifications();
+            }, 1000);
           })
           .catch((error) => {
             console.log('[PWA] Service Worker registration failed:', error);

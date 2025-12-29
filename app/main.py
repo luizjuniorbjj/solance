@@ -24,6 +24,8 @@ from app.routes.devotional import router as devotional_router
 from app.routes.admin import router as admin_router
 from app.routes.payment import router as payment_router
 from app.routes.memories import router as memories_router
+from app.routes.push import router as push_router
+from app.notification_scheduler import notification_scheduler
 
 
 # ============================================
@@ -47,6 +49,11 @@ async def lifespan(app: FastAPI):
 
     await init_db()
     print("✅ Banco de dados conectado")
+
+    # Iniciar scheduler de notificacoes
+    await notification_scheduler.start()
+    print("✅ Scheduler de notificacoes iniciado")
+
     print("✅ API pronta")
     print("=" * 40)
     print(f"📍 http://localhost:8000")
@@ -55,6 +62,7 @@ async def lifespan(app: FastAPI):
     yield
 
     # Shutdown
+    await notification_scheduler.stop()
     await close_db()
     print("\n👋 SoulHaven encerrado\n")
 
@@ -141,6 +149,7 @@ app.include_router(devotional_router)
 app.include_router(admin_router)
 app.include_router(payment_router)
 app.include_router(memories_router)
+app.include_router(push_router)
 
 
 # ============================================

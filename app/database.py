@@ -1710,6 +1710,334 @@ class Database:
                 return result
             return None
 
+    # ============================================
+    # PUSH NOTIFICATIONS
+    # ============================================
+
+    async def save_push_subscription(
+        self,
+        user_id: str,
+        endpoint: str,
+        p256dh: str,
+        auth: str,
+        user_agent: str = None
+    ) -> dict:
+        """Salva subscription de push do usuário"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+        async with self.pool.acquire() as conn:
+            # Criar tabela se não existir
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS push_subscriptions (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    endpoint TEXT NOT NULL UNIQUE,
+                    p256dh TEXT NOT NULL,
+                    auth TEXT NOT NULL,
+                    user_agent TEXT,
+                    is_active BOOLEAN DEFAULT TRUE,
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                    last_used_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                )
+            """)
+
+            # Upsert - atualiza se mesmo endpoint já existe
+            row = await conn.fetchrow(
+                """
+                INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth, user_agent)
+                VALUES ($1, $2, $3, $4, $5)
+                ON CONFLICT (endpoint) DO UPDATE SET
+                    user_id = $1,
+                    p256dh = $3,
+                    auth = $4,
+                    user_agent = $5,
+                    is_active = TRUE,
+                    last_used_at = NOW()
+                RETURNING id
+                """,
+                user_uuid, endpoint, p256dh, auth, user_agent
+            )
+            return {"id": str(row["id"]), "saved": True}
+
+    async def get_user_push_subscriptions(self, user_id: str) -> List[dict]:
+        """Busca subscriptions ativas de um usuário"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT * FROM push_subscriptions
+                WHERE user_id = $1 AND is_active = TRUE
+                """,
+                user_uuid
+            )
+            return [dict(row) for row in rows]
+
+    async def get_all_push_subscriptions(
+        self,
+        filter_premium: bool = None,
+        limit: int = 1000
+    ) -> List[dict]:
+        """Busca todas subscriptions ativas (para envio em massa)"""
+        async with self.pool.acquire() as conn:
+            if filter_premium is None:
+                rows = await conn.fetch(
+                    """
+                    SELECT ps.*, u.email, u.is_premium
+                    FROM push_subscriptions ps
+                    JOIN users u ON u.id = ps.user_id
+                    WHERE ps.is_active = TRUE
+                    LIMIT $1
+                    """,
+                    limit
+                )
+            else:
+                rows = await conn.fetch(
+                    """
+                    SELECT ps.*, u.email, u.is_premium
+                    FROM push_subscriptions ps
+                    JOIN users u ON u.id = ps.user_id
+                    WHERE ps.is_active = TRUE AND u.is_premium = $1
+                    LIMIT $2
+                    """,
+                    filter_premium, limit
+                )
+            return [dict(row) for row in rows]
+
+    async def deactivate_push_subscription(self, endpoint: str):
+        """Desativa uma subscription (quando falha o envio)"""
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                "UPDATE push_subscriptions SET is_active = FALSE WHERE endpoint = $1",
+                endpoint
+            )
+
+    async def delete_push_subscription(self, user_id: str, endpoint: str = None):
+        """Remove subscription(s) de um usuário"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+        async with self.pool.acquire() as conn:
+            if endpoint:
+                await conn.execute(
+                    "DELETE FROM push_subscriptions WHERE user_id = $1 AND endpoint = $2",
+                    user_uuid, endpoint
+                )
+            else:
+                await conn.execute(
+                    "DELETE FROM push_subscriptions WHERE user_id = $1",
+                    user_uuid
+                )
+
+    # ============================================
+    # USER NOTIFICATION PREFERENCES
+    # ============================================
+
+    async def get_user_notification_preferences(self, user_id: str) -> Optional[dict]:
+        """Busca preferências de notificação do usuário"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+        async with self.pool.acquire() as conn:
+            # Criar tabela se não existir
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS user_notification_preferences (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    push_enabled BOOLEAN DEFAULT TRUE,
+                    reminder_enabled BOOLEAN DEFAULT TRUE,
+                    reminder_time TIME DEFAULT '09:00:00',
+                    reminder_days JSONB DEFAULT '["mon","tue","wed","thu","fri","sat","sun"]',
+                    engagement_enabled BOOLEAN DEFAULT TRUE,
+                    engagement_after_days INTEGER DEFAULT 3,
+                    marketing_enabled BOOLEAN DEFAULT FALSE,
+                    timezone VARCHAR(50) DEFAULT 'America/Sao_Paulo',
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                )
+            """)
+
+            row = await conn.fetchrow(
+                "SELECT * FROM user_notification_preferences WHERE user_id = $1",
+                user_uuid
+            )
+            if row:
+                result = dict(row)
+                if result.get("reminder_days") and isinstance(result["reminder_days"], str):
+                    result["reminder_days"] = json.loads(result["reminder_days"])
+                return result
+            return None
+
+    async def save_user_notification_preferences(
+        self,
+        user_id: str,
+        preferences: dict
+    ) -> dict:
+        """Salva ou atualiza preferências de notificação"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+        async with self.pool.acquire() as conn:
+            # Garantir que tabela existe
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS user_notification_preferences (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    push_enabled BOOLEAN DEFAULT TRUE,
+                    reminder_enabled BOOLEAN DEFAULT TRUE,
+                    reminder_time TIME DEFAULT '09:00:00',
+                    reminder_days JSONB DEFAULT '["mon","tue","wed","thu","fri","sat","sun"]',
+                    engagement_enabled BOOLEAN DEFAULT TRUE,
+                    engagement_after_days INTEGER DEFAULT 3,
+                    marketing_enabled BOOLEAN DEFAULT FALSE,
+                    timezone VARCHAR(50) DEFAULT 'America/Sao_Paulo',
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                )
+            """)
+
+            await conn.execute(
+                """
+                INSERT INTO user_notification_preferences (
+                    user_id, push_enabled, reminder_enabled, reminder_time,
+                    reminder_days, engagement_enabled, engagement_after_days,
+                    marketing_enabled, timezone
+                )
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                ON CONFLICT (user_id) DO UPDATE SET
+                    push_enabled = COALESCE($2, user_notification_preferences.push_enabled),
+                    reminder_enabled = COALESCE($3, user_notification_preferences.reminder_enabled),
+                    reminder_time = COALESCE($4, user_notification_preferences.reminder_time),
+                    reminder_days = COALESCE($5, user_notification_preferences.reminder_days),
+                    engagement_enabled = COALESCE($6, user_notification_preferences.engagement_enabled),
+                    engagement_after_days = COALESCE($7, user_notification_preferences.engagement_after_days),
+                    marketing_enabled = COALESCE($8, user_notification_preferences.marketing_enabled),
+                    timezone = COALESCE($9, user_notification_preferences.timezone),
+                    updated_at = NOW()
+                """,
+                user_uuid,
+                preferences.get("push_enabled"),
+                preferences.get("reminder_enabled"),
+                preferences.get("reminder_time"),
+                json.dumps(preferences.get("reminder_days")) if preferences.get("reminder_days") else None,
+                preferences.get("engagement_enabled"),
+                preferences.get("engagement_after_days"),
+                preferences.get("marketing_enabled"),
+                preferences.get("timezone")
+            )
+            return {"saved": True}
+
+    async def get_users_for_reminder(self, current_hour: int, day_of_week: str) -> List[dict]:
+        """
+        Busca usuários que devem receber lembrete agora.
+        current_hour: hora atual (0-23) no timezone do servidor
+        day_of_week: dia da semana em inglês (mon, tue, etc.)
+        """
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT
+                    unp.user_id,
+                    u.email,
+                    ps.endpoint,
+                    ps.p256dh,
+                    ps.auth
+                FROM user_notification_preferences unp
+                JOIN users u ON u.id = unp.user_id
+                JOIN push_subscriptions ps ON ps.user_id = unp.user_id
+                WHERE unp.reminder_enabled = TRUE
+                AND unp.push_enabled = TRUE
+                AND ps.is_active = TRUE
+                AND EXTRACT(HOUR FROM unp.reminder_time) = $1
+                AND unp.reminder_days ? $2
+                """,
+                current_hour, day_of_week
+            )
+            return [dict(row) for row in rows]
+
+    async def get_users_for_engagement(self, days_inactive: int = 3) -> List[dict]:
+        """
+        Busca usuários inativos que devem receber notificação de engajamento.
+        """
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT
+                    unp.user_id,
+                    u.email,
+                    u.last_login,
+                    ps.endpoint,
+                    ps.p256dh,
+                    ps.auth,
+                    unp.engagement_after_days
+                FROM user_notification_preferences unp
+                JOIN users u ON u.id = unp.user_id
+                JOIN push_subscriptions ps ON ps.user_id = unp.user_id
+                WHERE unp.engagement_enabled = TRUE
+                AND unp.push_enabled = TRUE
+                AND ps.is_active = TRUE
+                AND u.last_login < NOW() - (unp.engagement_after_days || ' days')::INTERVAL
+                AND NOT EXISTS (
+                    SELECT 1 FROM notification_logs nl
+                    WHERE nl.user_id = unp.user_id
+                    AND nl.notification_type = 'engagement'
+                    AND nl.sent_at > NOW() - INTERVAL '7 days'
+                )
+                LIMIT 100
+                """
+            )
+            return [dict(row) for row in rows]
+
+    # ============================================
+    # NOTIFICATION LOGS
+    # ============================================
+
+    async def log_notification(
+        self,
+        user_id: str,
+        notification_type: str,
+        title: str,
+        body: str,
+        success: bool = True,
+        error_message: str = None
+    ):
+        """Registra envio de notificação"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+        async with self.pool.acquire() as conn:
+            # Criar tabela se não existir
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS notification_logs (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+                    notification_type VARCHAR(50) NOT NULL,
+                    title VARCHAR(200),
+                    body TEXT,
+                    success BOOLEAN DEFAULT TRUE,
+                    error_message TEXT,
+                    sent_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                )
+            """)
+
+            await conn.execute(
+                """
+                INSERT INTO notification_logs (user_id, notification_type, title, body, success, error_message)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                """,
+                user_uuid, notification_type, title, body, success, error_message
+            )
+
+    async def get_notification_stats(self, days: int = 7) -> dict:
+        """Retorna estatísticas de notificações enviadas"""
+        async with self.pool.acquire() as conn:
+            stats = await conn.fetchrow(
+                """
+                SELECT
+                    COUNT(*) as total_sent,
+                    COUNT(*) FILTER (WHERE success = TRUE) as successful,
+                    COUNT(*) FILTER (WHERE success = FALSE) as failed,
+                    COUNT(DISTINCT user_id) as unique_users,
+                    COUNT(*) FILTER (WHERE notification_type = 'reminder') as reminders,
+                    COUNT(*) FILTER (WHERE notification_type = 'engagement') as engagement,
+                    COUNT(*) FILTER (WHERE notification_type = 'broadcast') as broadcasts
+                FROM notification_logs
+                WHERE sent_at > NOW() - ($1 || ' days')::INTERVAL
+                """,
+                str(days)
+            )
+            return dict(stats) if stats else {}
+
 
 # ============================================
 # CONNECTION POOL
