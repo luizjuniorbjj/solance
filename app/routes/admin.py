@@ -1061,3 +1061,189 @@ async def get_emotional_alerts(
             "total_alerts": len(result),
             "alerts": result
         }
+
+
+# ============================================
+# BACKUP DO BANCO DE DADOS
+# ============================================
+
+@router.get("/backup/full")
+async def download_full_backup(
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Gera backup completo do banco em JSON.
+    Inclui: usuários, perfis, conversas, mensagens (criptografadas), memórias.
+    IMPORTANTE: Mensagens permanecem criptografadas por segurança.
+    """
+    import json
+    from datetime import datetime
+    from fastapi.responses import Response
+
+    backup_data = {
+        "backup_info": {
+            "generated_at": datetime.utcnow().isoformat(),
+            "version": "1.0",
+            "generated_by": admin["user_id"]
+        },
+        "users": [],
+        "profiles": [],
+        "conversations": [],
+        "messages": [],
+        "memories": [],
+        "psychological_profiles": []
+    }
+
+    async with db.pool.acquire() as conn:
+        # 1. Usuários (sem senha)
+        users = await conn.fetch("""
+            SELECT id, email, is_premium, is_active, created_at, last_login,
+                   total_messages, trial_messages_used, premium_until
+            FROM users
+        """)
+        backup_data["users"] = [
+            {
+                "id": str(u["id"]),
+                "email": u["email"],
+                "is_premium": u["is_premium"],
+                "is_active": u["is_active"],
+                "created_at": u["created_at"].isoformat() if u["created_at"] else None,
+                "last_login": u["last_login"].isoformat() if u["last_login"] else None,
+                "total_messages": u["total_messages"],
+                "trial_messages_used": u["trial_messages_used"],
+                "premium_until": u["premium_until"].isoformat() if u["premium_until"] else None
+            }
+            for u in users
+        ]
+
+        # 2. Perfis
+        profiles = await conn.fetch("SELECT * FROM user_profiles")
+        backup_data["profiles"] = [
+            {
+                "id": str(p["id"]),
+                "user_id": str(p["user_id"]),
+                "nome": p.get("nome"),
+                "lutas_encrypted": p["lutas_encrypted"].hex() if p.get("lutas_encrypted") else None,
+                "created_at": p["created_at"].isoformat() if p.get("created_at") else None
+            }
+            for p in profiles
+        ]
+
+        # 3. Conversas
+        conversations = await conn.fetch("SELECT * FROM conversations")
+        backup_data["conversations"] = [
+            {
+                "id": str(c["id"]),
+                "user_id": str(c["user_id"]),
+                "started_at": c["started_at"].isoformat() if c.get("started_at") else None,
+                "last_message_at": c["last_message_at"].isoformat() if c.get("last_message_at") else None,
+                "message_count": c.get("message_count"),
+                "resumo": c.get("resumo"),
+                "is_archived": c.get("is_archived", False)
+            }
+            for c in conversations
+        ]
+
+        # 4. Mensagens (mantém criptografado)
+        messages = await conn.fetch("SELECT * FROM messages")
+        backup_data["messages"] = [
+            {
+                "id": str(m["id"]),
+                "conversation_id": str(m["conversation_id"]),
+                "user_id": str(m["user_id"]),
+                "role": m["role"],
+                "content_encrypted": m["content_encrypted"].hex() if m.get("content_encrypted") else None,
+                "created_at": m["created_at"].isoformat() if m.get("created_at") else None,
+                "tokens_used": m.get("tokens_used"),
+                "model_used": m.get("model_used")
+            }
+            for m in messages
+        ]
+
+        # 5. Memórias
+        try:
+            memories = await conn.fetch("SELECT * FROM user_memories")
+            backup_data["memories"] = [
+                {
+                    "id": str(mem["id"]),
+                    "user_id": str(mem["user_id"]),
+                    "categoria": mem.get("categoria"),
+                    "fato": mem.get("fato"),
+                    "contexto": mem.get("contexto"),
+                    "importancia": mem.get("importancia"),
+                    "status": mem.get("status"),
+                    "created_at": mem["created_at"].isoformat() if mem.get("created_at") else None
+                }
+                for mem in memories
+            ]
+        except:
+            backup_data["memories"] = []
+
+        # 6. Perfis psicológicos
+        try:
+            psych = await conn.fetch("SELECT * FROM user_psychological_profile")
+            backup_data["psychological_profiles"] = [
+                {
+                    "id": str(p["id"]),
+                    "user_id": str(p["user_id"]),
+                    "communication_style": p.get("communication_style"),
+                    "primary_needs": p.get("primary_needs"),
+                    "faith_stage": p.get("faith_stage"),
+                    "temperament": p.get("temperament"),
+                    "confidence_score": float(p.get("confidence_score", 0)),
+                    "analysis_count": p.get("analysis_count"),
+                    "last_analysis_at": p["last_analysis_at"].isoformat() if p.get("last_analysis_at") else None
+                }
+                for p in psych
+            ]
+        except:
+            backup_data["psychological_profiles"] = []
+
+    # Gerar JSON
+    json_data = json.dumps(backup_data, ensure_ascii=False, indent=2)
+
+    # Retornar como download
+    filename = f"soulhaven_backup_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+
+    return Response(
+        content=json_data,
+        media_type="application/json",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
+
+
+@router.get("/backup/stats")
+async def get_backup_stats(
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Retorna estatísticas do que seria incluído no backup.
+    Útil para verificar antes de baixar.
+    """
+    async with db.pool.acquire() as conn:
+        users_count = await conn.fetchval("SELECT COUNT(*) FROM users")
+        conversations_count = await conn.fetchval("SELECT COUNT(*) FROM conversations")
+        messages_count = await conn.fetchval("SELECT COUNT(*) FROM messages")
+
+        try:
+            memories_count = await conn.fetchval("SELECT COUNT(*) FROM user_memories")
+        except:
+            memories_count = 0
+
+        try:
+            profiles_count = await conn.fetchval("SELECT COUNT(*) FROM user_profiles")
+        except:
+            profiles_count = 0
+
+    return {
+        "users": users_count or 0,
+        "profiles": profiles_count or 0,
+        "conversations": conversations_count or 0,
+        "messages": messages_count or 0,
+        "memories": memories_count or 0,
+        "estimated_size_mb": round((messages_count or 0) * 0.002, 2)  # ~2KB por mensagem
+    }
