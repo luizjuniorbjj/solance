@@ -1273,6 +1273,443 @@ class Database:
                 password_hash, user_uuid
             )
 
+    # ============================================
+    # EMOTIONAL TIMELINE (Layer 2)
+    # Tracking interno de estados emocionais
+    # ============================================
+
+    async def record_emotional_state(
+        self,
+        user_id: str,
+        emotion: str,
+        intensity: float = 0.5,
+        confidence: float = 0.7,
+        trigger: str = None,
+        themes: List[str] = None,
+        conversation_id: str = None
+    ) -> dict:
+        """
+        Registra um estado emocional detectado na timeline.
+        Uso interno - não exposto ao usuário.
+        """
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+        conv_uuid = UUID(conversation_id) if conversation_id and isinstance(conversation_id, str) else conversation_id
+        now = datetime.now()
+
+        async with self.pool.acquire() as conn:
+            # Criar tabela se não existir
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS emotional_timeline (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    conversation_id UUID REFERENCES conversations(id) ON DELETE SET NULL,
+                    emotion VARCHAR(50) NOT NULL,
+                    intensity DECIMAL(3,2) DEFAULT 0.5,
+                    confidence DECIMAL(3,2) DEFAULT 0.7,
+                    trigger_detected VARCHAR(100),
+                    themes JSONB DEFAULT '[]',
+                    day_of_week INTEGER,
+                    hour_of_day INTEGER,
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                )
+            """)
+
+            row = await conn.fetchrow(
+                """
+                INSERT INTO emotional_timeline (
+                    user_id, conversation_id, emotion, intensity, confidence,
+                    trigger_detected, themes, day_of_week, hour_of_day
+                )
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                RETURNING id, created_at
+                """,
+                user_uuid, conv_uuid, emotion,
+                min(max(intensity, 0.0), 1.0),
+                min(max(confidence, 0.0), 1.0),
+                trigger, json.dumps(themes or []),
+                now.weekday(), now.hour
+            )
+            return {"id": str(row["id"]), "recorded_at": row["created_at"].isoformat()}
+
+    async def get_emotional_timeline(
+        self,
+        user_id: str,
+        days: int = 30,
+        limit: int = 100
+    ) -> List[dict]:
+        """
+        Busca histórico emocional do usuário.
+        Uso interno para análise de padrões.
+        """
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT * FROM emotional_timeline
+                WHERE user_id = $1
+                AND created_at > NOW() - ($2 || ' days')::INTERVAL
+                ORDER BY created_at DESC
+                LIMIT $3
+                """,
+                user_uuid, str(days), limit
+            )
+            result = []
+            for row in rows:
+                entry = dict(row)
+                if entry.get("themes") and isinstance(entry["themes"], str):
+                    entry["themes"] = json.loads(entry["themes"])
+                result.append(entry)
+            return result
+
+    async def get_emotional_patterns(self, user_id: str, days: int = 30) -> dict:
+        """
+        Analisa padrões emocionais do usuário.
+        Retorna tendências, picos e triggers comuns.
+        """
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+        async with self.pool.acquire() as conn:
+            # Verificar se a função existe (pode não ter rodado a migration)
+            func_exists = await conn.fetchval("""
+                SELECT EXISTS (
+                    SELECT 1 FROM pg_proc WHERE proname = 'get_emotional_patterns'
+                )
+            """)
+
+            if func_exists:
+                row = await conn.fetchrow(
+                    "SELECT * FROM get_emotional_patterns($1, $2)",
+                    user_uuid, days
+                )
+                if row:
+                    return dict(row)
+
+            # Fallback se função não existe - análise simplificada
+            emotions = await conn.fetch(
+                """
+                SELECT emotion, COUNT(*) as count, AVG(intensity) as avg_intensity
+                FROM emotional_timeline
+                WHERE user_id = $1 AND created_at > NOW() - ($2 || ' days')::INTERVAL
+                GROUP BY emotion
+                ORDER BY count DESC
+                LIMIT 5
+                """,
+                user_uuid, str(days)
+            )
+
+            if not emotions:
+                return {
+                    "dominant_emotion": "neutro",
+                    "avg_intensity": 0.5,
+                    "emotion_variance": 0.0,
+                    "trend": "stable",
+                    "emotions_detected": []
+                }
+
+            return {
+                "dominant_emotion": emotions[0]["emotion"] if emotions else "neutro",
+                "avg_intensity": float(emotions[0]["avg_intensity"]) if emotions else 0.5,
+                "emotion_variance": 0.0,
+                "trend": "stable",
+                "emotions_detected": [
+                    {"emotion": e["emotion"], "count": e["count"], "avg_intensity": float(e["avg_intensity"])}
+                    for e in emotions
+                ]
+            }
+
+    async def get_emotional_trend(self, user_id: str) -> str:
+        """
+        Retorna tendência emocional recente: 'improving', 'worsening', 'stable'
+        Compara última semana com semanas anteriores.
+        """
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+        negative_emotions = ('ansioso', 'triste', 'angustiado', 'estressado', 'deprimido', 'frustrado')
+
+        async with self.pool.acquire() as conn:
+            # Média de intensidade de emoções negativas na última semana
+            recent = await conn.fetchval(
+                """
+                SELECT AVG(intensity)
+                FROM emotional_timeline
+                WHERE user_id = $1
+                AND emotion = ANY($2)
+                AND created_at > NOW() - INTERVAL '7 days'
+                """,
+                user_uuid, list(negative_emotions)
+            )
+
+            # Média das 3 semanas anteriores
+            older = await conn.fetchval(
+                """
+                SELECT AVG(intensity)
+                FROM emotional_timeline
+                WHERE user_id = $1
+                AND emotion = ANY($2)
+                AND created_at BETWEEN NOW() - INTERVAL '28 days' AND NOW() - INTERVAL '7 days'
+                """,
+                user_uuid, list(negative_emotions)
+            )
+
+            if recent is None or older is None:
+                return "stable"
+
+            recent = float(recent)
+            older = float(older)
+
+            if recent > older * 1.2:
+                return "worsening"
+            elif recent < older * 0.8:
+                return "improving"
+            return "stable"
+
+    # ============================================
+    # MEMORY HEALTH SCORE (Layer 2)
+    # Avaliação da qualidade do contexto do usuário
+    # ============================================
+
+    async def calculate_memory_health_score(self, user_id: str) -> dict:
+        """
+        Calcula o Health Score de memórias do usuário.
+        Avalia diversidade, atualização, consistência e equilíbrio.
+        """
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+        async with self.pool.acquire() as conn:
+            # Verificar se a função existe
+            func_exists = await conn.fetchval("""
+                SELECT EXISTS (
+                    SELECT 1 FROM pg_proc WHERE proname = 'calculate_memory_health_score'
+                )
+            """)
+
+            if func_exists:
+                row = await conn.fetchrow(
+                    "SELECT * FROM calculate_memory_health_score($1)",
+                    user_uuid
+                )
+                if row:
+                    result = dict(row)
+                    # Gerar recomendações baseadas nos scores
+                    result["recommendations"] = self._generate_health_recommendations(result)
+                    return result
+
+            # Fallback - cálculo simplificado em Python
+            return await self._calculate_health_score_fallback(conn, user_uuid)
+
+    async def _calculate_health_score_fallback(self, conn, user_uuid: UUID) -> dict:
+        """Cálculo de Health Score quando a função SQL não existe."""
+        # Contar memórias
+        counts = await conn.fetchrow(
+            """
+            SELECT
+                COUNT(*) as total,
+                COUNT(*) FILTER (WHERE status = 'active') as active,
+                COUNT(DISTINCT categoria) FILTER (WHERE status = 'active') as categories,
+                COUNT(*) FILTER (WHERE status IN ('superseded', 'deactivated')) as conflicts,
+                COUNT(*) FILTER (WHERE status = 'active' AND ultima_mencao > NOW() - INTERVAL '7 days') as fresh,
+                COUNT(*) FILTER (WHERE status = 'active' AND ultima_mencao < NOW() - INTERVAL '30 days') as stale,
+                COUNT(*) FILTER (WHERE status = 'active' AND categoria = 'LUTA') as lutas,
+                COUNT(*) FILTER (WHERE status = 'active' AND categoria = 'VITORIA') as vitorias,
+                COUNT(*) FILTER (WHERE status = 'active' AND mencoes >= 3) as high_mention
+            FROM user_memories WHERE user_id = $1
+            """,
+            user_uuid
+        )
+
+        total = counts["total"] or 0
+        active = counts["active"] or 0
+        categories = counts["categories"] or 0
+        conflicts = counts["conflicts"] or 0
+        fresh = counts["fresh"] or 0
+        stale = counts["stale"] or 0
+        lutas = counts["lutas"] or 0
+        vitorias = counts["vitorias"] or 0
+        high_mention = counts["high_mention"] or 0
+
+        if active == 0:
+            return {
+                "diversity_score": 0,
+                "freshness_score": 0,
+                "consistency_score": 100,
+                "engagement_score": 0,
+                "balance_score": 50,
+                "overall_score": 30,
+                "health_level": "unknown",
+                "total_memories": 0,
+                "active_memories": 0,
+                "categories_count": 0,
+                "conflicts_count": 0,
+                "stale_memories_count": 0,
+                "recommendations": ["Converse mais para construir seu perfil"]
+            }
+
+        # Calcular scores
+        diversity = min(int(categories / 8.0 * 100), 100)
+        freshness = min(int(fresh / active * 100), 100) if active > 0 else 50
+        consistency = max(100 - int(conflicts / total * 200), 0) if total > 0 else 100
+        engagement = min(int(high_mention / active * 100), 100) if active > 0 else 0
+
+        # Balance score
+        if lutas == 0 and vitorias == 0:
+            balance = 50
+        elif lutas == 0:
+            balance = 100
+        elif vitorias >= lutas:
+            balance = min(70 + int(vitorias / lutas * 15), 100)
+        else:
+            balance = max(50 - int((lutas - vitorias) / lutas * 30), 20)
+
+        # Overall
+        overall = int(
+            diversity * 0.20 +
+            freshness * 0.25 +
+            consistency * 0.20 +
+            engagement * 0.15 +
+            balance * 0.20
+        )
+
+        # Level
+        if overall >= 80:
+            level = "excellent"
+        elif overall >= 60:
+            level = "good"
+        elif overall >= 40:
+            level = "moderate"
+        else:
+            level = "poor"
+
+        result = {
+            "diversity_score": diversity,
+            "freshness_score": freshness,
+            "consistency_score": consistency,
+            "engagement_score": engagement,
+            "balance_score": balance,
+            "overall_score": overall,
+            "health_level": level,
+            "total_memories": total,
+            "active_memories": active,
+            "categories_count": categories,
+            "conflicts_count": conflicts,
+            "stale_memories_count": stale
+        }
+        result["recommendations"] = self._generate_health_recommendations(result)
+        return result
+
+    def _generate_health_recommendations(self, scores: dict) -> List[str]:
+        """Gera recomendações baseadas nos scores."""
+        recommendations = []
+
+        if scores.get("diversity_score", 0) < 50:
+            recommendations.append("Compartilhe mais sobre diferentes áreas da sua vida")
+
+        if scores.get("freshness_score", 0) < 40:
+            recommendations.append("Atualize informações antigas - sua vida mudou?")
+
+        if scores.get("consistency_score", 0) < 60:
+            recommendations.append("Algumas informações parecem conflitantes")
+
+        if scores.get("balance_score", 0) < 40:
+            recommendations.append("Compartilhe também suas vitórias e conquistas!")
+
+        if scores.get("stale_memories_count", 0) > 10:
+            recommendations.append("Algumas memórias estão desatualizadas")
+
+        if not recommendations:
+            if scores.get("overall_score", 0) >= 80:
+                recommendations.append("Excelente! Seu perfil está bem completo")
+            else:
+                recommendations.append("Continue conversando para melhorar seu perfil")
+
+        return recommendations
+
+    async def save_memory_health_score(self, user_id: str, scores: dict):
+        """Salva/atualiza o cache de Health Score."""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+        async with self.pool.acquire() as conn:
+            # Criar tabela se não existir
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS memory_health_scores (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    diversity_score INTEGER DEFAULT 0,
+                    freshness_score INTEGER DEFAULT 0,
+                    consistency_score INTEGER DEFAULT 0,
+                    engagement_score INTEGER DEFAULT 0,
+                    balance_score INTEGER DEFAULT 0,
+                    overall_score INTEGER DEFAULT 0,
+                    health_level VARCHAR(20) DEFAULT 'unknown',
+                    total_memories INTEGER DEFAULT 0,
+                    active_memories INTEGER DEFAULT 0,
+                    categories_count INTEGER DEFAULT 0,
+                    conflicts_count INTEGER DEFAULT 0,
+                    stale_memories_count INTEGER DEFAULT 0,
+                    recommendations JSONB DEFAULT '[]',
+                    last_calculated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                )
+            """)
+
+            await conn.execute(
+                """
+                INSERT INTO memory_health_scores (
+                    user_id, diversity_score, freshness_score, consistency_score,
+                    engagement_score, balance_score, overall_score, health_level,
+                    total_memories, active_memories, categories_count,
+                    conflicts_count, stale_memories_count, recommendations,
+                    last_calculated_at
+                )
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW())
+                ON CONFLICT (user_id) DO UPDATE SET
+                    diversity_score = $2,
+                    freshness_score = $3,
+                    consistency_score = $4,
+                    engagement_score = $5,
+                    balance_score = $6,
+                    overall_score = $7,
+                    health_level = $8,
+                    total_memories = $9,
+                    active_memories = $10,
+                    categories_count = $11,
+                    conflicts_count = $12,
+                    stale_memories_count = $13,
+                    recommendations = $14,
+                    last_calculated_at = NOW(),
+                    updated_at = NOW()
+                """,
+                user_uuid,
+                scores.get("diversity_score", 0),
+                scores.get("freshness_score", 0),
+                scores.get("consistency_score", 0),
+                scores.get("engagement_score", 0),
+                scores.get("balance_score", 0),
+                scores.get("overall_score", 0),
+                scores.get("health_level", "unknown"),
+                scores.get("total_memories", 0),
+                scores.get("active_memories", 0),
+                scores.get("categories_count", 0),
+                scores.get("conflicts_count", 0),
+                scores.get("stale_memories_count", 0),
+                json.dumps(scores.get("recommendations", []))
+            )
+
+    async def get_cached_health_score(self, user_id: str) -> Optional[dict]:
+        """Busca Health Score em cache (se calculado recentemente)."""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT * FROM memory_health_scores
+                WHERE user_id = $1
+                AND last_calculated_at > NOW() - INTERVAL '1 hour'
+                """,
+                user_uuid
+            )
+            if row:
+                result = dict(row)
+                if result.get("recommendations") and isinstance(result["recommendations"], str):
+                    result["recommendations"] = json.loads(result["recommendations"])
+                return result
+            return None
+
 
 # ============================================
 # CONNECTION POOL

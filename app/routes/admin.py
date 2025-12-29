@@ -780,3 +780,284 @@ async def diagnose_user_by_email(
             raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
     return await diagnose_user(str(user["id"]), admin, db)
+
+
+# ============================================
+# LAYER 2: HEALTH SCORES E TIMELINE EMOCIONAL
+# ============================================
+
+@router.get("/users/{user_id}/health-score")
+async def get_user_health_score(
+    user_id: str,
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Retorna o Memory Health Score de um usuário.
+    Calcula em tempo real ou retorna do cache se recente.
+    """
+    import uuid
+
+    try:
+        user_uuid = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="ID de usuário inválido")
+
+    # Verificar se usuário existe
+    user = await db.get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    # Tentar buscar do cache primeiro
+    cached = await db.get_cached_health_score(user_id)
+    if cached:
+        cached["source"] = "cache"
+        return cached
+
+    # Calcular fresh
+    health_score = await db.calculate_memory_health_score(user_id)
+    health_score["source"] = "calculated"
+
+    # Salvar no cache
+    await db.save_memory_health_score(user_id, health_score)
+
+    return health_score
+
+
+@router.get("/users/{user_id}/emotional-timeline")
+async def get_user_emotional_timeline(
+    user_id: str,
+    days: int = 30,
+    limit: int = 50,
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Retorna a timeline emocional do usuário.
+    Dados internos - não expostos ao usuário.
+    """
+    import uuid
+
+    try:
+        user_uuid = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="ID de usuário inválido")
+
+    # Verificar se usuário existe
+    user = await db.get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    timeline = await db.get_emotional_timeline(user_id, days=days, limit=limit)
+
+    # Formatar para resposta
+    formatted = []
+    for entry in timeline:
+        formatted.append({
+            "id": str(entry.get("id", "")),
+            "emotion": entry.get("emotion"),
+            "intensity": float(entry.get("intensity", 0.5)),
+            "confidence": float(entry.get("confidence", 0.7)),
+            "trigger": entry.get("trigger_detected"),
+            "themes": entry.get("themes", []),
+            "day_of_week": entry.get("day_of_week"),
+            "hour_of_day": entry.get("hour_of_day"),
+            "created_at": entry.get("created_at").isoformat() if entry.get("created_at") else None
+        })
+
+    return {
+        "user_id": user_id,
+        "email": user.get("email"),
+        "period_days": days,
+        "total_entries": len(formatted),
+        "timeline": formatted
+    }
+
+
+@router.get("/users/{user_id}/emotional-patterns")
+async def get_user_emotional_patterns(
+    user_id: str,
+    days: int = 30,
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Retorna padrões emocionais analisados do usuário.
+    Inclui emoção dominante, tendência, triggers comuns.
+    """
+    import uuid
+
+    try:
+        user_uuid = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="ID de usuário inválido")
+
+    # Verificar se usuário existe
+    user = await db.get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    patterns = await db.get_emotional_patterns(user_id, days=days)
+    trend = await db.get_emotional_trend(user_id)
+
+    # Mapear dia da semana para nome
+    days_map = {0: "Segunda", 1: "Terça", 2: "Quarta", 3: "Quinta", 4: "Sexta", 5: "Sábado", 6: "Domingo"}
+
+    return {
+        "user_id": user_id,
+        "email": user.get("email"),
+        "period_days": days,
+        "dominant_emotion": patterns.get("dominant_emotion", "neutro"),
+        "avg_intensity": float(patterns.get("avg_intensity", 0.5)),
+        "trend": trend,
+        "trend_description": {
+            "improving": "Melhora emocional recente",
+            "worsening": "Piora emocional recente - atenção recomendada",
+            "stable": "Estável"
+        }.get(trend, "Estável"),
+        "peak_day": days_map.get(patterns.get("peak_day"), None),
+        "peak_hour": patterns.get("peak_hour"),
+        "common_triggers": patterns.get("common_triggers", []),
+        "emotions_detected": patterns.get("emotions_detected", []),
+        "needs_attention": trend == "worsening" or float(patterns.get("avg_intensity", 0.5)) > 0.75
+    }
+
+
+@router.get("/health-scores/overview")
+async def get_health_scores_overview(
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Visão geral de Health Scores de todos os usuários.
+    Útil para identificar usuários que precisam de atenção.
+    """
+    async with db.pool.acquire() as conn:
+        # Verificar se tabela existe
+        table_exists = await conn.fetchval("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_name = 'memory_health_scores'
+            )
+        """)
+
+        if not table_exists:
+            return {
+                "message": "Tabela de health scores ainda não existe",
+                "total_scored": 0,
+                "by_level": {},
+                "users": []
+            }
+
+        # Buscar scores
+        scores = await conn.fetch("""
+            SELECT
+                mhs.*,
+                u.email,
+                u.total_messages
+            FROM memory_health_scores mhs
+            JOIN users u ON u.id = mhs.user_id
+            ORDER BY mhs.overall_score ASC
+            LIMIT 50
+        """)
+
+        # Contar por nível
+        level_counts = await conn.fetch("""
+            SELECT health_level, COUNT(*) as count
+            FROM memory_health_scores
+            GROUP BY health_level
+        """)
+
+        users = []
+        for s in scores:
+            users.append({
+                "user_id": str(s["user_id"]),
+                "email": s["email"],
+                "overall_score": s["overall_score"],
+                "health_level": s["health_level"],
+                "total_messages": s["total_messages"],
+                "active_memories": s["active_memories"],
+                "last_calculated": s["last_calculated_at"].isoformat() if s["last_calculated_at"] else None
+            })
+
+        return {
+            "total_scored": len(scores),
+            "by_level": {row["health_level"]: row["count"] for row in level_counts},
+            "users": users
+        }
+
+
+@router.get("/emotional-alerts")
+async def get_emotional_alerts(
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Lista usuários que precisam de atenção baseado em padrões emocionais.
+    Identifica tendências de piora ou alta intensidade emocional.
+    """
+    async with db.pool.acquire() as conn:
+        # Verificar se tabela existe
+        table_exists = await conn.fetchval("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_name = 'emotional_timeline'
+            )
+        """)
+
+        if not table_exists:
+            return {
+                "message": "Tabela de timeline emocional ainda não existe",
+                "alerts": []
+            }
+
+        # Buscar usuários com emoções negativas frequentes nos últimos 7 dias
+        alerts = await conn.fetch("""
+            WITH recent_emotions AS (
+                SELECT
+                    user_id,
+                    emotion,
+                    AVG(intensity) as avg_intensity,
+                    COUNT(*) as count
+                FROM emotional_timeline
+                WHERE created_at > NOW() - INTERVAL '7 days'
+                AND emotion IN ('ansioso', 'triste', 'angustiado', 'estressado', 'deprimido', 'medo', 'solitário')
+                GROUP BY user_id, emotion
+            ),
+            user_summary AS (
+                SELECT
+                    user_id,
+                    SUM(count) as total_negative,
+                    MAX(avg_intensity) as max_intensity,
+                    ARRAY_AGG(DISTINCT emotion) as emotions
+                FROM recent_emotions
+                GROUP BY user_id
+                HAVING SUM(count) >= 3 OR MAX(avg_intensity) > 0.7
+            )
+            SELECT
+                us.*,
+                u.email,
+                u.total_messages
+            FROM user_summary us
+            JOIN users u ON u.id = us.user_id
+            ORDER BY us.max_intensity DESC, us.total_negative DESC
+            LIMIT 20
+        """)
+
+        result = []
+        for a in alerts:
+            result.append({
+                "user_id": str(a["user_id"]),
+                "email": a["email"],
+                "total_negative_emotions": a["total_negative"],
+                "max_intensity": float(a["max_intensity"]),
+                "emotions_detected": a["emotions"],
+                "total_messages": a["total_messages"],
+                "alert_level": "high" if float(a["max_intensity"]) > 0.8 else "medium"
+            })
+
+        return {
+            "period": "last_7_days",
+            "total_alerts": len(result),
+            "alerts": result
+        }

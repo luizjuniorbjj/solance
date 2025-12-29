@@ -247,6 +247,30 @@ class AIService:
         except Exception as e:
             print(f"[LEARNING] Error recording interaction: {e}")
 
+        # 16. LAYER 2: Registrar estado emocional na timeline (interno)
+        try:
+            detected_emotion = await self._detect_emotion_for_timeline(message, reply)
+            if detected_emotion:
+                await self.db.record_emotional_state(
+                    user_id=user_id,
+                    emotion=detected_emotion["emotion"],
+                    intensity=detected_emotion.get("intensity", 0.5),
+                    confidence=detected_emotion.get("confidence", 0.7),
+                    trigger=detected_emotion.get("trigger"),
+                    themes=detected_emotion.get("themes", []),
+                    conversation_id=str(conversation_id)
+                )
+        except Exception as e:
+            print(f"[EMOTIONAL_TIMELINE] Error recording emotion: {e}")
+
+        # 17. LAYER 2: Atualizar Health Score periodicamente (a cada 10 mensagens)
+        if total_messages > 0 and total_messages % 10 == 0:
+            try:
+                health_score = await self.db.calculate_memory_health_score(user_id)
+                await self.db.save_memory_health_score(user_id, health_score)
+            except Exception as e:
+                print(f"[HEALTH_SCORE] Error calculating: {e}")
+
         # Guardar resposta para detecção de feedback na próxima mensagem
         self._last_responses[user_id] = {
             "user_message": message,
@@ -591,6 +615,130 @@ class AIService:
 
         except Exception as e:
             print(f"Erro ao analisar perfil psicológico: {e}")
+
+    async def _detect_emotion_for_timeline(
+        self,
+        user_message: str,
+        ai_response: str
+    ) -> Optional[Dict]:
+        """
+        LAYER 2: Detecta estado emocional da mensagem do usuário.
+        Usa heurísticas rápidas (sem chamar API) para eficiência.
+        Retorna dict com: emotion, intensity, confidence, trigger, themes
+        """
+        message_lower = user_message.lower()
+
+        # Mapeamento de palavras-chave para emoções
+        EMOTION_KEYWORDS = {
+            "ansioso": ["ansiedad", "ansios", "nervos", "preocupad", "aflito", "inquiet", "agitad"],
+            "triste": ["triste", "tristeza", "deprimi", "chorand", "chorei", "infeliz", "desanim", "desesper"],
+            "angustiado": ["angústia", "angustia", "sufocad", "apert", "pesad", "oprimid", "atormentad"],
+            "estressado": ["estress", "cansad", "exaust", "esgotad", "sobrecarreg", "pressão", "pressao"],
+            "frustrado": ["frustrad", "irritad", "raiva", "bravo", "furioso", "indign"],
+            "alegre": ["feliz", "alegr", "content", "anim", "empolgad", "eufóric", "entusiasm"],
+            "grato": ["grat", "agradeç", "abençoa", "benção", "bencao"],
+            "esperançoso": ["esperanç", "confian", "otimis", "melhor", "acredit", "fé", "fe "],
+            "confuso": ["confus", "perdid", "sem rumo", "não sei", "dúvida", "incerteza"],
+            "culpado": ["culpa", "errei", "pequei", "arrepend", "vergonha", "falh"],
+            "medo": ["medo", "assustado", "pânico", "panico", "pavor", "terror", "ameaç"],
+            "solitário": ["solid", "sozin", "isolad", "abandon", "ninguém", "vazio"],
+            "neutro": []
+        }
+
+        # Mapeamento de triggers (contexto)
+        TRIGGER_KEYWORDS = {
+            "trabalho": ["trabalho", "emprego", "chefe", "colega", "demit", "salário", "carreira", "profiss"],
+            "família": ["família", "pai", "mãe", "filho", "esposo", "esposa", "marido", "irmão", "irmã"],
+            "saúde": ["saúde", "doença", "médico", "hospital", "diagnóstico", "dor", "tratament"],
+            "relacionamento": ["relacionament", "namorad", "noiv", "casament", "separaç", "divórc", "brigar"],
+            "financeiro": ["dinh", "conta", "dívida", "pagament", "financ", "gast", "econom"],
+            "espiritual": ["deus", "oraç", "igreja", "fé", "biblia", "pecad", "salvaç"],
+            "futuro": ["futur", "amanhã", "próxim", "plan", "sonho", "meta", "objetivo"],
+        }
+
+        # Detectar emoção principal
+        detected_emotion = "neutro"
+        max_matches = 0
+        intensity = 0.5
+
+        for emotion, keywords in EMOTION_KEYWORDS.items():
+            matches = sum(1 for kw in keywords if kw in message_lower)
+            if matches > max_matches:
+                max_matches = matches
+                detected_emotion = emotion
+
+        # Intensificadores
+        INTENSIFIERS = ["muito", "demais", "super", "extremament", "totalment", "completament"]
+        DIMINISHERS = ["um pouco", "levemente", "talvez", "meio"]
+
+        if any(i in message_lower for i in INTENSIFIERS):
+            intensity = min(intensity + 0.25, 1.0)
+        if any(d in message_lower for d in DIMINISHERS):
+            intensity = max(intensity - 0.2, 0.2)
+
+        # Se não detectou nada, retornar None (não registrar)
+        if detected_emotion == "neutro" and max_matches == 0:
+            # Verificar se há emoções positivas ou negativas óbvias
+            positive_indicators = ["obrigad", "amém", "glória", "aleluia", "maravilh", "ótim", "perfect"]
+            negative_indicators = ["não consigo", "não aguento", "cansado de", "estou mal", "preciso de ajuda"]
+
+            if any(p in message_lower for p in positive_indicators):
+                detected_emotion = "grato"
+                intensity = 0.6
+            elif any(n in message_lower for n in negative_indicators):
+                detected_emotion = "angustiado"
+                intensity = 0.6
+            else:
+                return None  # Mensagem neutra, não registrar
+
+        # Detectar trigger/contexto
+        detected_trigger = None
+        for trigger, keywords in TRIGGER_KEYWORDS.items():
+            if any(kw in message_lower for kw in keywords):
+                detected_trigger = trigger
+                break
+
+        # Extrair temas (palavras-chave gerais)
+        themes = []
+        if detected_trigger:
+            themes.append(detected_trigger)
+
+        # Calcular confiança baseada em quantas keywords foram encontradas
+        confidence = min(0.5 + (max_matches * 0.15), 0.95)
+
+        return {
+            "emotion": detected_emotion,
+            "intensity": intensity,
+            "confidence": confidence,
+            "trigger": detected_trigger,
+            "themes": themes
+        }
+
+    async def get_user_emotional_summary(self, user_id: str) -> Dict:
+        """
+        LAYER 2: Retorna resumo emocional do usuário para uso interno.
+        Combina timeline, padrões e tendência.
+        """
+        try:
+            patterns = await self.db.get_emotional_patterns(user_id, days=30)
+            trend = await self.db.get_emotional_trend(user_id)
+
+            return {
+                "dominant_emotion": patterns.get("dominant_emotion", "neutro"),
+                "avg_intensity": patterns.get("avg_intensity", 0.5),
+                "trend": trend,
+                "emotions_detected": patterns.get("emotions_detected", []),
+                "needs_attention": trend == "worsening" or patterns.get("avg_intensity", 0.5) > 0.7
+            }
+        except Exception as e:
+            print(f"[EMOTIONAL_SUMMARY] Error: {e}")
+            return {
+                "dominant_emotion": "neutro",
+                "avg_intensity": 0.5,
+                "trend": "stable",
+                "emotions_detected": [],
+                "needs_attention": False
+            }
 
     async def chat_trial(
         self,
