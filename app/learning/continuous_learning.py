@@ -283,8 +283,12 @@ class LearningEngine:
         # Padrão de horário
         hours = {}
         for i in interactions:
-            hour = datetime.fromisoformat(i["timestamp"]).hour
-            hours[hour] = hours.get(hour, 0) + 1
+            # Usar created_at do banco (pode ser datetime ou string)
+            ts = i.get("created_at") or i.get("timestamp")
+            if ts:
+                if isinstance(ts, str):
+                    ts = datetime.fromisoformat(ts)
+                hours[ts.hour] = hours.get(ts.hour, 0) + 1
 
         if hours:
             peak_hour = max(hours, key=hours.get)
@@ -293,8 +297,12 @@ class LearningEngine:
         # Padrão de dias da semana
         days = {}
         for i in interactions:
-            day = datetime.fromisoformat(i["timestamp"]).strftime("%A")
-            days[day] = days.get(day, 0) + 1
+            ts = i.get("created_at") or i.get("timestamp")
+            if ts:
+                if isinstance(ts, str):
+                    ts = datetime.fromisoformat(ts)
+                day = ts.strftime("%A")
+                days[day] = days.get(day, 0) + 1
 
         if days:
             peak_day = max(days, key=days.get)
@@ -303,11 +311,15 @@ class LearningEngine:
         # Padrão emocional por dia da semana
         emotional_patterns = {}
         for i in interactions:
-            day = datetime.fromisoformat(i["timestamp"]).strftime("%A")
-            emotion = i.get("emotion_before", "neutro")
-            if day not in emotional_patterns:
-                emotional_patterns[day] = []
-            emotional_patterns[day].append(emotion)
+            ts = i.get("created_at") or i.get("timestamp")
+            if ts:
+                if isinstance(ts, str):
+                    ts = datetime.fromisoformat(ts)
+                day = ts.strftime("%A")
+                emotion = i.get("emotion_before", "neutro")
+                if day not in emotional_patterns:
+                    emotional_patterns[day] = []
+                emotional_patterns[day].append(emotion)
 
         patterns["emotional_by_day"] = emotional_patterns
 
