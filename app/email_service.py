@@ -80,8 +80,8 @@ class EmailService:
                         <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                             <!-- Header -->
                             <tr>
-                                <td style="background-color: #15182d; padding: 30px; text-align: center;">
-                                    <img src="{logo_url}" alt="SoulHaven" style="width: 280px; height: auto; margin-bottom: 12px;">
+                                <td style="background-color: #15182d; padding: 20px 30px; text-align: center;">
+                                    <img src="{logo_url}" alt="SoulHaven" style="width: 280px; height: auto; margin-bottom: 4px;">
                                     <p style="margin: 0; color: #d4af37; font-size: 14px; font-style: italic;">Orientando você ao verdadeiro Refúgio</p>
                                 </td>
                             </tr>
