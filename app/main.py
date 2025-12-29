@@ -221,6 +221,24 @@ async def serve_offline():
 
 
 # ============================================
+# LEGAL PAGES
+# ============================================
+
+@app.get("/termos", tags=["Legal"])
+@app.get("/termos.html", tags=["Legal"])
+async def serve_termos():
+    """Serve os Termos de Uso"""
+    return FileResponse(FRONTEND_DIR / "termos.html")
+
+
+@app.get("/privacidade", tags=["Legal"])
+@app.get("/privacidade.html", tags=["Legal"])
+async def serve_privacidade():
+    """Serve a Política de Privacidade"""
+    return FileResponse(FRONTEND_DIR / "privacidade.html")
+
+
+# ============================================
 # SEO FILES
 # ============================================
 
