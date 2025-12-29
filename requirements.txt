@@ -30,6 +30,9 @@ python-dotenv==1.0.0
 # Payments
 stripe==7.0.0
 
+# Push Notifications
+pywebpush==1.14.1
+
 # Para produção (opcional)
 # gunicorn==21.2.0
 # redis==5.0.1
