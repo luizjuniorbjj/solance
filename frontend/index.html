@@ -4427,20 +4427,35 @@
         const notificationsEnabled = localStorage.getItem('soulhaven_notifications') === 'true';
         const reminderTime = localStorage.getItem('soulhaven_reminder_time') || '08:00';
 
+        // Verificar status da permissão de notificações
+        let notificationStatus = '';
+        let notificationBlocked = false;
+        if ('Notification' in window) {
+          if (Notification.permission === 'denied') {
+            notificationStatus = ' (bloqueada no navegador)';
+            notificationBlocked = true;
+          } else if (Notification.permission === 'granted' && notificationsEnabled) {
+            notificationStatus = ' (ativa)';
+          }
+        } else {
+          notificationStatus = ' (não suportado)';
+          notificationBlocked = true;
+        }
+
         modal.innerHTML = `
           <div class="settings-modal-content">
             <div class="settings-header">
-              <div class="settings-title">Configuracoes</div>
+              <div class="settings-title">Configurações</div>
               <button class="settings-close" onclick="closeSettings()">&times;</button>
             </div>
             <div class="settings-body">
               <!-- Aparencia -->
               <div class="settings-section">
-                <div class="settings-section-title">Aparencia</div>
+                <div class="settings-section-title">Aparência</div>
                 <div class="settings-item">
                   <div class="settings-item-info">
                     <div class="settings-item-label">Tema Escuro</div>
-                    <div class="settings-item-desc">Reduz o cansaco visual em ambientes escuros</div>
+                    <div class="settings-item-desc">Reduz o cansaço visual em ambientes escuros</div>
                   </div>
                   <div class="settings-toggle ${isDark ? 'active' : ''}" id="themeToggle" onclick="toggleTheme()"></div>
                 </div>
@@ -4448,18 +4463,18 @@
 
               <!-- Notificacoes -->
               <div class="settings-section">
-                <div class="settings-section-title">Notificacoes</div>
+                <div class="settings-section-title">Notificações</div>
                 <div class="settings-item">
                   <div class="settings-item-info">
-                    <div class="settings-item-label">Notificacoes Push</div>
-                    <div class="settings-item-desc">Receba lembretes e atualizacoes</div>
+                    <div class="settings-item-label">Notificações Push${notificationStatus}</div>
+                    <div class="settings-item-desc">${notificationBlocked ? 'Habilite nas configurações do navegador' : 'Receba lembretes e atualizações'}</div>
                   </div>
-                  <div class="settings-toggle ${notificationsEnabled ? 'active' : ''}" id="notificationToggle" onclick="toggleNotifications()"></div>
+                  <div class="settings-toggle ${notificationsEnabled && !notificationBlocked ? 'active' : ''}" id="notificationToggle" onclick="toggleNotifications()" ${notificationBlocked ? 'style="opacity: 0.5"' : ''}></div>
                 </div>
                 <div class="settings-item">
                   <div class="settings-item-info">
-                    <div class="settings-item-label">Horario do Lembrete</div>
-                    <div class="settings-item-desc">Momento diario para reflexao</div>
+                    <div class="settings-item-label">Horário do Lembrete</div>
+                    <div class="settings-item-desc">Momento diário para reflexão</div>
                   </div>
                   <select class="settings-select" id="reminderTime" onchange="updateReminderTime(this.value)">
                     <option value="06:00" ${reminderTime === '06:00' ? 'selected' : ''}>06:00</option>
@@ -4482,7 +4497,7 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                   </svg>
-                  Politica de Privacidade
+                  Política de Privacidade
                 </a>
                 <div style="height: 10px;"></div>
                 <button class="settings-btn-danger" onclick="confirmDeleteAccount()">
@@ -4569,27 +4584,55 @@
       const isEnabled = toggle.classList.contains('active');
 
       if (!isEnabled) {
-        // Solicitar permissao
-        if ('Notification' in window) {
-          Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-              localStorage.setItem('soulhaven_notifications', 'true');
-              toggle.classList.add('active');
-              showToast('Notificacoes ativadas');
-
-              // Registrar service worker para push notifications
-              registerPushNotifications();
-            } else {
-              showToast('Permissao de notificacao negada');
-            }
-          });
-        } else {
-          showToast('Seu navegador nao suporta notificacoes');
+        // Verificar suporte
+        if (!('Notification' in window)) {
+          showToast('Seu navegador não suporta notificações', 'error');
+          return;
         }
+
+        // Verificar se já foi negado permanentemente
+        if (Notification.permission === 'denied') {
+          showToast('Notificações bloqueadas. Habilite nas configurações do navegador.', 'error');
+          // Mostrar instrução
+          alert(
+            'As notificações foram bloqueadas anteriormente.\n\n' +
+            'Para habilitar:\n' +
+            '1. Clique no ícone de cadeado/info na barra de endereço\n' +
+            '2. Encontre "Notificações"\n' +
+            '3. Mude para "Permitir"\n' +
+            '4. Recarregue a página'
+          );
+          return;
+        }
+
+        // Solicitar permissão
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            localStorage.setItem('soulhaven_notifications', 'true');
+            toggle.classList.add('active');
+            showToast('Notificações ativadas!');
+
+            // Mostrar notificação de teste
+            new Notification('SoulHaven', {
+              body: 'Notificações ativadas com sucesso!',
+              icon: '/static/icons/icon-192x192.png'
+            });
+
+            // Registrar service worker para push
+            registerPushNotifications();
+          } else if (permission === 'denied') {
+            showToast('Permissão de notificação negada', 'error');
+          } else {
+            showToast('Permissão não concedida', 'error');
+          }
+        }).catch(err => {
+          console.error('Erro ao solicitar permissão:', err);
+          showToast('Erro ao solicitar permissão', 'error');
+        });
       } else {
         localStorage.setItem('soulhaven_notifications', 'false');
         toggle.classList.remove('active');
-        showToast('Notificacoes desativadas');
+        showToast('Notificações desativadas');
       }
     }
 
