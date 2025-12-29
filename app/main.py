@@ -202,6 +202,28 @@ async def serve_offline():
     return FileResponse(FRONTEND_DIR / "offline.html")
 
 
+# ============================================
+# SEO FILES
+# ============================================
+
+@app.get("/robots.txt", tags=["SEO"])
+async def serve_robots():
+    """Serve robots.txt para crawlers de busca"""
+    return FileResponse(
+        FRONTEND_DIR / "robots.txt",
+        media_type="text/plain"
+    )
+
+
+@app.get("/sitemap.xml", tags=["SEO"])
+async def serve_sitemap():
+    """Serve sitemap.xml para indexação"""
+    return FileResponse(
+        FRONTEND_DIR / "sitemap.xml",
+        media_type="application/xml"
+    )
+
+
 # Montar pasta estática (se houver assets)
 if FRONTEND_DIR.exists():
     # Montar subpasta static para ícones e assets
