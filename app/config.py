@@ -110,4 +110,4 @@ APP_URL = os.getenv("APP_URL", "https://soulhavenapp.com")
 # ADMIN SETTINGS
 # ============================================
 # Emails que têm acesso ao painel admin
-ADMIN_EMAILS = os.getenv("ADMIN_EMAILS", "admin@soulhaven.app").split(",")
+ADMIN_EMAILS = os.getenv("ADMIN_EMAILS", "luizjuniorbjj@gmail.com").split(",")
