@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse
 from app.config import (
     APP_NAME, APP_VERSION, DEBUG,
     CORS_ORIGINS, CORS_ALLOW_CREDENTIALS, CORS_ALLOW_METHODS, CORS_ALLOW_HEADERS,
-    PRODUCTION_ORIGINS
+    PRODUCTION_ORIGINS, ENCRYPTION_KEY, _PRODUCTION_ENCRYPTION_KEY
 )
 from app.database import init_db, close_db
 from app.auth import router as auth_router
@@ -36,6 +36,15 @@ async def lifespan(app: FastAPI):
     # Startup
     print(f"\n🕊️  {APP_NAME} v{APP_VERSION}")
     print("=" * 40)
+
+    # Validação crítica de segurança
+    if ENCRYPTION_KEY == "sua-chave-de-criptografia-32chars":
+        print("⚠️  [CRITICAL] ENCRYPTION_KEY inválida! Dados podem ser perdidos!")
+    elif ENCRYPTION_KEY == _PRODUCTION_ENCRYPTION_KEY:
+        print("🔐 Criptografia: usando chave de produção (fallback)")
+    else:
+        print("🔐 Criptografia: chave configurada via ambiente")
+
     await init_db()
     print("✅ Banco de dados conectado")
     print("✅ API pronta")
