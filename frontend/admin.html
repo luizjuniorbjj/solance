@@ -611,8 +611,9 @@
 
     <!-- Tabs -->
     <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-      <button class="btn btn-primary" id="tabUsers" onclick="showTab('users')" style="opacity: 1;">Usuarios</button>
+      <button class="btn btn-primary" id="tabUsers" onclick="showTab('users')" style="opacity: 1;">Usuários</button>
       <button class="btn btn-secondary" id="tabFeedbacks" onclick="showTab('feedbacks')">Feedbacks <span id="feedbackBadge" style="background: var(--red); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-left: 4px; display: none;">0</span></button>
+      <button class="btn btn-secondary" id="tabBackup" onclick="showTab('backup')">Backup</button>
     </div>
 
     <!-- Users Tab -->
@@ -683,6 +684,68 @@
         <div class="card-body">
           <div id="feedbacksList">
             <div class="loading">Carregando...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Backup Tab -->
+    <div id="backupTab" style="display: none;">
+      <div class="stats-grid" style="margin-bottom: 20px;">
+        <div class="stat-card">
+          <div class="stat-label">Usuários</div>
+          <div class="stat-value" id="backupUsers">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Conversas</div>
+          <div class="stat-value" id="backupConversations">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Mensagens</div>
+          <div class="stat-value" id="backupMessages">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Memórias</div>
+          <div class="stat-value" id="backupMemories">-</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>Backup do Banco de Dados</h2>
+        </div>
+        <div class="card-body" style="padding: 24px;">
+          <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+            <strong style="color: #92400e;">⚠️ Importante:</strong>
+            <p style="color: #92400e; margin-top: 8px; font-size: 14px;">
+              O backup inclui todos os dados do sistema. As mensagens permanecem criptografadas por segurança.
+              Recomendamos fazer backup semanalmente e salvar em local seguro (Google Drive, Dropbox, etc).
+            </p>
+          </div>
+
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="downloadBackup()" style="padding: 12px 24px; font-size: 16px;">
+              📥 Baixar Backup Completo
+            </button>
+            <button class="btn btn-secondary" onclick="loadBackupStats()" style="padding: 12px 24px;">
+              🔄 Atualizar Estatísticas
+            </button>
+          </div>
+
+          <div id="backupStatus" style="margin-top: 16px; display: none;">
+            <div class="loading">Gerando backup...</div>
+          </div>
+
+          <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
+            <h3 style="font-size: 16px; margin-bottom: 12px;">O que está incluído no backup:</h3>
+            <ul style="color: var(--text-secondary); font-size: 14px; line-height: 1.8; padding-left: 20px;">
+              <li>Dados de usuários (sem senhas)</li>
+              <li>Perfis e preferências</li>
+              <li>Todas as conversas</li>
+              <li>Mensagens (criptografadas)</li>
+              <li>Memórias salvas</li>
+              <li>Perfis psicológicos</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -781,18 +844,78 @@
 
     // Tab switching
     function showTab(tab) {
+      // Hide all tabs
+      document.getElementById('usersTab').style.display = 'none';
+      document.getElementById('feedbacksTab').style.display = 'none';
+      document.getElementById('backupTab').style.display = 'none';
+
+      // Reset all buttons
+      document.getElementById('tabUsers').className = 'btn btn-secondary';
+      document.getElementById('tabFeedbacks').className = 'btn btn-secondary';
+      document.getElementById('tabBackup').className = 'btn btn-secondary';
+
+      // Show selected tab
       if (tab === 'users') {
         document.getElementById('usersTab').style.display = 'grid';
-        document.getElementById('feedbacksTab').style.display = 'none';
         document.getElementById('tabUsers').className = 'btn btn-primary';
-        document.getElementById('tabFeedbacks').className = 'btn btn-secondary';
-      } else {
-        document.getElementById('usersTab').style.display = 'none';
+      } else if (tab === 'feedbacks') {
         document.getElementById('feedbacksTab').style.display = 'block';
-        document.getElementById('tabUsers').className = 'btn btn-secondary';
         document.getElementById('tabFeedbacks').className = 'btn btn-primary';
         loadFeedbacks();
+      } else if (tab === 'backup') {
+        document.getElementById('backupTab').style.display = 'block';
+        document.getElementById('tabBackup').className = 'btn btn-primary';
+        loadBackupStats();
       }
+    }
+
+    async function loadBackupStats() {
+      try {
+        const response = await fetch(`${API_URL}/admin/backup/stats`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('backupUsers').textContent = data.users;
+          document.getElementById('backupConversations').textContent = data.conversations;
+          document.getElementById('backupMessages').textContent = data.messages;
+          document.getElementById('backupMemories').textContent = data.memories;
+        }
+      } catch (error) {
+        console.error('Erro ao carregar stats de backup:', error);
+      }
+    }
+
+    async function downloadBackup() {
+      const statusDiv = document.getElementById('backupStatus');
+      statusDiv.style.display = 'block';
+
+      try {
+        const response = await fetch(`${API_URL}/admin/backup/full`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `soulhaven_backup_${new Date().toISOString().split('T')[0]}.json`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          a.remove();
+          statusDiv.innerHTML = '<div style="color: #10b981;">✅ Backup baixado com sucesso!</div>';
+        } else {
+          statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Erro ao gerar backup</div>';
+        }
+      } catch (error) {
+        console.error('Erro ao baixar backup:', error);
+        statusDiv.innerHTML = '<div style="color: #ef4444;">❌ Erro ao gerar backup</div>';
+      }
+
+      setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
     }
 
     async function loadUserStats() {
