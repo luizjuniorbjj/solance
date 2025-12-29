@@ -10,7 +10,7 @@ from app.auth import get_current_user
 from app.database import get_db, Database
 from app.ai_service import AIService
 from app.security import rate_limiter
-from app.config import FREE_MESSAGE_LIMIT, FREE_WARNING_AT, FREE_URGENT_AT
+from app.config import FREE_MESSAGE_LIMIT, FREE_WARNING_AT, FREE_URGENT_AT, TRIAL_MESSAGES_LIMIT_ANONYMOUS
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 

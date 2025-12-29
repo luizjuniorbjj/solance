@@ -49,6 +49,7 @@ MAX_CONTEXT_TOKENS = 4000
 FREE_MESSAGE_LIMIT = 30  # Limite total para usuários free
 FREE_WARNING_AT = 20  # Aviso sutil "10 restantes"
 FREE_URGENT_AT = 25  # Aviso urgente "5 restantes"
+TRIAL_MESSAGES_LIMIT_ANONYMOUS = 5  # Limite para visitantes sem conta
 MONTHLY_MESSAGE_LIMIT = 500  # Premium - antes de throttling
 THROTTLE_DELAY_SECONDS = 3
 
