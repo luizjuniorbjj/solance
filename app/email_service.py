@@ -200,8 +200,6 @@ class EmailService:
             <ul style="margin: 0; padding-left: 20px; color: #4a4a4a; font-size: 14px; line-height: 1.8;">
                 <li>Mensagens ilimitadas</li>
                 <li>Companheiro sempre disponivel</li>
-                <li>Respostas mais profundas e personalizadas</li>
-                <li>Suporte prioritario</li>
             </ul>
         </div>
 
