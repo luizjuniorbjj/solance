@@ -1,7 +1,7 @@
 {
   "name": "SoulHaven",
   "short_name": "SoulHaven",
-  "description": "Seu companheiro cristao de IA",
+  "description": "Um companheiro de IA para caminhar com voce no dia a dia",
   "start_url": "/app",
   "display": "standalone",
   "background_color": "#ffffff",

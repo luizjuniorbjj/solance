@@ -1,8 +1,8 @@
 # SoulHaven
 
-**"Orientando você ao verdadeiro Refúgio"**
+**Seu companheiro de IA para apoio emocional e espiritual**
 
-A primeira IA cristã humanizada com memória e personalização, 100% fundamentada na Bíblia.
+Ajudando pessoas a atravessarem as lutas da vida com clareza, fé e continuidade.
 
 ---
 
@@ -190,4 +190,4 @@ Projeto proprietário. Todos os direitos reservados.
 
 ---
 
-*SoulHaven — Orientando você ao verdadeiro Refúgio*
+*SoulHaven — Seu companheiro de IA para apoio emocional e espiritual*

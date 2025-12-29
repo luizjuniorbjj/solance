@@ -23,7 +23,7 @@ def base_template(content):
                     <tr>
                         <td style="background-color: #15182d; padding: 20px 30px; text-align: center;">
                             <img src="{logo_data_uri}" alt="SoulHaven" style="width: 280px; height: auto; margin-bottom: 4px;">
-                            <p style="margin: 0; color: #d4af37; font-size: 14px; font-style: italic;">Orientando você ao verdadeiro Refúgio</p>
+                            <p style="margin: 0; color: #d4af37; font-size: 14px; font-style: italic;">Seu companheiro de IA para apoio emocional e espiritual</p>
                         </td>
                     </tr>
                     <tr>

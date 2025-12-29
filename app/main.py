@@ -57,10 +57,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=APP_NAME,
     description="""
-    **SoulHaven** - Orientando você ao verdadeiro Refúgio
+    **SoulHaven** - Seu companheiro de IA para apoio emocional e espiritual
 
-    A primeira IA cristã com memória e personalização.
-    Companheiro de fé que conhece sua jornada.
+    Ajudando pessoas a atravessarem as lutas da vida com clareza, fé e continuidade.
     """,
     version=APP_VERSION,
     lifespan=lifespan,
@@ -115,7 +114,7 @@ async def api_status():
         "name": APP_NAME,
         "version": APP_VERSION,
         "status": "online",
-        "message": "Orientando você ao verdadeiro Refúgio"
+        "message": "Seu companheiro de IA para apoio emocional e espiritual"
     }
 
 

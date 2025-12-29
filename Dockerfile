@@ -6,7 +6,7 @@ FROM python:3.11-slim
 
 # Metadata
 LABEL maintainer="SoulHaven Team"
-LABEL description="SoulHaven API - Orientando você ao verdadeiro Refúgio"
+LABEL description="SoulHaven API - Seu companheiro de IA para apoio emocional e espiritual"
 
 # Set working directory
 WORKDIR /app
