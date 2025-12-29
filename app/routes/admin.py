@@ -585,3 +585,198 @@ async def review_feedback(
         """, datetime.utcnow(), notes, feedback_uuid)
 
     return {"message": "Feedback marcado como revisado"}
+
+
+# ============================================
+# DIAGNÓSTICO DE USUÁRIO
+# ============================================
+
+@router.get("/users/{user_id}/diagnose")
+async def diagnose_user(
+    user_id: str,
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Diagnóstico completo de um usuário - verifica todos os dados
+    que podem causar erros no chat
+    """
+    import uuid
+    import json
+
+    try:
+        user_uuid = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="ID de usuário inválido")
+
+    diagnosis = {
+        "user_id": user_id,
+        "errors": [],
+        "warnings": [],
+        "data": {}
+    }
+
+    async with db.pool.acquire() as conn:
+        # 1. Verificar usuário básico
+        user = await conn.fetchrow("SELECT * FROM users WHERE id = $1", user_uuid)
+        if not user:
+            diagnosis["errors"].append("Usuário não encontrado no banco")
+            return diagnosis
+
+        diagnosis["data"]["user"] = {
+            "email": user["email"],
+            "is_premium": user["is_premium"],
+            "is_active": user["is_active"],
+            "total_messages": user["total_messages"],
+            "trial_messages_used": user["trial_messages_used"]
+        }
+
+        # 2. Verificar perfil
+        try:
+            profile = await conn.fetchrow("SELECT * FROM user_profiles WHERE user_id = $1", user_uuid)
+            if profile:
+                diagnosis["data"]["profile"] = {
+                    "nome": profile.get("nome"),
+                    "has_lutas_encrypted": bool(profile.get("lutas_encrypted"))
+                }
+                # Tentar descriptografar lutas
+                if profile.get("lutas_encrypted"):
+                    try:
+                        from app.security import decrypt_data
+                        decrypted = decrypt_data(profile["lutas_encrypted"], user_id)
+                        json.loads(decrypted)  # Testar se é JSON válido
+                        diagnosis["data"]["profile"]["lutas_valid"] = True
+                    except Exception as e:
+                        diagnosis["errors"].append(f"Erro ao descriptografar lutas: {str(e)}")
+                        diagnosis["data"]["profile"]["lutas_valid"] = False
+            else:
+                diagnosis["warnings"].append("Perfil não encontrado - será criado no primeiro uso")
+        except Exception as e:
+            diagnosis["errors"].append(f"Erro ao buscar perfil: {str(e)}")
+
+        # 3. Verificar perfil psicológico
+        try:
+            psych = await conn.fetchrow("SELECT * FROM user_psychological_profile WHERE user_id = $1", user_uuid)
+            if psych:
+                diagnosis["data"]["psychological_profile"] = {
+                    "exists": True,
+                    "analysis_count": psych.get("analysis_count"),
+                    "confidence_score": float(psych.get("confidence_score", 0))
+                }
+                # Verificar thinking_patterns (é JSON)
+                if psych.get("thinking_patterns"):
+                    try:
+                        if isinstance(psych["thinking_patterns"], str):
+                            json.loads(psych["thinking_patterns"])
+                        diagnosis["data"]["psychological_profile"]["thinking_patterns_valid"] = True
+                    except Exception as e:
+                        diagnosis["errors"].append(f"thinking_patterns inválido: {str(e)}")
+                        diagnosis["data"]["psychological_profile"]["thinking_patterns_valid"] = False
+            else:
+                diagnosis["data"]["psychological_profile"] = {"exists": False}
+        except Exception as e:
+            diagnosis["warnings"].append(f"Tabela user_psychological_profile pode não existir: {str(e)}")
+
+        # 4. Verificar memórias
+        try:
+            memories_count = await conn.fetchval(
+                "SELECT COUNT(*) FROM user_memories WHERE user_id = $1 AND status = 'active'",
+                user_uuid
+            )
+            diagnosis["data"]["memories"] = {"count": memories_count}
+
+            # Verificar memórias com payload inválido
+            invalid_memories = await conn.fetch("""
+                SELECT id, fato, payload FROM user_memories
+                WHERE user_id = $1 AND payload IS NOT NULL
+            """, user_uuid)
+
+            invalid_count = 0
+            for mem in invalid_memories:
+                if mem["payload"]:
+                    try:
+                        if isinstance(mem["payload"], str):
+                            json.loads(mem["payload"])
+                    except:
+                        invalid_count += 1
+                        diagnosis["errors"].append(f"Memória {mem['id']} tem payload inválido")
+
+            diagnosis["data"]["memories"]["invalid_payload_count"] = invalid_count
+        except Exception as e:
+            diagnosis["warnings"].append(f"Erro ao verificar memórias: {str(e)}")
+
+        # 5. Verificar conversas
+        try:
+            conv_count = await conn.fetchval(
+                "SELECT COUNT(*) FROM conversations WHERE user_id = $1",
+                user_uuid
+            )
+            diagnosis["data"]["conversations"] = {"count": conv_count}
+        except Exception as e:
+            diagnosis["warnings"].append(f"Erro ao verificar conversas: {str(e)}")
+
+        # 6. Verificar mensagens (e se descriptografam corretamente)
+        try:
+            # Pegar última mensagem para testar descriptografia
+            last_msg = await conn.fetchrow("""
+                SELECT m.id, m.content_encrypted, c.user_id
+                FROM messages m
+                JOIN conversations c ON m.conversation_id = c.id
+                WHERE c.user_id = $1
+                ORDER BY m.created_at DESC
+                LIMIT 1
+            """, user_uuid)
+
+            if last_msg:
+                try:
+                    from app.security import decrypt_data
+                    decrypted = decrypt_data(last_msg["content_encrypted"], user_id)
+                    diagnosis["data"]["messages"] = {
+                        "last_message_decrypts": True,
+                        "sample": decrypted[:50] + "..." if len(decrypted) > 50 else decrypted
+                    }
+                except Exception as e:
+                    diagnosis["errors"].append(f"Erro ao descriptografar última mensagem: {str(e)}")
+                    diagnosis["data"]["messages"] = {"last_message_decrypts": False}
+            else:
+                diagnosis["data"]["messages"] = {"count": 0}
+        except Exception as e:
+            diagnosis["warnings"].append(f"Erro ao verificar mensagens: {str(e)}")
+
+        # 7. Verificar tabela learning_interactions
+        try:
+            learning_exists = await conn.fetchval("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables
+                    WHERE table_name = 'learning_interactions'
+                )
+            """)
+            diagnosis["data"]["learning"] = {"table_exists": learning_exists}
+        except Exception as e:
+            diagnosis["warnings"].append(f"Erro ao verificar learning: {str(e)}")
+
+    # Resumo
+    diagnosis["summary"] = {
+        "total_errors": len(diagnosis["errors"]),
+        "total_warnings": len(diagnosis["warnings"]),
+        "can_chat": len(diagnosis["errors"]) == 0
+    }
+
+    return diagnosis
+
+
+@router.get("/diagnose/email/{email}")
+async def diagnose_user_by_email(
+    email: str,
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Diagnóstico de usuário por email
+    """
+    async with db.pool.acquire() as conn:
+        user = await conn.fetchrow("SELECT id FROM users WHERE email = $1", email)
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    return await diagnose_user(str(user["id"]), admin, db)
