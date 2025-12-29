@@ -286,7 +286,25 @@ class AIService:
         Constrói APENAS o system prompt base (persona/regras).
         Memórias e contexto vão em mensagens separadas para melhor caching.
         """
-        prompt = SOULHAVEN_PERSONA
+        # Injetar data atual no prompt (Claude não sabe a data automaticamente!)
+        now = datetime.now()
+        # Mapeamento de meses para português
+        meses_pt = {
+            1: "janeiro", 2: "fevereiro", 3: "março", 4: "abril",
+            5: "maio", 6: "junho", 7: "julho", 8: "agosto",
+            9: "setembro", 10: "outubro", 11: "novembro", 12: "dezembro"
+        }
+        dias_semana_pt = {
+            0: "segunda-feira", 1: "terça-feira", 2: "quarta-feira",
+            3: "quinta-feira", 4: "sexta-feira", 5: "sábado", 6: "domingo"
+        }
+        dia_semana = dias_semana_pt[now.weekday()]
+        mes = meses_pt[now.month]
+        data_formatada = f"{dia_semana}, {now.day} de {mes} de {now.year}"
+
+        date_context = f"DATA DE HOJE: {data_formatada}\n\n"
+
+        prompt = date_context + SOULHAVEN_PERSONA
 
         # Se é primeira conversa, adicionar prompt de onboarding
         if is_first_conversation:
@@ -586,8 +604,23 @@ class AIService:
         """
         from app.prompts import SOULHAVEN_PERSONA
 
+        # Injetar data atual (Claude não sabe automaticamente!)
+        now = datetime.now()
+        meses_pt = {
+            1: "janeiro", 2: "fevereiro", 3: "março", 4: "abril",
+            5: "maio", 6: "junho", 7: "julho", 8: "agosto",
+            9: "setembro", 10: "outubro", 11: "novembro", 12: "dezembro"
+        }
+        dias_semana_pt = {
+            0: "segunda-feira", 1: "terça-feira", 2: "quarta-feira",
+            3: "quinta-feira", 4: "sexta-feira", 5: "sábado", 6: "domingo"
+        }
+        dia_semana = dias_semana_pt[now.weekday()]
+        mes = meses_pt[now.month]
+        data_formatada = f"{dia_semana}, {now.day} de {mes} de {now.year}"
+
         # System prompt simplificado para trial
-        system_prompt = SOULHAVEN_PERSONA + """
+        system_prompt = f"DATA DE HOJE: {data_formatada}\n\n" + SOULHAVEN_PERSONA + """
 
 NOTA: Este é um usuário visitante experimentando o SoulHaven.
 Seja acolhedor e mostre o valor do app, mas mantenha respostas concisas.
