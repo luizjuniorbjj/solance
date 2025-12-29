@@ -82,7 +82,7 @@ class EmailService:
                             <tr>
                                 <td style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; text-align: center;">
                                     <img src="{logo_url}" alt="SoulHaven" style="width: 180px; height: auto; margin-bottom: 12px;">
-                                    <p style="margin: 0; color: #d4af37; font-size: 14px; font-style: italic;">Orientando voce ao verdadeiro Refugio</p>
+                                    <p style="margin: 0; color: #d4af37; font-size: 14px; font-style: italic;">Orientando você ao verdadeiro Refúgio</p>
                                 </td>
                             </tr>
                             <!-- Content -->
