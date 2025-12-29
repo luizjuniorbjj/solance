@@ -1,5 +1,6 @@
 # ============================================
 # SoulHaven - Dockerfile
+# Version: 1.1.0 - Push Notifications
 # ============================================
 
 FROM python:3.11-slim
