@@ -109,11 +109,24 @@ async def send_message(
 
     # Processar mensagem
     ai_service = AIService(db)
-    result = await ai_service.chat(
-        user_id=user_id,
-        message=request.message,
-        conversation_id=request.conversation_id
-    )
+    try:
+        result = await ai_service.chat(
+            user_id=user_id,
+            message=request.message,
+            conversation_id=request.conversation_id
+        )
+    except Exception as e:
+        # Log detalhado do erro para debug
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"[CHAT ERROR] User {user_id}: {str(e)}")
+        print(f"[CHAT ERROR] Traceback: {error_details}")
+
+        # Retornar erro mais informativo (temporário para debug)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao processar mensagem: {str(e)}"
+        )
 
     # Incrementar contador para usuários free
     if not is_premium:
