@@ -69,23 +69,26 @@ class Database:
 
     async def get_user_by_id(self, user_id: str) -> Optional[dict]:
         """Busca usuário por ID"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(
                 "SELECT * FROM users WHERE id = $1",
-                user_id
+                user_uuid
             )
             return dict(row) if row else None
 
     async def update_last_login(self, user_id: str):
         """Atualiza último login"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         async with self.pool.acquire() as conn:
             await conn.execute(
                 "UPDATE users SET last_login = NOW() WHERE id = $1",
-                user_id
+                user_uuid
             )
 
     async def increment_message_count(self, user_id: str):
         """Incrementa contador de mensagens"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         async with self.pool.acquire() as conn:
             await conn.execute(
                 """
@@ -94,7 +97,7 @@ class Database:
                     trial_messages_used = trial_messages_used + 1
                 WHERE id = $1
                 """,
-                user_id
+                user_uuid
             )
 
     async def increment_trial_messages(self, user_id: str):
@@ -107,6 +110,7 @@ class Database:
 
     async def create_user_profile(self, user_id: str, nome: Optional[str] = None) -> dict:
         """Cria perfil do usuário"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(
                 """
@@ -114,16 +118,17 @@ class Database:
                 VALUES ($1, $2)
                 RETURNING *
                 """,
-                user_id, nome
+                user_uuid, nome
             )
             return dict(row)
 
     async def get_user_profile(self, user_id: str) -> Optional[dict]:
         """Busca perfil do usuário"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(
                 "SELECT * FROM user_profiles WHERE user_id = $1",
-                user_id
+                user_uuid
             )
             if not row:
                 return None
@@ -142,6 +147,7 @@ class Database:
 
     async def update_user_profile(self, user_id: str, **kwargs) -> dict:
         """Atualiza perfil do usuário"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         # Campos que precisam ser criptografados
         if "lutas" in kwargs:
             kwargs["lutas_encrypted"] = encrypt_data(
@@ -155,7 +161,7 @@ class Database:
             set_clauses.append(f"{key} = ${i}")
             values.append(value)
 
-        values.append(user_id)
+        values.append(user_uuid)
 
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(
@@ -175,6 +181,7 @@ class Database:
 
     async def create_conversation(self, user_id: str) -> dict:
         """Cria nova conversa"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(
                 """
@@ -182,16 +189,17 @@ class Database:
                 VALUES ($1)
                 RETURNING *
                 """,
-                user_id
+                user_uuid
             )
             return dict(row)
 
     async def get_conversation(self, conversation_id: str) -> Optional[dict]:
         """Busca conversa por ID"""
+        conv_uuid = UUID(conversation_id) if isinstance(conversation_id, str) else conversation_id
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(
                 "SELECT * FROM conversations WHERE id = $1",
-                conversation_id
+                conv_uuid
             )
             return dict(row) if row else None
 
@@ -219,6 +227,7 @@ class Database:
         humor_final: str = None
     ):
         """Atualiza resumo da conversa"""
+        conv_uuid = UUID(conversation_id) if isinstance(conversation_id, str) else conversation_id
         async with self.pool.acquire() as conn:
             await conn.execute(
                 """
@@ -230,7 +239,7 @@ class Database:
                     message_count = message_count + 1
                 WHERE id = $1
                 """,
-                conversation_id, resumo, json.dumps(temas or []), humor_final
+                conv_uuid, resumo, json.dumps(temas or []), humor_final
             )
 
     # ============================================
@@ -247,6 +256,8 @@ class Database:
         model_used: str = None
     ) -> dict:
         """Salva mensagem criptografada e atualiza contador da conversa"""
+        conv_uuid = UUID(conversation_id) if isinstance(conversation_id, str) else conversation_id
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         encrypted_content = encrypt_data(content, user_id)
 
         async with self.pool.acquire() as conn:
@@ -257,7 +268,7 @@ class Database:
                 VALUES ($1, $2, $3, $4, $5, $6)
                 RETURNING id, role, created_at
                 """,
-                conversation_id, user_id, role, encrypted_content, tokens_used, model_used
+                conv_uuid, user_uuid, role, encrypted_content, tokens_used, model_used
             )
 
             # Atualizar contador e timestamp da conversa
@@ -268,7 +279,7 @@ class Database:
                     last_message_at = NOW()
                 WHERE id = $1
                 """,
-                conversation_id
+                conv_uuid
             )
 
             return dict(row)
@@ -280,6 +291,7 @@ class Database:
         limit: int = 50
     ) -> List[dict]:
         """Busca mensagens de uma conversa (descriptografadas)"""
+        conv_uuid = UUID(conversation_id) if isinstance(conversation_id, str) else conversation_id
         async with self.pool.acquire() as conn:
             rows = await conn.fetch(
                 """
@@ -288,7 +300,7 @@ class Database:
                 ORDER BY created_at ASC
                 LIMIT $2
                 """,
-                conversation_id, limit
+                conv_uuid, limit
             )
 
             messages = []
@@ -312,6 +324,7 @@ class Database:
         categoria: str = None
     ) -> dict:
         """Cria pedido de oração"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         descricao_encrypted = encrypt_data(descricao, user_id) if descricao else None
 
         async with self.pool.acquire() as conn:
@@ -321,12 +334,13 @@ class Database:
                 VALUES ($1, $2, $3, $4)
                 RETURNING *
                 """,
-                user_id, titulo, descricao_encrypted, categoria
+                user_uuid, titulo, descricao_encrypted, categoria
             )
             return dict(row)
 
     async def get_active_prayer_requests(self, user_id: str) -> List[dict]:
         """Busca pedidos de oração ativos"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         async with self.pool.acquire() as conn:
             rows = await conn.fetch(
                 """
@@ -334,7 +348,7 @@ class Database:
                 WHERE user_id = $1 AND status = 'ativo'
                 ORDER BY created_at DESC
                 """,
-                user_id
+                user_uuid
             )
 
             requests = []
@@ -348,6 +362,8 @@ class Database:
 
     async def mark_prayer_answered(self, prayer_id: str, user_id: str, testemunho: str = None):
         """Marca pedido como respondido"""
+        prayer_uuid = UUID(prayer_id) if isinstance(prayer_id, str) else prayer_id
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         testemunho_encrypted = encrypt_data(testemunho, user_id) if testemunho else None
 
         async with self.pool.acquire() as conn:
@@ -359,7 +375,7 @@ class Database:
                     testemunho_encrypted = $3
                 WHERE id = $1 AND user_id = $2
                 """,
-                prayer_id, user_id, testemunho_encrypted
+                prayer_uuid, user_uuid, testemunho_encrypted
             )
 
     # ============================================
@@ -375,6 +391,8 @@ class Database:
         conversa_id: str = None
     ):
         """Salva insight sobre o usuário"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+        conv_uuid = UUID(conversa_id) if conversa_id and isinstance(conversa_id, str) else conversa_id
         insight_encrypted = encrypt_data(insight, user_id)
 
         async with self.pool.acquire() as conn:
@@ -383,11 +401,12 @@ class Database:
                 INSERT INTO user_insights (user_id, categoria, insight_encrypted, confianca, origem_conversa_id)
                 VALUES ($1, $2, $3, $4, $5)
                 """,
-                user_id, categoria, insight_encrypted, confianca, conversa_id
+                user_uuid, categoria, insight_encrypted, confianca, conv_uuid
             )
 
     async def get_user_insights(self, user_id: str) -> List[dict]:
         """Busca insights ativos do usuário"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         async with self.pool.acquire() as conn:
             rows = await conn.fetch(
                 """
@@ -395,7 +414,7 @@ class Database:
                 WHERE user_id = $1 AND is_active = TRUE
                 ORDER BY confianca DESC, created_at DESC
                 """,
-                user_id
+                user_uuid
             )
 
             insights = []
@@ -511,12 +530,15 @@ class Database:
         NOVO: Detecta conflitos semânticos automaticamente!
         Ex: "Mora na Florida" conflita com "Mora no Brasil" mesmo sendo textos diferentes.
         """
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+        conv_uuid = UUID(conversa_id) if conversa_id and isinstance(conversa_id, str) else conversa_id
+        supersedes_uuid = UUID(supersedes_id) if supersedes_id and isinstance(supersedes_id, str) else supersedes_id
         async with self.pool.acquire() as conn:
             # Se ação é deactivate, apenas desativa
-            if action == "deactivate" and supersedes_id:
+            if action == "deactivate" and supersedes_uuid:
                 await conn.execute(
                     "UPDATE user_memories SET status = 'deactivated', is_active = FALSE WHERE id = $1 AND user_id = $2",
-                    supersedes_id, user_id
+                    supersedes_uuid, user_uuid
                 )
                 return {"id": supersedes_id, "deactivated": True}
 
@@ -530,7 +552,7 @@ class Database:
             superseded_ids = []
             if semantic_field:
                 conflicting = await self._find_conflicting_memories(
-                    conn, user_id, categoria, semantic_field
+                    conn, user_uuid, categoria, semantic_field
                 )
                 for conf in conflicting:
                     # Não desativar se for exatamente o mesmo fato
@@ -557,7 +579,7 @@ class Database:
                 AND fato_normalizado = $3
                 AND status = 'active'
                 """,
-                user_id, categoria, fato_norm
+                user_uuid, categoria, fato_norm
             )
 
             if existing:
@@ -598,8 +620,8 @@ class Database:
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 RETURNING id
                 """,
-                user_id, categoria, fato, detalhes, importancia,
-                conversa_id, supersedes_id if action == "supersede" else None,
+                user_uuid, categoria, fato, detalhes, importancia,
+                conv_uuid, supersedes_uuid if action == "supersede" else None,
                 confidence, json.dumps(payload) if payload else None
             )
             return {"id": str(row["id"]), "created": True, "superseded": superseded_ids}
@@ -611,6 +633,7 @@ class Database:
         limit: int = 50
     ) -> List[dict]:
         """Busca memórias do usuário, ordenadas por importância"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         async with self.pool.acquire() as conn:
             if categoria:
                 rows = await conn.fetch(
@@ -620,7 +643,7 @@ class Database:
                     ORDER BY importancia DESC, ultima_mencao DESC
                     LIMIT $3
                     """,
-                    user_id, categoria, limit
+                    user_uuid, categoria, limit
                 )
             else:
                 rows = await conn.fetch(
@@ -630,7 +653,7 @@ class Database:
                     ORDER BY importancia DESC, ultima_mencao DESC
                     LIMIT $2
                     """,
-                    user_id, limit
+                    user_uuid, limit
                 )
             return [dict(row) for row in rows]
 
@@ -644,6 +667,7 @@ class Database:
         Busca memórias RELEVANTES para o contexto atual usando full-text search + scoring.
         Não traz tudo - apenas Top-K mais relevantes.
         """
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         async with self.pool.acquire() as conn:
             if current_message and len(current_message) > 5:
                 # Busca híbrida: relevância textual + importância + recência
@@ -681,7 +705,7 @@ class Database:
                     ORDER BY final_score DESC, importancia DESC
                     LIMIT $3
                     """,
-                    user_id, current_message, top_k
+                    user_uuid, current_message, top_k
                 )
             else:
                 # Sem contexto: prioriza importância + recência
@@ -701,7 +725,7 @@ class Database:
                     ORDER BY final_score DESC, importancia DESC
                     LIMIT $2
                     """,
-                    user_id, top_k
+                    user_uuid, top_k
                 )
             return [dict(row) for row in rows]
 
@@ -758,6 +782,7 @@ class Database:
 
     async def update_memory_mention(self, memory_id: str):
         """Atualiza contagem de menções de uma memória"""
+        mem_uuid = UUID(memory_id) if isinstance(memory_id, str) else memory_id
         async with self.pool.acquire() as conn:
             await conn.execute(
                 """
@@ -765,11 +790,13 @@ class Database:
                 SET mencoes = mencoes + 1, ultima_mencao = NOW()
                 WHERE id = $1
                 """,
-                memory_id
+                mem_uuid
             )
 
     async def deactivate_memory(self, memory_id: str, user_id: str):
         """Desativa uma memória (soft delete)"""
+        mem_uuid = UUID(memory_id) if isinstance(memory_id, str) else memory_id
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         async with self.pool.acquire() as conn:
             await conn.execute(
                 """
@@ -777,7 +804,7 @@ class Database:
                 SET is_active = FALSE
                 WHERE id = $1 AND user_id = $2
                 """,
-                memory_id, user_id
+                mem_uuid, user_uuid
             )
 
     # ============================================
@@ -786,10 +813,11 @@ class Database:
 
     async def get_psychological_profile(self, user_id: str) -> Optional[dict]:
         """Busca perfil psicológico do usuário"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(
                 "SELECT * FROM user_psychological_profile WHERE user_id = $1",
-                user_id
+                user_uuid
             )
             return dict(row) if row else None
 
@@ -799,11 +827,12 @@ class Database:
         profile_data: dict
     ) -> dict:
         """Salva ou atualiza perfil psicológico do usuário"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         async with self.pool.acquire() as conn:
             # Verificar se já existe
             existing = await conn.fetchrow(
                 "SELECT id FROM user_psychological_profile WHERE user_id = $1",
-                user_id
+                user_uuid
             )
 
             if existing:
@@ -832,7 +861,7 @@ class Database:
                         updated_at = NOW()
                     WHERE user_id = $1
                     """,
-                    user_id,
+                    user_uuid,
                     profile_data.get("communication_style"),
                     profile_data.get("primary_needs"),
                     json.dumps(profile_data.get("thinking_patterns", {})),
@@ -861,7 +890,7 @@ class Database:
                         baseline_anxiety, attachment_style, accumulated_insights, recommended_approach
                     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
                     """,
-                    user_id,
+                    user_uuid,
                     profile_data.get("communication_style", "balanced"),
                     profile_data.get("primary_needs", []),
                     json.dumps(profile_data.get("thinking_patterns", {})),
@@ -1166,13 +1195,14 @@ class Database:
 
     async def log_audit(self, user_id: str, action: str, details: dict = None, ip: str = None):
         """Registra ação no log de auditoria"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         async with self.pool.acquire() as conn:
             await conn.execute(
                 """
                 INSERT INTO audit_log (user_id, action, details, ip_address)
                 VALUES ($1, $2, $3, $4)
                 """,
-                user_id, action, json.dumps(details or {}, cls=UUIDEncoder), ip
+                user_uuid, action, json.dumps(details or {}, cls=UUIDEncoder), ip
             )
 
     # ============================================
@@ -1181,6 +1211,7 @@ class Database:
 
     async def save_password_reset_token(self, user_id: str, token: str, expires_hours: int = 1):
         """Salva token de recuperacao de senha"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         async with self.pool.acquire() as conn:
             # Criar tabela se nao existir
             await conn.execute("""
@@ -1197,7 +1228,7 @@ class Database:
             # Invalidar tokens anteriores do usuario
             await conn.execute(
                 "UPDATE password_reset_tokens SET used = TRUE WHERE user_id = $1 AND used = FALSE",
-                user_id
+                user_uuid
             )
 
             # Criar novo token
@@ -1206,7 +1237,7 @@ class Database:
                 INSERT INTO password_reset_tokens (user_id, token, expires_at)
                 VALUES ($1, $2, NOW() + INTERVAL '%s hours')
                 """ % expires_hours,
-                user_id, token
+                user_uuid, token
             )
 
     async def verify_password_reset_token(self, token: str) -> Optional[dict]:
@@ -1235,10 +1266,11 @@ class Database:
 
     async def update_user_password(self, user_id: str, password_hash: str):
         """Atualiza senha do usuario"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         async with self.pool.acquire() as conn:
             await conn.execute(
                 "UPDATE users SET password_hash = $1 WHERE id = $2",
-                password_hash, user_id
+                password_hash, user_uuid
             )
 
 
