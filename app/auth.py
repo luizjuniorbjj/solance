@@ -264,7 +264,11 @@ async def request_password_reset(request: PasswordResetRequest, db: Database = D
     """
     Solicita reset de senha (envia email)
     """
+    print(f"[AUTH] Password reset solicitado para: {request.email}")
     user = await db.get_user_by_email(request.email)
+    print(f"[AUTH] Usuario encontrado: {user is not None}")
+    if user:
+        print(f"[AUTH] Usuario ID: {user.get('id')}, Email no DB: {user.get('email')}")
 
     # Sempre retorna sucesso para nao revelar se email existe
     if user:
