@@ -38,6 +38,11 @@ class ProfileUpdate(BaseModel):
     profundidade: Optional[str] = None
     usa_emoji: Optional[bool] = None
 
+    # Configurações
+    tema: Optional[str] = None  # "light" ou "dark"
+    horario_lembrete: Optional[str] = None  # formato "HH:MM"
+    notificacoes_ativas: Optional[bool] = None
+
 
 class OnboardingStep1(BaseModel):
     """Como a pessoa quer ser chamada"""
@@ -264,3 +269,67 @@ async def get_onboarding_status(
 
     # Se tem nome e tempo_de_fe, considera completo
     return {"completed": True, "current_step": None}
+
+
+@router.delete("/delete-account")
+async def delete_account(
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """
+    Exclui permanentemente a conta do usuario e todos os dados associados.
+    Esta acao e irreversivel.
+    """
+    user_id = current_user["user_id"]
+
+    try:
+        # Log de auditoria antes de excluir
+        await db.log_audit(
+            user_id=user_id,
+            action="account_deletion_requested",
+            details={"ip": "user_request"}
+        )
+
+        # Excluir dados na ordem correta (respeitando foreign keys)
+        # 1. Excluir mensagens das conversas
+        await db.pool.execute("""
+            DELETE FROM messages WHERE conversation_id IN (
+                SELECT id FROM conversations WHERE user_id = $1
+            )
+        """, user_id)
+
+        # 2. Excluir conversas
+        await db.pool.execute(
+            "DELETE FROM conversations WHERE user_id = $1",
+            user_id
+        )
+
+        # 3. Excluir perfil
+        await db.pool.execute(
+            "DELETE FROM user_profiles WHERE user_id = $1",
+            user_id
+        )
+
+        # 4. Excluir tokens de reset de senha
+        await db.pool.execute(
+            "DELETE FROM password_reset_tokens WHERE user_id = $1",
+            user_id
+        )
+
+        # 5. Excluir logs de auditoria (opcional - pode manter para compliance)
+        await db.pool.execute(
+            "DELETE FROM audit_logs WHERE user_id = $1",
+            user_id
+        )
+
+        # 6. Excluir usuario
+        await db.pool.execute(
+            "DELETE FROM users WHERE id = $1",
+            user_id
+        )
+
+        return {"message": "Conta excluida com sucesso"}
+
+    except Exception as e:
+        print(f"[PROFILE] Erro ao excluir conta: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao excluir conta. Tente novamente.")

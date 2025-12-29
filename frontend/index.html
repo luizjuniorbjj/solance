@@ -76,6 +76,31 @@
     }
 
     /* ============================================
+       CSS VARIABLES - DARK THEME
+    ============================================ */
+    [data-theme="dark"] {
+      --bg-primary: #1a1a2e;
+      --bg-secondary: #16213e;
+      --bg-tertiary: #0f3460;
+      --bg-input: #16213e;
+      --bg-hover: #1f4068;
+
+      --text-primary: #f5f5f5;
+      --text-secondary: #b8b8b8;
+      --text-muted: #888888;
+
+      --gold: #d4af37;
+      --gold-light: #e6c860;
+      --gold-dark: #b8960b;
+
+      --border: #2a2a4a;
+      --border-light: #3a3a5a;
+
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ============================================
        RESET & BASE
     ============================================ */
     * {
@@ -534,6 +559,213 @@
     .profile-btn.save:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+    }
+
+    /* Settings Modal */
+    .settings-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s;
+    }
+
+    .settings-modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .settings-modal-content {
+      background: var(--bg-primary);
+      border-radius: var(--radius-lg);
+      width: 90%;
+      max-width: 500px;
+      max-height: 85vh;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .settings-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .settings-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .settings-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    .settings-close:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .settings-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .settings-section {
+      margin-bottom: 28px;
+    }
+
+    .settings-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .settings-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gold);
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .settings-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+      margin-bottom: 10px;
+    }
+
+    .settings-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .settings-item-info {
+      flex: 1;
+    }
+
+    .settings-item-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .settings-item-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .settings-toggle {
+      position: relative;
+      width: 48px;
+      height: 26px;
+      background: var(--border);
+      border-radius: 13px;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+      margin-left: 12px;
+    }
+
+    .settings-toggle.active {
+      background: var(--gold);
+    }
+
+    .settings-toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+
+    .settings-toggle.active::after {
+      transform: translateX(22px);
+    }
+
+    .settings-select {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-size: 13px;
+      cursor: pointer;
+      min-width: 140px;
+      margin-left: 12px;
+    }
+
+    .settings-btn-danger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--bg-secondary);
+      border: 1px solid #dc3545;
+      border-radius: var(--radius-sm);
+      color: #dc3545;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .settings-btn-danger:hover {
+      background: #dc3545;
+      color: white;
+    }
+
+    .settings-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--bg-secondary);
+      border: none;
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .settings-link:hover {
+      background: var(--bg-hover);
+    }
+
+    .settings-link svg,
+    .settings-btn-danger svg {
+      width: 18px;
+      height: 18px;
     }
 
     .sidebar-footer {
@@ -3999,10 +4231,291 @@
       }, 3000);
     }
 
+    // ============================================
+    // SETTINGS MODAL
+    // ============================================
+
     function showSettings() {
       toggleUserDropdown();
-      alert('Configuracoes em desenvolvimento.\n\nEm breve voce podera:\n- Alterar tema (claro/escuro)\n- Configurar notificacoes\n- Gerenciar dados');
+
+      let modal = document.getElementById('settingsModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'settingsModal';
+        modal.className = 'settings-modal';
+
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const notificationsEnabled = localStorage.getItem('soulhaven_notifications') === 'true';
+        const reminderTime = localStorage.getItem('soulhaven_reminder_time') || '08:00';
+
+        modal.innerHTML = `
+          <div class="settings-modal-content">
+            <div class="settings-header">
+              <div class="settings-title">Configuracoes</div>
+              <button class="settings-close" onclick="closeSettings()">&times;</button>
+            </div>
+            <div class="settings-body">
+              <!-- Aparencia -->
+              <div class="settings-section">
+                <div class="settings-section-title">Aparencia</div>
+                <div class="settings-item">
+                  <div class="settings-item-info">
+                    <div class="settings-item-label">Tema Escuro</div>
+                    <div class="settings-item-desc">Reduz o cansaco visual em ambientes escuros</div>
+                  </div>
+                  <div class="settings-toggle ${isDark ? 'active' : ''}" id="themeToggle" onclick="toggleTheme()"></div>
+                </div>
+              </div>
+
+              <!-- Notificacoes -->
+              <div class="settings-section">
+                <div class="settings-section-title">Notificacoes</div>
+                <div class="settings-item">
+                  <div class="settings-item-info">
+                    <div class="settings-item-label">Notificacoes Push</div>
+                    <div class="settings-item-desc">Receba lembretes e atualizacoes</div>
+                  </div>
+                  <div class="settings-toggle ${notificationsEnabled ? 'active' : ''}" id="notificationToggle" onclick="toggleNotifications()"></div>
+                </div>
+                <div class="settings-item">
+                  <div class="settings-item-info">
+                    <div class="settings-item-label">Horario do Lembrete</div>
+                    <div class="settings-item-desc">Momento diario para reflexao</div>
+                  </div>
+                  <select class="settings-select" id="reminderTime" onchange="updateReminderTime(this.value)">
+                    <option value="06:00" ${reminderTime === '06:00' ? 'selected' : ''}>06:00</option>
+                    <option value="07:00" ${reminderTime === '07:00' ? 'selected' : ''}>07:00</option>
+                    <option value="08:00" ${reminderTime === '08:00' ? 'selected' : ''}>08:00</option>
+                    <option value="09:00" ${reminderTime === '09:00' ? 'selected' : ''}>09:00</option>
+                    <option value="12:00" ${reminderTime === '12:00' ? 'selected' : ''}>12:00</option>
+                    <option value="18:00" ${reminderTime === '18:00' ? 'selected' : ''}>18:00</option>
+                    <option value="20:00" ${reminderTime === '20:00' ? 'selected' : ''}>20:00</option>
+                    <option value="21:00" ${reminderTime === '21:00' ? 'selected' : ''}>21:00</option>
+                    <option value="22:00" ${reminderTime === '22:00' ? 'selected' : ''}>22:00</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Privacidade e Dados -->
+              <div class="settings-section">
+                <div class="settings-section-title">Privacidade e Dados</div>
+                <a href="https://soulhavenapp.com/privacidade" target="_blank" class="settings-link">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                  Politica de Privacidade
+                </a>
+                <div style="height: 10px;"></div>
+                <button class="settings-btn-danger" onclick="confirmDeleteAccount()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                    <line x1="10" y1="11" x2="10" y2="17"/>
+                    <line x1="14" y1="11" x2="14" y2="17"/>
+                  </svg>
+                  Excluir Minha Conta
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+      } else {
+        // Atualiza os estados ao reabrir
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const notificationsEnabled = localStorage.getItem('soulhaven_notifications') === 'true';
+
+        const themeToggle = document.getElementById('themeToggle');
+        const notificationToggle = document.getElementById('notificationToggle');
+
+        if (themeToggle) {
+          themeToggle.classList.toggle('active', isDark);
+        }
+        if (notificationToggle) {
+          notificationToggle.classList.toggle('active', notificationsEnabled);
+        }
+      }
+
+      setTimeout(() => modal.classList.add('active'), 10);
     }
+
+    function closeSettings() {
+      const modal = document.getElementById('settingsModal');
+      if (modal) {
+        modal.classList.remove('active');
+      }
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      const newTheme = isDark ? 'light' : 'dark';
+
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('soulhaven_theme', newTheme);
+
+      const toggle = document.getElementById('themeToggle');
+      if (toggle) {
+        toggle.classList.toggle('active', newTheme === 'dark');
+      }
+
+      // Salvar no perfil do usuario se logado
+      const token = localStorage.getItem('token');
+      if (token) {
+        saveThemePreference(newTheme);
+      }
+
+      showToast(newTheme === 'dark' ? 'Tema escuro ativado' : 'Tema claro ativado');
+    }
+
+    async function saveThemePreference(theme) {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        await fetch(`${API_URL}/profile/`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ tema: theme })
+        });
+      } catch (e) {
+        console.log('Erro ao salvar tema:', e);
+      }
+    }
+
+    function toggleNotifications() {
+      const toggle = document.getElementById('notificationToggle');
+      const isEnabled = toggle.classList.contains('active');
+
+      if (!isEnabled) {
+        // Solicitar permissao
+        if ('Notification' in window) {
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+              localStorage.setItem('soulhaven_notifications', 'true');
+              toggle.classList.add('active');
+              showToast('Notificacoes ativadas');
+
+              // Registrar service worker para push notifications
+              registerPushNotifications();
+            } else {
+              showToast('Permissao de notificacao negada');
+            }
+          });
+        } else {
+          showToast('Seu navegador nao suporta notificacoes');
+        }
+      } else {
+        localStorage.setItem('soulhaven_notifications', 'false');
+        toggle.classList.remove('active');
+        showToast('Notificacoes desativadas');
+      }
+    }
+
+    function updateReminderTime(time) {
+      localStorage.setItem('soulhaven_reminder_time', time);
+      showToast(`Lembrete configurado para ${time}`);
+
+      // Salvar no backend para envio de notificacoes
+      const token = localStorage.getItem('token');
+      if (token) {
+        saveReminderPreference(time);
+      }
+    }
+
+    async function saveReminderPreference(time) {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        await fetch(`${API_URL}/profile/`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ horario_lembrete: time })
+        });
+      } catch (e) {
+        console.log('Erro ao salvar horario:', e);
+      }
+    }
+
+    async function registerPushNotifications() {
+      // Placeholder para implementacao futura de service worker
+      console.log('Push notifications registradas');
+    }
+
+    function confirmDeleteAccount() {
+      const confirmed = confirm(
+        'ATENCAO: Esta acao e irreversivel!\n\n' +
+        'Ao excluir sua conta, todos os seus dados serao permanentemente removidos:\n' +
+        '- Historico de conversas\n' +
+        '- Perfil e configuracoes\n' +
+        '- Assinatura (se houver)\n\n' +
+        'Deseja realmente excluir sua conta?'
+      );
+
+      if (confirmed) {
+        const doubleConfirm = prompt(
+          'Para confirmar, digite "EXCLUIR" (em maiusculas):'
+        );
+
+        if (doubleConfirm === 'EXCLUIR') {
+          deleteAccount();
+        } else if (doubleConfirm !== null) {
+          showToast('Texto incorreto. Conta nao excluida.');
+        }
+      }
+    }
+
+    async function deleteAccount() {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          showToast('Voce precisa estar logado');
+          return;
+        }
+
+        const response = await fetch(`${API_URL}/profile/delete-account`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          // Limpar dados locais
+          localStorage.removeItem('token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('soulhaven_theme');
+          localStorage.removeItem('soulhaven_notifications');
+          localStorage.removeItem('soulhaven_reminder_time');
+
+          alert('Sua conta foi excluida com sucesso. Sentiremos sua falta!');
+          window.location.reload();
+        } else {
+          const data = await response.json();
+          showToast(data.detail || 'Erro ao excluir conta');
+        }
+      } catch (e) {
+        console.error('Erro ao excluir conta:', e);
+        showToast('Erro de conexao. Tente novamente.');
+      }
+    }
+
+    // Carregar tema salvo ao iniciar
+    function loadSavedTheme() {
+      const savedTheme = localStorage.getItem('soulhaven_theme');
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      }
+    }
+
+    // Executar ao carregar a pagina
+    loadSavedTheme();
 
     function showAuthModal() {
       document.getElementById('authModal').style.display = 'flex';
