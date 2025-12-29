@@ -277,7 +277,11 @@ async def request_password_reset(request: PasswordResetRequest, db: Database = D
 
         # Enviar email
         try:
-            await email_service.send_password_reset_email(request.email, nome, token)
+            result = await email_service.send_password_reset_email(request.email, nome, token)
+            if result:
+                print(f"[AUTH] Email de reset enviado com sucesso para {request.email}")
+            else:
+                print(f"[AUTH] Falha ao enviar email de reset para {request.email}")
         except Exception as e:
             print(f"[AUTH] Erro ao enviar email de reset: {e}")
 
