@@ -5009,7 +5009,7 @@
       } catch (error) {
         console.error('Error:', error);
         hideTypingIndicator();
-        renderMessage('assistant', 'Desculpe, nao consegui me conectar. Verifique se o servidor esta rodando em http://localhost:8000');
+        renderMessage('assistant', 'Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.');
       }
 
       state.isLoading = false;
