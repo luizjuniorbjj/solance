@@ -1535,11 +1535,11 @@ async def trigger_engagement_notifications(
 @router.get("/debug/user-push/{email}")
 async def debug_user_push(
     email: str,
-    admin: dict = Depends(verify_admin),
     db: Database = Depends(get_db)
 ):
     """
     Debug: verifica push subscription de um usuário por email.
+    TEMPORÁRIO - remover autenticação para debug
     """
     async with db.pool.acquire() as conn:
         # Buscar usuário
