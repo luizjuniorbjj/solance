@@ -817,10 +817,10 @@
             </div>
 
             <div id="recipientPreview" style="background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 12px; display: flex; align-items: center; gap: 12px;">
-              <span style="font-size: 20px;">📊</span>
-              <div>
-                <div style="font-weight: 500; color: #0369a1;">Preview de Destinatários</div>
-                <div style="font-size: 14px; color: #0369a1;" id="previewText">Carregando...</div>
+              <span style="font-size: 20px;">👥</span>
+              <div style="flex: 1;">
+                <div style="font-weight: 500; color: #0369a1; margin-bottom: 4px;">Quem vai receber:</div>
+                <div style="font-size: 14px; color: #0369a1;" id="previewText">Calculando...</div>
               </div>
             </div>
 
@@ -1591,6 +1591,7 @@
 
     async function updateRecipientPreview() {
       const target = document.getElementById('targetAudience').value;
+      const previewEl = document.getElementById('previewText');
 
       try {
         const response = await fetch(`${API_URL}/notifications/users-preview?target_audience=${target}`, {
@@ -1599,15 +1600,26 @@
 
         if (response.ok) {
           const data = await response.json();
-          const pushInfo = data.push_registered > 0
-            ? `${data.push_registered} com Push ativo`
-            : `0 com Push (${data.push_enabled} habilitaram, mas não registraram)`;
-          document.getElementById('previewText').textContent =
-            `${data.total_users} usuários | ${pushInfo} | ${data.email_enabled} com Email`;
+
+          // Montar texto mais claro
+          let parts = [];
+          parts.push(`<strong>${data.total_users}</strong> usuários no total`);
+
+          if (data.push_registered > 0) {
+            parts.push(`<span style="color: #059669;"><strong>${data.push_registered}</strong> vão receber Push</span>`);
+          } else {
+            parts.push(`<span style="color: #dc2626;">0 Push (ninguém registrou ainda)</span>`);
+          }
+
+          parts.push(`<span style="color: #059669;"><strong>${data.email_enabled}</strong> vão receber Email</span>`);
+
+          previewEl.innerHTML = parts.join(' • ');
+        } else {
+          previewEl.textContent = 'Erro ao carregar - tente atualizar a página';
         }
       } catch (error) {
         console.error('Erro ao carregar preview:', error);
-        document.getElementById('previewText').textContent = 'Erro ao carregar preview';
+        previewEl.textContent = 'Erro de conexão';
       }
     }
 
