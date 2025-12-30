@@ -231,6 +231,33 @@ async def process_notification_delivery(
         # Enviar Push (só se tiver subscription)
         if send_push and user.get("push_notifications", True):
             try:
+                # Verificar se já enviou este push para este usuário (evita duplicados)
+                already_sent = await pool.fetchval(
+                    """
+                    SELECT COUNT(*) FROM notification_deliveries nd
+                    JOIN notifications n ON nd.notification_id = n.id
+                    WHERE nd.user_id = $1
+                    AND nd.channel = 'push'
+                    AND nd.status = 'sent'
+                    AND n.title = $2
+                    AND nd.sent_at > NOW() - INTERVAL '24 hours'
+                    """,
+                    user["id"], title
+                )
+
+                if already_sent and already_sent > 0:
+                    print(f"[NOTIFICATION] Push já enviado para {email}, pulando...")
+                    await pool.execute(
+                        """
+                        UPDATE notification_deliveries
+                        SET status = 'sent', sent_at = NOW(), error_message = 'Já enviado anteriormente'
+                        WHERE notification_id = $1 AND user_id = $2 AND channel = 'push'
+                        """,
+                        UUID(notification_id), user["id"]
+                    )
+                    sent_count += 1
+                    continue
+
                 success = await send_push_to_user(user_id, title, message)
                 status = "sent" if success else "failed"
 
@@ -254,6 +281,34 @@ async def process_notification_delivery(
         # Enviar Email
         if send_email and user.get("email_notifications", True):
             try:
+                # Verificar se já enviou este email para este usuário (evita duplicados)
+                already_sent = await pool.fetchval(
+                    """
+                    SELECT COUNT(*) FROM notification_deliveries nd
+                    JOIN notifications n ON nd.notification_id = n.id
+                    WHERE nd.user_id = $1
+                    AND nd.channel = 'email'
+                    AND nd.status = 'sent'
+                    AND n.title = $2
+                    AND nd.sent_at > NOW() - INTERVAL '24 hours'
+                    """,
+                    user["id"], title
+                )
+
+                if already_sent and already_sent > 0:
+                    print(f"[NOTIFICATION] Email já enviado para {email}, pulando...")
+                    # Marcar como já enviado
+                    await pool.execute(
+                        """
+                        UPDATE notification_deliveries
+                        SET status = 'sent', sent_at = NOW(), error_message = 'Já enviado anteriormente'
+                        WHERE notification_id = $1 AND user_id = $2 AND channel = 'email'
+                        """,
+                        UUID(notification_id), user["id"]
+                    )
+                    sent_count += 1
+                    continue
+
                 success = await email_service.send_notification_email(
                     to=email,
                     nome=nome,
