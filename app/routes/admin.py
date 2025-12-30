@@ -1850,6 +1850,23 @@ async def generate_vapid_keys():
     }
 
 
+@router.delete("/debug/clear-push-subscriptions")
+async def clear_push_subscriptions(
+    db: Database = Depends(get_db)
+):
+    """
+    Debug: limpa todas as push subscriptions (necessário após trocar chaves VAPID).
+    """
+    async with db.pool.acquire() as conn:
+        count = await conn.fetchval("SELECT COUNT(*) FROM push_subscriptions")
+        await conn.execute("DELETE FROM push_subscriptions")
+        return {
+            "success": True,
+            "deleted": count,
+            "message": f"{count} subscriptions removidas. Os usuários precisam re-ativar as notificações."
+        }
+
+
 @router.get("/debug/push-subscriptions")
 async def list_all_push_subscriptions(
     db: Database = Depends(get_db)
