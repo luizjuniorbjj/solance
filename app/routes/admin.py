@@ -1658,6 +1658,124 @@ async def add_notification_separate_columns(
         return {"success": True, "message": "Colunas de contagem separada adicionadas"}
 
 
+@router.post("/debug/create-notification-deliveries")
+async def create_notification_deliveries_table(
+    db: Database = Depends(get_db)
+):
+    """
+    Debug: cria a tabela notification_deliveries se não existir.
+    """
+    async with db.pool.acquire() as conn:
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS notification_deliveries (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                notification_id UUID NOT NULL REFERENCES notifications(id) ON DELETE CASCADE,
+                user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                channel VARCHAR(20) NOT NULL,
+                status VARCHAR(20) DEFAULT 'pending',
+                sent_at TIMESTAMP WITH TIME ZONE,
+                error_message TEXT,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+            )
+        """)
+        # Criar índices
+        await conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_notification_deliveries_notification
+            ON notification_deliveries(notification_id)
+        """)
+        await conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_notification_deliveries_user
+            ON notification_deliveries(user_id)
+        """)
+        return {"success": True, "message": "Tabela notification_deliveries criada/verificada"}
+
+
+@router.get("/debug/check-notification-tables")
+async def check_notification_tables(
+    db: Database = Depends(get_db)
+):
+    """
+    Debug: verifica se todas as tabelas de notificação existem.
+    """
+    async with db.pool.acquire() as conn:
+        tables = {}
+
+        for table in ['notifications', 'notification_deliveries', 'notification_logs', 'push_subscriptions']:
+            exists = await conn.fetchval("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables
+                    WHERE table_name = $1
+                )
+            """, table)
+            tables[table] = exists
+
+        # Verificar colunas da tabela notifications
+        if tables['notifications']:
+            columns = await conn.fetch("""
+                SELECT column_name, data_type
+                FROM information_schema.columns
+                WHERE table_name = 'notifications'
+                ORDER BY ordinal_position
+            """)
+            tables['notifications_columns'] = [
+                {"name": c["column_name"], "type": c["data_type"]}
+                for c in columns
+            ]
+
+        return tables
+
+
+@router.post("/debug/test-push-direct/{user_id}")
+async def test_push_direct(
+    user_id: str,
+    db: Database = Depends(get_db)
+):
+    """
+    Debug: testa envio de push direto para um usuário (sem usar sistema de notificações).
+    """
+    from app.routes.push import send_push_to_user
+    import uuid
+
+    try:
+        user_uuid = uuid.UUID(user_id)
+    except ValueError:
+        return {"error": "ID de usuário inválido"}
+
+    # Verificar subscriptions
+    async with db.pool.acquire() as conn:
+        user = await conn.fetchrow("SELECT email FROM users WHERE id = $1", user_uuid)
+        if not user:
+            return {"error": "Usuário não encontrado"}
+
+        subs = await conn.fetch("""
+            SELECT endpoint, p256dh, auth, is_active
+            FROM push_subscriptions
+            WHERE user_id = $1
+        """, user_uuid)
+
+        if not subs:
+            return {
+                "error": "Nenhuma subscription encontrada",
+                "user_email": user["email"]
+            }
+
+    # Tentar enviar
+    print(f"[DEBUG] Tentando enviar push para {user['email']} - {len(subs)} subscriptions")
+
+    success = await send_push_to_user(
+        user_id=user_id,
+        title="Teste Direto",
+        body="Esta é uma notificação de teste direto do admin."
+    )
+
+    return {
+        "success": success,
+        "user_email": user["email"],
+        "subscriptions_found": len(subs),
+        "subscriptions_active": sum(1 for s in subs if s["is_active"])
+    }
+
+
 @router.get("/debug/push-subscriptions")
 async def list_all_push_subscriptions(
     db: Database = Depends(get_db)
