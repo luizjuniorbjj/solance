@@ -3931,8 +3931,8 @@
 
         // Registrar push notifications automaticamente (após pequeno delay para UX)
         setTimeout(() => {
-          autoRegisterPushNotifications();
-        }, 2000);
+          autoRegisterPushNotifications(true); // true = forçar para login novo
+        }, 2500);
 
         return true;
       } catch (error) {
@@ -4829,13 +4829,26 @@
     }
 
     // Registrar push automaticamente após login (pede permissão se necessário)
-    async function autoRegisterPushNotifications() {
+    // forceModal = true ignora o check de "já perguntou recentemente"
+    async function autoRegisterPushNotifications(forceModal = false) {
+      console.log('[PUSH] Iniciando auto registro de push... forceModal:', forceModal);
+
       try {
         // Verificar suporte
-        if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-          console.log('[PUSH] Push notifications não suportadas neste navegador');
+        if (!('Notification' in window)) {
+          console.log('[PUSH] Notification API não suportada');
           return;
         }
+        if (!('serviceWorker' in navigator)) {
+          console.log('[PUSH] Service Worker não suportado');
+          return;
+        }
+        if (!('PushManager' in window)) {
+          console.log('[PUSH] PushManager não suportado');
+          return;
+        }
+
+        console.log('[PUSH] Suporte OK. Permission atual:', Notification.permission);
 
         const token = localStorage.getItem('soulhaven_token');
         if (!token) {
@@ -4845,19 +4858,20 @@
 
         // Verificar se já foi negado permanentemente
         if (Notification.permission === 'denied') {
-          console.log('[PUSH] Permissão negada pelo usuário anteriormente');
+          console.log('[PUSH] Permissão foi negada pelo usuário');
           return;
         }
 
         // Se já tem permissão, apenas registrar
         if (Notification.permission === 'granted') {
-          console.log('[PUSH] Permissão já concedida, registrando...');
+          console.log('[PUSH] Permissão já concedida, registrando subscription...');
           await registerPushNotifications();
           return;
         }
 
-        // Permissão ainda não solicitada - mostrar modal amigável para pedir
-        showPushPermissionModal();
+        // Permissão = 'default' - ainda não solicitada
+        console.log('[PUSH] Permissão ainda não solicitada, mostrando modal...');
+        showPushPermissionModal(forceModal);
 
       } catch (error) {
         console.error('[PUSH] Erro no auto registro:', error);
@@ -4865,16 +4879,20 @@
     }
 
     // Modal amigável para pedir permissão de push
-    function showPushPermissionModal() {
-      // Verificar se já mostrou esse modal recentemente
-      const lastAsked = localStorage.getItem('soulhaven_push_asked');
-      if (lastAsked) {
-        const daysSinceAsked = (Date.now() - parseInt(lastAsked)) / (1000 * 60 * 60 * 24);
-        if (daysSinceAsked < 7) {
-          console.log('[PUSH] Modal já mostrado recentemente');
-          return;
+    function showPushPermissionModal(forceShow = false) {
+      // Verificar se já mostrou esse modal recentemente (só se não for forçado)
+      if (!forceShow) {
+        const lastAsked = localStorage.getItem('soulhaven_push_asked');
+        if (lastAsked) {
+          const daysSinceAsked = (Date.now() - parseInt(lastAsked)) / (1000 * 60 * 60 * 24);
+          if (daysSinceAsked < 7) {
+            console.log('[PUSH] Modal já mostrado recentemente, pulando...');
+            return;
+          }
         }
       }
+
+      console.log('[PUSH] Mostrando modal de permissão...');
 
       const modal = document.createElement('div');
       modal.id = 'pushPermissionModal';
