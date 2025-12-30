@@ -1530,3 +1530,75 @@ async def trigger_engagement_notifications(
         "success": True,
         "message": f"Notificacoes de engajamento enviadas para {count} usuarios"
     }
+
+
+@router.get("/debug/user-push/{email}")
+async def debug_user_push(
+    email: str,
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Debug: verifica push subscription de um usuário por email.
+    """
+    async with db.pool.acquire() as conn:
+        # Buscar usuário
+        user = await conn.fetchrow(
+            "SELECT id, email, is_active, is_premium FROM users WHERE email = $1",
+            email
+        )
+
+        if not user:
+            return {"error": "Usuário não encontrado", "email": email}
+
+        user_id = user["id"]
+
+        # Verificar se tabela push_subscriptions existe
+        table_exists = await conn.fetchval("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_name = 'push_subscriptions'
+            )
+        """)
+
+        if not table_exists:
+            return {
+                "user": dict(user),
+                "error": "Tabela push_subscriptions não existe ainda"
+            }
+
+        # Buscar subscriptions
+        subscriptions = await conn.fetch(
+            """
+            SELECT id, endpoint, is_active, created_at, last_used_at
+            FROM push_subscriptions
+            WHERE user_id = $1
+            """,
+            user_id
+        )
+
+        # Contar total de subscriptions ativas
+        total_active = await conn.fetchval(
+            "SELECT COUNT(*) FROM push_subscriptions WHERE is_active = TRUE"
+        )
+
+        return {
+            "user": {
+                "id": str(user["id"]),
+                "email": user["email"],
+                "is_active": user["is_active"],
+                "is_premium": user["is_premium"]
+            },
+            "subscriptions": [
+                {
+                    "id": str(s["id"]),
+                    "endpoint": s["endpoint"][:80] + "..." if len(s["endpoint"]) > 80 else s["endpoint"],
+                    "is_active": s["is_active"],
+                    "created_at": s["created_at"].isoformat() if s["created_at"] else None,
+                    "last_used_at": s["last_used_at"].isoformat() if s["last_used_at"] else None
+                }
+                for s in subscriptions
+            ],
+            "subscription_count": len(subscriptions),
+            "total_active_subscriptions_in_db": total_active
+        }
