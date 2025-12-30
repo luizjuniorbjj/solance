@@ -6316,7 +6316,7 @@
       // Se é mobile e NÃO está instalado, mostrar banner de instalação
       if (isMobile) {
         console.log('[PROMPTS] Mobile sem app instalado, mostrando banner de instalação...');
-        showInstallBanner();
+        showInstallBanner(true); // true = forçar, ignorar cooldown
         return;
       }
 
@@ -6328,11 +6328,17 @@
     // ============================================
     // BANNER AUTOMÁTICO PARA INSTALAR O APP
     // ============================================
-    function shouldShowInstallBanner() {
+    function shouldShowInstallBanner(forceShow = false) {
       // Não mostrar se já está instalado como PWA
       if (isPWAInstalled()) {
         console.log('[INSTALL] Já está instalado como PWA');
         return false;
+      }
+
+      // Se forçado (login), ignorar cooldowns
+      if (forceShow) {
+        console.log('[INSTALL] Forçando exibição (login)');
+        return true;
       }
 
       // Não mostrar se já mostrou recentemente (24 horas)
@@ -6355,12 +6361,12 @@
       return true;
     }
 
-    function showInstallBanner() {
-      if (!shouldShowInstallBanner()) return;
+    function showInstallBanner(forceShow = false) {
+      if (!shouldShowInstallBanner(forceShow)) return;
 
       // Verificar se é mobile (onde faz mais sentido instalar)
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      if (!isMobile) {
+      if (!isMobile && !forceShow) {
         console.log('[INSTALL] Não é mobile, não mostrando banner');
         return;
       }
