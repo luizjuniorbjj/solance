@@ -6084,15 +6084,23 @@
         showApp();
         loadUserProfile();
         loadConversations();
-        // Para usuário já logado: mostrar prompts apropriados
-        // (não forçar, respeitar cooldowns)
+        // Para usuário já logado: verificar prompts
         setTimeout(() => {
-          // Se está no PWA, tentar registrar push silenciosamente
           if (isPWAInstalled()) {
-            autoRegisterPushNotifications(false);
+            // Está no PWA - verificar se é primeira vez abrindo o app instalado
+            const pwaOpened = localStorage.getItem('soulhaven_pwa_opened');
+            if (!pwaOpened) {
+              // Primeira vez no PWA! Mostrar modal de push
+              console.log('[INIT] Primeira vez no PWA, mostrando modal de push...');
+              localStorage.setItem('soulhaven_pwa_opened', 'true');
+              autoRegisterPushNotifications(true); // forçar
+            } else {
+              // Já abriu antes, tentar registrar silenciosamente
+              autoRegisterPushNotifications(false);
+            }
           }
-          // Não mostrar banner de instalação no reload (só no login)
-        }, 3000);
+          // Se não é PWA, não mostrar nada no reload (só no login)
+        }, 2500);
       } else {
         showAuthModal();
       }
