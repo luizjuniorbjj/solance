@@ -6181,6 +6181,9 @@
       deferredPrompt = null;
       // Esconde botão após instalação
       if (installBtn) installBtn.style.display = 'none';
+      // IMPORTANTE: Limpar flag para que na próxima abertura (no PWA) mostre o modal de push
+      localStorage.removeItem('soulhaven_pwa_opened');
+      console.log('[PWA] Flag pwa_opened removida - próxima abertura mostrará modal de push');
     });
 
     // Chama na inicialização para verificar estado
@@ -6425,6 +6428,9 @@
     function acceptInstallBanner() {
       const banner = document.getElementById('installBanner');
       if (banner) banner.remove();
+
+      // Limpar flag para que ao abrir o PWA, mostre o modal de push
+      localStorage.removeItem('soulhaven_pwa_opened');
 
       // Chamar a função de instalação
       installApp();
