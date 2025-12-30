@@ -5706,6 +5706,9 @@
         // Atualizar lista de conversas
         loadConversations();
 
+        // Rastrear mensagem para banner de instalação
+        trackMessageForInstallBanner();
+
       } catch (error) {
         console.error('Error:', error);
         hideTypingIndicator();
@@ -6285,6 +6288,132 @@
       // Pequeno delay para garantir que beforeinstallprompt teve tempo de disparar
       setTimeout(updateInstallButton, 1000);
     });
+
+    // ============================================
+    // BANNER AUTOMÁTICO PARA INSTALAR O APP
+    // ============================================
+    function shouldShowInstallBanner() {
+      // Não mostrar se já está instalado como PWA
+      if (isPWAInstalled()) {
+        console.log('[INSTALL] Já está instalado como PWA');
+        return false;
+      }
+
+      // Não mostrar se já mostrou recentemente (24 horas)
+      const lastShown = localStorage.getItem('soulhaven_install_banner_shown');
+      if (lastShown) {
+        const hoursSince = (Date.now() - parseInt(lastShown)) / (1000 * 60 * 60);
+        if (hoursSince < 24) {
+          console.log('[INSTALL] Banner mostrado há menos de 24h');
+          return false;
+        }
+      }
+
+      // Não mostrar se usuário já fechou 3 vezes (não quer instalar)
+      const dismissCount = parseInt(localStorage.getItem('soulhaven_install_dismissed') || '0');
+      if (dismissCount >= 3) {
+        console.log('[INSTALL] Usuário já dispensou 3 vezes');
+        return false;
+      }
+
+      return true;
+    }
+
+    function showInstallBanner() {
+      if (!shouldShowInstallBanner()) return;
+
+      // Verificar se é mobile (onde faz mais sentido instalar)
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (!isMobile) {
+        console.log('[INSTALL] Não é mobile, não mostrando banner');
+        return;
+      }
+
+      console.log('[INSTALL] Mostrando banner de instalação');
+
+      const banner = document.createElement('div');
+      banner.id = 'installBanner';
+      banner.style.cssText = `
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
+        color: white;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        z-index: 9999;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+        animation: slideUp 0.3s ease-out;
+      `;
+      banner.innerHTML = `
+        <style>
+          @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+          }
+        </style>
+        <div style="font-size: 32px;">📲</div>
+        <div style="flex: 1;">
+          <div style="font-weight: 600; font-size: 15px; margin-bottom: 2px;">Instale o SoulHaven</div>
+          <div style="font-size: 13px; opacity: 0.9;">Acesso rápido + Notificações</div>
+        </div>
+        <button onclick="acceptInstallBanner()" style="background: linear-gradient(135deg, #d4af37 0%, #c9a227 100%); color: #1a1a2e; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer;">
+          Instalar
+        </button>
+        <button onclick="dismissInstallBanner()" style="background: transparent; border: none; color: white; opacity: 0.7; font-size: 20px; cursor: pointer; padding: 8px;">
+          ✕
+        </button>
+      `;
+      document.body.appendChild(banner);
+
+      localStorage.setItem('soulhaven_install_banner_shown', Date.now().toString());
+    }
+
+    function acceptInstallBanner() {
+      const banner = document.getElementById('installBanner');
+      if (banner) banner.remove();
+
+      // Chamar a função de instalação
+      installApp();
+    }
+
+    function dismissInstallBanner() {
+      const banner = document.getElementById('installBanner');
+      if (banner) {
+        banner.style.animation = 'none';
+        banner.style.transform = 'translateY(100%)';
+        banner.style.transition = 'transform 0.3s ease-in';
+        setTimeout(() => banner.remove(), 300);
+      }
+
+      // Incrementar contador de dispensas
+      const dismissCount = parseInt(localStorage.getItem('soulhaven_install_dismissed') || '0');
+      localStorage.setItem('soulhaven_install_dismissed', (dismissCount + 1).toString());
+    }
+
+    // Mostrar banner após 2 mensagens enviadas ou 60 segundos de uso
+    let messagesSentCount = 0;
+    function trackMessageForInstallBanner() {
+      if (isPWAInstalled()) return;
+
+      messagesSentCount++;
+      console.log('[INSTALL] Mensagens enviadas:', messagesSentCount);
+
+      // Após 2 mensagens, mostrar banner
+      if (messagesSentCount === 2) {
+        setTimeout(showInstallBanner, 1000);
+      }
+    }
+
+    // Também mostrar após 60 segundos de uso (se logado)
+    setTimeout(() => {
+      if (state.token && !isPWAInstalled()) {
+        showInstallBanner();
+      }
+    }, 60000);
 
     // ============================================
     // FEEDBACK SYSTEM
