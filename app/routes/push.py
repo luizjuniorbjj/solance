@@ -126,9 +126,13 @@ async def send_push_to_user(
     Usado pelo sistema de notificações do admin.
     """
     from app.database import get_db_pool
+    from uuid import UUID
 
     try:
         pool = await get_db_pool()
+
+        # Converter para UUID se necessário
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
 
         # Buscar todas as subscriptions ativas do usuário
         subscriptions = await pool.fetch(
@@ -137,12 +141,14 @@ async def send_push_to_user(
             FROM push_subscriptions
             WHERE user_id = $1 AND is_active = TRUE
             """,
-            user_id if isinstance(user_id, str) else str(user_id)
+            user_uuid
         )
 
         if not subscriptions:
             print(f"[PUSH] Nenhuma subscription encontrada para user {user_id}")
             return False
+
+        print(f"[PUSH] Encontradas {len(subscriptions)} subscriptions para user {user_id}")
 
         success = False
         for sub in subscriptions:
@@ -154,6 +160,8 @@ async def send_push_to_user(
                 }
             }
 
+            print(f"[PUSH] Enviando para endpoint: {sub['endpoint'][:50]}...")
+
             result = await send_push_notification(
                 subscription_info=subscription_info,
                 title=title,
@@ -162,6 +170,8 @@ async def send_push_to_user(
                 url=url,
                 notification_type="admin_broadcast"
             )
+
+            print(f"[PUSH] Resultado do envio: {result}")
 
             if result:
                 success = True
