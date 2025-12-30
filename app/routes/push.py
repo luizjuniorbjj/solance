@@ -201,19 +201,24 @@ async def subscribe_to_push(
 ):
     """Registra subscription de push do usuário"""
     try:
+        # get_current_user retorna user_id, não id
+        user_id = user.get("user_id") or user.get("id")
+        print(f"[PUSH] Registrando subscription para user_id: {user_id}")
+
         result = await db.save_push_subscription(
-            user_id=str(user["id"]),
+            user_id=str(user_id),
             endpoint=subscription.endpoint,
             p256dh=subscription.keys.get("p256dh", ""),
             auth=subscription.keys.get("auth", ""),
             user_agent=None  # Could be extracted from request headers
         )
+        print(f"[PUSH] Subscription salva com sucesso")
 
         # Criar preferências default se não existirem
-        prefs = await db.get_user_notification_preferences(str(user["id"]))
+        prefs = await db.get_user_notification_preferences(str(user_id))
         if not prefs:
             await db.save_user_notification_preferences(
-                user_id=str(user["id"]),
+                user_id=str(user_id),
                 preferences={
                     "push_enabled": True,
                     "reminder_enabled": True,
@@ -236,8 +241,9 @@ async def unsubscribe_from_push(
 ):
     """Remove subscription de push do usuário"""
     try:
+        user_id = user.get("user_id") or user.get("id")
         await db.delete_push_subscription(
-            user_id=str(user["id"]),
+            user_id=str(user_id),
             endpoint=endpoint
         )
         return {"success": True, "message": "Subscription removida"}
@@ -253,7 +259,8 @@ async def get_notification_preferences(
     db: Database = Depends(get_db)
 ):
     """Busca preferências de notificação do usuário"""
-    prefs = await db.get_user_notification_preferences(str(user["id"]))
+    user_id = user.get("user_id") or user.get("id")
+    prefs = await db.get_user_notification_preferences(str(user_id))
     if not prefs:
         return {
             "push_enabled": True,
@@ -281,9 +288,10 @@ async def update_notification_preferences(
 ):
     """Atualiza preferências de notificação do usuário"""
     try:
+        user_id = user.get("user_id") or user.get("id")
         prefs_dict = preferences.dict(exclude_none=True)
         await db.save_user_notification_preferences(
-            user_id=str(user["id"]),
+            user_id=str(user_id),
             preferences=prefs_dict
         )
         return {"success": True, "message": "Preferencias atualizadas"}
@@ -299,7 +307,8 @@ async def send_test_notification(
     db: Database = Depends(get_db)
 ):
     """Envia notificação de teste para o usuário"""
-    subscriptions = await db.get_user_push_subscriptions(str(user["id"]))
+    user_id = user.get("user_id") or user.get("id")
+    subscriptions = await db.get_user_push_subscriptions(str(user_id))
 
     if not subscriptions:
         raise HTTPException(
@@ -322,7 +331,7 @@ async def send_test_notification(
             title="SoulHaven - Teste",
             body="Suas notificacoes estao funcionando! Deus abencoe seu dia.",
             db=db,
-            user_id=str(user["id"]),
+            user_id=str(user_id),
             notification_type="test"
         )
 
