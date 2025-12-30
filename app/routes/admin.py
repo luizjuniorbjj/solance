@@ -1627,3 +1627,57 @@ async def debug_user_push(
             "subscription_count": len(subscriptions),
             "total_active_subscriptions_in_db": total_active
         }
+
+
+@router.get("/debug/push-subscriptions")
+async def list_all_push_subscriptions(
+    db: Database = Depends(get_db)
+):
+    """
+    Debug: lista todos os usuários com push subscription ativa.
+    """
+    async with db.pool.acquire() as conn:
+        # Verificar se tabela existe
+        table_exists = await conn.fetchval("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_name = 'push_subscriptions'
+            )
+        """)
+
+        if not table_exists:
+            return {"error": "Tabela push_subscriptions não existe", "users": []}
+
+        # Buscar todos os usuários com subscription ativa
+        rows = await conn.fetch("""
+            SELECT DISTINCT
+                u.id,
+                u.email,
+                u.is_premium,
+                u.is_active,
+                up.nome,
+                COUNT(ps.id) as subscription_count,
+                MAX(ps.created_at) as last_subscription
+            FROM push_subscriptions ps
+            JOIN users u ON ps.user_id = u.id
+            LEFT JOIN user_profiles up ON u.id = up.user_id
+            WHERE ps.is_active = TRUE
+            GROUP BY u.id, u.email, u.is_premium, u.is_active, up.nome
+            ORDER BY last_subscription DESC
+        """)
+
+        return {
+            "total_users_with_push": len(rows),
+            "users": [
+                {
+                    "id": str(r["id"]),
+                    "email": r["email"],
+                    "nome": r["nome"],
+                    "is_premium": r["is_premium"],
+                    "is_active": r["is_active"],
+                    "subscription_count": r["subscription_count"],
+                    "last_subscription": r["last_subscription"].isoformat() if r["last_subscription"] else None
+                }
+                for r in rows
+            ]
+        }
