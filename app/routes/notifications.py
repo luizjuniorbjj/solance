@@ -396,22 +396,58 @@ async def list_notifications(
     """Lista todas as notificações enviadas"""
 
     async with db.pool.acquire() as conn:
-        rows = await conn.fetch(
-            """
-            SELECT id, title, message, send_push, send_email,
-                   target_audience, status, total_recipients,
-                   sent_count, failed_count,
-                   COALESCE(push_sent, 0) as push_sent,
-                   COALESCE(push_failed, 0) as push_failed,
-                   COALESCE(email_sent, 0) as email_sent,
-                   COALESCE(email_failed, 0) as email_failed,
-                   created_at, scheduled_at, sent_at
-            FROM notifications
-            ORDER BY created_at DESC
-            LIMIT $1 OFFSET $2
-            """,
-            limit, offset
-        )
+        # Verificar se tabela existe
+        table_exists = await conn.fetchval("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_name = 'notifications'
+            )
+        """)
+
+        if not table_exists:
+            return []
+
+        # Verificar se as colunas novas existem
+        has_separate_counts = await conn.fetchval("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.columns
+                WHERE table_name = 'notifications' AND column_name = 'push_sent'
+            )
+        """)
+
+        if has_separate_counts:
+            rows = await conn.fetch(
+                """
+                SELECT id, title, message, send_push, send_email,
+                       target_audience, status, total_recipients,
+                       sent_count, failed_count,
+                       COALESCE(push_sent, 0) as push_sent,
+                       COALESCE(push_failed, 0) as push_failed,
+                       COALESCE(email_sent, 0) as email_sent,
+                       COALESCE(email_failed, 0) as email_failed,
+                       created_at, scheduled_at, sent_at
+                FROM notifications
+                ORDER BY created_at DESC
+                LIMIT $1 OFFSET $2
+                """,
+                limit, offset
+            )
+        else:
+            # Fallback sem as colunas separadas
+            rows = await conn.fetch(
+                """
+                SELECT id, title, message, send_push, send_email,
+                       target_audience, status, total_recipients,
+                       sent_count, failed_count,
+                       0 as push_sent, 0 as push_failed,
+                       0 as email_sent, 0 as email_failed,
+                       created_at, scheduled_at, sent_at
+                FROM notifications
+                ORDER BY created_at DESC
+                LIMIT $1 OFFSET $2
+                """,
+                limit, offset
+            )
 
     return [
         {
