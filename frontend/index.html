@@ -2735,6 +2735,18 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
+    .auth-btn.primary:disabled {
+      background: #ccc;
+      color: #888;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .auth-btn.primary:disabled:hover {
+      background: #ccc;
+      box-shadow: none;
+    }
+
     .auth-btn.secondary {
       background: white;
       color: #1a1a1a;
@@ -3459,7 +3471,7 @@
             </label>
           </div>
 
-          <button type="submit" class="auth-btn primary">Criar conta gratis</button>
+          <button type="submit" class="auth-btn primary" id="registerSubmitBtn" disabled>Criar conta gratis</button>
         </form>
 
         <p class="auth-link">
@@ -4921,6 +4933,17 @@
       hideAllAuthForms();
       document.getElementById('registerForm').classList.add('active');
       if (email) document.getElementById('registerEmail').value = email;
+
+      // Reset e configura checkbox dos termos
+      const acceptTerms = document.getElementById('acceptTerms');
+      const registerBtn = document.getElementById('registerSubmitBtn');
+      acceptTerms.checked = false;
+      registerBtn.disabled = true;
+
+      // Listener para habilitar/desabilitar botao baseado na checkbox
+      acceptTerms.onchange = function() {
+        registerBtn.disabled = !this.checked;
+      };
     }
 
     function showForgotPassword() {
