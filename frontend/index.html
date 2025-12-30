@@ -4795,25 +4795,31 @@
         console.log('[PUSH] Subscription criada:', subscription.endpoint);
 
         // Enviar subscription para o servidor
+        const subscriptionData = {
+          endpoint: subscription.endpoint,
+          keys: {
+            p256dh: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')))),
+            auth: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth'))))
+          }
+        };
+        console.log('[PUSH] Enviando subscription para servidor:', subscriptionData.endpoint.substring(0, 50) + '...');
+
         const response = await fetch(`${API_URL}/push/subscribe`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({
-            endpoint: subscription.endpoint,
-            keys: {
-              p256dh: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')))),
-              auth: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth'))))
-            }
-          })
+          body: JSON.stringify(subscriptionData)
         });
 
+        const responseData = await response.json();
+        console.log('[PUSH] Resposta do servidor:', response.status, responseData);
+
         if (response.ok) {
-          console.log('[PUSH] Subscription registrada no servidor');
+          console.log('[PUSH] ✓ Subscription registrada no servidor com sucesso!');
         } else {
-          console.error('[PUSH] Erro ao registrar subscription:', await response.text());
+          console.error('[PUSH] ✗ Erro ao registrar subscription:', responseData);
         }
 
       } catch (error) {
