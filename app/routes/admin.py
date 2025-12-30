@@ -1629,6 +1629,35 @@ async def debug_user_push(
         }
 
 
+@router.post("/debug/add-notification-columns")
+async def add_notification_separate_columns(
+    db: Database = Depends(get_db)
+):
+    """
+    Debug: adiciona colunas push_sent, push_failed, email_sent, email_failed
+    na tabela notifications se não existirem.
+    """
+    async with db.pool.acquire() as conn:
+        await conn.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notifications' AND column_name = 'push_sent') THEN
+                    ALTER TABLE notifications ADD COLUMN push_sent INTEGER DEFAULT 0;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notifications' AND column_name = 'push_failed') THEN
+                    ALTER TABLE notifications ADD COLUMN push_failed INTEGER DEFAULT 0;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notifications' AND column_name = 'email_sent') THEN
+                    ALTER TABLE notifications ADD COLUMN email_sent INTEGER DEFAULT 0;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'notifications' AND column_name = 'email_failed') THEN
+                    ALTER TABLE notifications ADD COLUMN email_failed INTEGER DEFAULT 0;
+                END IF;
+            END $$;
+        """)
+        return {"success": True, "message": "Colunas de contagem separada adicionadas"}
+
+
 @router.get("/debug/push-subscriptions")
 async def list_all_push_subscriptions(
     db: Database = Depends(get_db)
