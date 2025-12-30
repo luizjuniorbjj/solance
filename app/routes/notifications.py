@@ -445,39 +445,58 @@ async def get_notification_stats(
     """Estatísticas de notificações"""
 
     async with db.pool.acquire() as conn:
-        # Total de notificações
-        total = await conn.fetchval("SELECT COUNT(*) FROM notifications")
+        # Total de notificações (pode não existir ainda)
+        try:
+            total = await conn.fetchval("SELECT COUNT(*) FROM notifications")
+        except Exception:
+            total = 0
 
         # Enviadas com sucesso
-        sent = await conn.fetchval(
-            "SELECT COUNT(*) FROM notifications WHERE status = 'sent'"
-        )
+        try:
+            sent = await conn.fetchval(
+                "SELECT COUNT(*) FROM notifications WHERE status = 'sent'"
+            )
+        except Exception:
+            sent = 0
 
-        # Total de entregas
-        total_deliveries = await conn.fetchval(
-            "SELECT COUNT(*) FROM notification_deliveries WHERE status = 'sent'"
-        )
+        # Total de entregas (tabela pode não existir)
+        try:
+            total_deliveries = await conn.fetchval(
+                "SELECT COUNT(*) FROM notification_deliveries WHERE status = 'sent'"
+            )
+        except Exception:
+            total_deliveries = 0
 
         # Falhas
-        failed_deliveries = await conn.fetchval(
-            "SELECT COUNT(*) FROM notification_deliveries WHERE status = 'failed'"
-        )
+        try:
+            failed_deliveries = await conn.fetchval(
+                "SELECT COUNT(*) FROM notification_deliveries WHERE status = 'failed'"
+            )
+        except Exception:
+            failed_deliveries = 0
 
         # Usuários com push REGISTRADO (têm subscription ativa)
-        push_registered = await conn.fetchval(
-            """
-            SELECT COUNT(DISTINCT user_id) FROM push_subscriptions
-            WHERE is_active = TRUE
-            """
-        )
+        # A tabela push_subscriptions só é criada quando o primeiro usuário registra
+        try:
+            push_registered = await conn.fetchval(
+                """
+                SELECT COUNT(DISTINCT user_id) FROM push_subscriptions
+                WHERE is_active = TRUE
+                """
+            )
+        except Exception:
+            push_registered = 0
 
         # Usuários com email habilitado
-        email_enabled = await conn.fetchval(
-            """
-            SELECT COUNT(*) FROM user_profiles
-            WHERE email_notifications = TRUE OR email_notifications IS NULL
-            """
-        )
+        try:
+            email_enabled = await conn.fetchval(
+                """
+                SELECT COUNT(*) FROM user_profiles
+                WHERE email_notifications = TRUE OR email_notifications IS NULL
+                """
+            )
+        except Exception:
+            email_enabled = 0
 
     return {
         "total_notifications": total or 0,
@@ -548,32 +567,45 @@ async def preview_recipients(
             return {"total_users": 0, "push_enabled": 0, "push_registered": 0, "email_enabled": 0}
 
         # Total de usuários
-        total = await conn.fetchval(f"SELECT COUNT(*) FROM users u WHERE {user_filter}")
+        try:
+            total = await conn.fetchval(f"SELECT COUNT(*) FROM users u WHERE {user_filter}")
+        except Exception:
+            total = 0
 
         # Usuários com preferência de push habilitada
-        push_enabled = await conn.fetchval(f"""
-            SELECT COUNT(*) FROM users u
-            LEFT JOIN user_profiles up ON u.id = up.user_id
-            WHERE {user_filter}
-            AND (up.push_notifications = TRUE OR up.push_notifications IS NULL)
-        """)
+        try:
+            push_enabled = await conn.fetchval(f"""
+                SELECT COUNT(*) FROM users u
+                LEFT JOIN user_profiles up ON u.id = up.user_id
+                WHERE {user_filter}
+                AND (up.push_notifications = TRUE OR up.push_notifications IS NULL)
+            """)
+        except Exception:
+            push_enabled = 0
 
         # Usuários com push subscription REGISTRADA (estes vão receber de fato)
-        push_registered = await conn.fetchval(f"""
-            SELECT COUNT(DISTINCT u.id) FROM users u
-            INNER JOIN push_subscriptions ps ON u.id = ps.user_id AND ps.is_active = TRUE
-            LEFT JOIN user_profiles up ON u.id = up.user_id
-            WHERE {user_filter}
-            AND (up.push_notifications = TRUE OR up.push_notifications IS NULL)
-        """)
+        # A tabela push_subscriptions só existe se algum usuário registrou
+        try:
+            push_registered = await conn.fetchval(f"""
+                SELECT COUNT(DISTINCT u.id) FROM users u
+                INNER JOIN push_subscriptions ps ON u.id = ps.user_id AND ps.is_active = TRUE
+                LEFT JOIN user_profiles up ON u.id = up.user_id
+                WHERE {user_filter}
+                AND (up.push_notifications = TRUE OR up.push_notifications IS NULL)
+            """)
+        except Exception:
+            push_registered = 0
 
         # Usuários com email habilitado
-        email_enabled = await conn.fetchval(f"""
-            SELECT COUNT(*) FROM users u
-            LEFT JOIN user_profiles up ON u.id = up.user_id
-            WHERE {user_filter}
-            AND (up.email_notifications = TRUE OR up.email_notifications IS NULL)
-        """)
+        try:
+            email_enabled = await conn.fetchval(f"""
+                SELECT COUNT(*) FROM users u
+                LEFT JOIN user_profiles up ON u.id = up.user_id
+                WHERE {user_filter}
+                AND (up.email_notifications = TRUE OR up.email_notifications IS NULL)
+            """)
+        except Exception:
+            email_enabled = 0
 
     return {
         "total_users": total or 0,
