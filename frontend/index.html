@@ -4862,10 +4862,22 @@
           return;
         }
 
-        // Se já tem permissão, apenas registrar
+        // Se já tem permissão, verificar se já tem subscription
         if (Notification.permission === 'granted') {
-          console.log('[PUSH] Permissão já concedida, registrando subscription...');
-          await registerPushNotifications();
+          console.log('[PUSH] Permissão já concedida, verificando subscription...');
+
+          // Verificar se já tem subscription ativa no browser
+          const registration = await navigator.serviceWorker.ready;
+          const existingSubscription = await registration.pushManager.getSubscription();
+
+          if (existingSubscription) {
+            console.log('[PUSH] Já tem subscription ativa! Não precisa mostrar modal.');
+            // Garantir que está registrada no servidor também
+            await registerPushNotifications();
+          } else {
+            console.log('[PUSH] Tem permissão mas sem subscription, registrando agora...');
+            await registerPushNotifications();
+          }
           return;
         }
 
