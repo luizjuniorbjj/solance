@@ -2047,9 +2047,73 @@ _pool: Optional[asyncpg.Pool] = None
 
 
 async def init_db():
-    """Inicializa pool de conexões"""
+    """Inicializa pool de conexões e cria tabelas necessárias"""
     global _pool
     _pool = await asyncpg.create_pool(DATABASE_URL, min_size=5, max_size=20)
+
+    # Criar tabelas de notificações se não existirem
+    async with _pool.acquire() as conn:
+        # Tabela de notificações (campanhas)
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS notifications (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                title VARCHAR(255) NOT NULL,
+                message TEXT NOT NULL,
+                send_push BOOLEAN DEFAULT TRUE,
+                send_email BOOLEAN DEFAULT TRUE,
+                target_audience VARCHAR(50) DEFAULT 'all',
+                status VARCHAR(50) DEFAULT 'pending',
+                total_recipients INTEGER DEFAULT 0,
+                sent_count INTEGER DEFAULT 0,
+                failed_count INTEGER DEFAULT 0,
+                created_by UUID REFERENCES users(id),
+                scheduled_at TIMESTAMP WITH TIME ZONE,
+                sent_at TIMESTAMP WITH TIME ZONE,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+            )
+        """)
+
+        # Tabela de entregas individuais
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS notification_deliveries (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                notification_id UUID REFERENCES notifications(id) ON DELETE CASCADE,
+                user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+                channel VARCHAR(20) NOT NULL,
+                status VARCHAR(20) DEFAULT 'pending',
+                error_message TEXT,
+                sent_at TIMESTAMP WITH TIME ZONE,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+            )
+        """)
+
+        # Adicionar colunas de preferências no user_profiles se não existirem
+        try:
+            await conn.execute("""
+                ALTER TABLE user_profiles
+                ADD COLUMN IF NOT EXISTS push_notifications BOOLEAN DEFAULT TRUE
+            """)
+        except:
+            pass
+
+        try:
+            await conn.execute("""
+                ALTER TABLE user_profiles
+                ADD COLUMN IF NOT EXISTS email_notifications BOOLEAN DEFAULT TRUE
+            """)
+        except:
+            pass
+
+        # Criar índices
+        try:
+            await conn.execute("CREATE INDEX IF NOT EXISTS idx_notifications_status ON notifications(status)")
+            await conn.execute("CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC)")
+            await conn.execute("CREATE INDEX IF NOT EXISTS idx_notification_deliveries_notification_id ON notification_deliveries(notification_id)")
+            await conn.execute("CREATE INDEX IF NOT EXISTS idx_notification_deliveries_user_id ON notification_deliveries(user_id)")
+        except:
+            pass
+
+    print("[DB] Tabelas de notificações verificadas/criadas")
     return _pool
 
 
