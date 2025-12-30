@@ -4609,7 +4609,7 @@
       }
 
       // Salvar no perfil do usuario se logado
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('soulhaven_token');
       if (token) {
         saveThemePreference(newTheme);
       }
@@ -4619,7 +4619,7 @@
 
     async function saveThemePreference(theme) {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('soulhaven_token');
         if (!token) return;
 
         await fetch(`${API_URL}/profile/`, {
@@ -4721,7 +4721,7 @@
       showToast(`Lembrete configurado para ${time}`);
 
       // Salvar no backend para envio de notificacoes
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('soulhaven_token');
       if (token) {
         saveReminderPreference(time);
       }
@@ -4729,7 +4729,7 @@
 
     async function saveReminderPreference(time) {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('soulhaven_token');
         if (!token) return;
 
         await fetch(`${API_URL}/profile/`, {
@@ -4754,7 +4754,7 @@
         }
 
         // Verificar se esta logado
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('soulhaven_token');
         if (!token) {
           console.log('[PUSH] Usuario nao logado');
           return;
@@ -4935,7 +4935,7 @@
       localStorage.setItem('soulhaven_email_notifications', !isEnabled ? 'true' : 'false');
 
       // Salvar no servidor
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('soulhaven_token');
       if (token) {
         fetch(`${API_URL}/profile/preferences`, {
           method: 'PUT',
@@ -4997,7 +4997,7 @@
       }
 
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('soulhaven_token');
         if (!token) {
           showToast('Você precisa estar logado');
           return;
@@ -5038,7 +5038,7 @@
 
     async function deleteAccount() {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('soulhaven_token');
         if (!token) {
           showToast('Voce precisa estar logado');
           return;
