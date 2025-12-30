@@ -657,6 +657,7 @@
     <!-- Tabs -->
     <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
       <button class="btn btn-primary" id="tabUsers" onclick="showTab('users')" style="opacity: 1;">Usuários</button>
+      <button class="btn btn-secondary" id="tabFinancial" onclick="showTab('financial')">💰 Financeiro</button>
       <button class="btn btn-secondary" id="tabFeedbacks" onclick="showTab('feedbacks')">Feedbacks <span id="feedbackBadge" style="background: var(--red); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-left: 4px; display: none;">0</span></button>
       <button class="btn btn-secondary" id="tabNotifications" onclick="showTab('notifications')">Notificações</button>
       <button class="btn btn-secondary" id="tabBackup" onclick="showTab('backup')">Backup</button>
@@ -695,6 +696,184 @@
         </div>
         <div class="card-body activity-list" id="activityList">
           <div class="loading">Carregando...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Financial Tab -->
+    <div id="financialTab" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0;">Análise Financeira</h3>
+        <button class="btn btn-secondary" onclick="loadFinancialStats()">🔄 Atualizar</button>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="stats-grid" style="margin-bottom: 24px;">
+        <div class="stat-card" style="border-left: 4px solid var(--gold);">
+          <div class="stat-label">Receita Mensal</div>
+          <div class="stat-value" id="finRevenue" style="color: var(--green);">-</div>
+          <div class="stat-change" id="finPremiumCount">0 assinantes</div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid #ef4444;">
+          <div class="stat-label">Custo AI (Mês)</div>
+          <div class="stat-value" id="finCost" style="color: #ef4444;">-</div>
+          <div class="stat-change" id="finTotalCost">Total: $0.00</div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid var(--green);">
+          <div class="stat-label">Lucro Estimado</div>
+          <div class="stat-value" id="finProfit">-</div>
+          <div class="stat-change" id="finMargin">Margem: 0%</div>
+        </div>
+        <div class="stat-card" style="border-left: 4px solid #3b82f6;">
+          <div class="stat-label">Custo/Usuário Ativo</div>
+          <div class="stat-value" id="finCostPerUser">-</div>
+          <div class="stat-change" id="finActiveUsers">0 ativos (30d)</div>
+        </div>
+      </div>
+
+      <!-- Detailed Stats -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+        <!-- Users Section -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">👥 Usuários</span>
+          </div>
+          <div class="card-body" style="padding: 16px;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px 0;">Total de usuários</td>
+                <td style="padding: 8px 0; text-align: right; font-weight: bold;" id="finTotalUsers">-</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px 0;">Premium</td>
+                <td style="padding: 8px 0; text-align: right; font-weight: bold; color: var(--gold);" id="finPremiumUsers">-</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px 0;">Gratuitos</td>
+                <td style="padding: 8px 0; text-align: right;" id="finFreeUsers">-</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px 0;">Taxa de Conversão</td>
+                <td style="padding: 8px 0; text-align: right; color: var(--green);" id="finConversion">-</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;">Retenção (30 dias)</td>
+                <td style="padding: 8px 0; text-align: right;" id="finRetention">-</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- Messages Section -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">💬 Mensagens</span>
+          </div>
+          <div class="card-body" style="padding: 16px;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px 0;">Total de mensagens</td>
+                <td style="padding: 8px 0; text-align: right; font-weight: bold;" id="finTotalMessages">-</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px 0;">Este mês</td>
+                <td style="padding: 8px 0; text-align: right;" id="finMessagesMonth">-</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px 0;">De Premium</td>
+                <td style="padding: 8px 0; text-align: right; color: var(--gold);" id="finPremiumMsgs">-</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px 0;">De Gratuitos</td>
+                <td style="padding: 8px 0; text-align: right;" id="finFreeMsgs">-</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;">Média por usuário</td>
+                <td style="padding: 8px 0; text-align: right;" id="finAvgMsgs">-</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- Costs Section -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">💸 Custos Detalhados</span>
+          </div>
+          <div class="card-body" style="padding: 16px;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px 0;">Custo total AI</td>
+                <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #ef4444;" id="finTotalAICost">-</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px 0;">Custo/msg Premium</td>
+                <td style="padding: 8px 0; text-align: right;" id="finCostPremiumMsg">-</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px 0;">Custo/msg Gratuito</td>
+                <td style="padding: 8px 0; text-align: right;" id="finCostFreeMsg">-</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;">Custo/usuário ativo</td>
+                <td style="padding: 8px 0; text-align: right;" id="finCostPerActiveUser">-</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- Activity Section -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📊 Atividade</span>
+          </div>
+          <div class="card-body" style="padding: 16px;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px 0;">Ativos (7 dias)</td>
+                <td style="padding: 8px 0; text-align: right; font-weight: bold;" id="finActive7d">-</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px 0;">Ativos (30 dias)</td>
+                <td style="padding: 8px 0; text-align: right;" id="finActive30d">-</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px 0;">Novos este mês</td>
+                <td style="padding: 8px 0; text-align: right; color: var(--green);" id="finNewMonth">-</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px 0;">Total conversas</td>
+                <td style="padding: 8px 0; text-align: right;" id="finTotalConvs">-</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;">Conversas (mês)</td>
+                <td style="padding: 8px 0; text-align: right;" id="finConvsMonth">-</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Engagement -->
+      <div class="card" style="margin-top: 20px;">
+        <div class="card-header">
+          <span class="card-title">🎯 Indicadores de Saúde</span>
+        </div>
+        <div class="card-body" style="padding: 16px;">
+          <div style="display: flex; gap: 40px; flex-wrap: wrap;">
+            <div>
+              <div style="color: var(--text-secondary); font-size: 13px;">Engajamento Premium</div>
+              <div style="font-size: 20px; font-weight: bold; color: var(--gold);" id="finEngagePremium">-</div>
+            </div>
+            <div>
+              <div style="color: var(--text-secondary); font-size: 13px;">Engajamento Gratuito</div>
+              <div style="font-size: 20px; font-weight: bold;" id="finEngageFree">-</div>
+            </div>
+            <div>
+              <div style="color: var(--text-secondary); font-size: 13px;">Média msgs/usuário</div>
+              <div style="font-size: 20px; font-weight: bold;" id="finAvgMsgsUser">-</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1007,12 +1186,14 @@
     function showTab(tab) {
       // Hide all tabs
       document.getElementById('usersTab').style.display = 'none';
+      document.getElementById('financialTab').style.display = 'none';
       document.getElementById('feedbacksTab').style.display = 'none';
       document.getElementById('notificationsTab').style.display = 'none';
       document.getElementById('backupTab').style.display = 'none';
 
       // Reset all buttons
       document.getElementById('tabUsers').className = 'btn btn-secondary';
+      document.getElementById('tabFinancial').className = 'btn btn-secondary';
       document.getElementById('tabFeedbacks').className = 'btn btn-secondary';
       document.getElementById('tabNotifications').className = 'btn btn-secondary';
       document.getElementById('tabBackup').className = 'btn btn-secondary';
@@ -1021,6 +1202,10 @@
       if (tab === 'users') {
         document.getElementById('usersTab').style.display = 'grid';
         document.getElementById('tabUsers').className = 'btn btn-primary';
+      } else if (tab === 'financial') {
+        document.getElementById('financialTab').style.display = 'block';
+        document.getElementById('tabFinancial').className = 'btn btn-primary';
+        loadFinancialStats();
       } else if (tab === 'feedbacks') {
         document.getElementById('feedbacksTab').style.display = 'block';
         document.getElementById('tabFeedbacks').className = 'btn btn-primary';
@@ -1035,6 +1220,63 @@
         document.getElementById('backupTab').style.display = 'block';
         document.getElementById('tabBackup').className = 'btn btn-primary';
         loadBackupStats();
+      }
+    }
+
+    async function loadFinancialStats() {
+      try {
+        const response = await fetch(`${API_URL}/admin/stats/financial`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) throw new Error('Failed to load');
+
+        const data = await response.json();
+
+        // Summary cards
+        document.getElementById('finRevenue').textContent = data.revenue.monthly_revenue_usd;
+        document.getElementById('finPremiumCount').textContent = `${data.summary.premium_users} assinantes`;
+        document.getElementById('finCost').textContent = data.costs.monthly_ai_cost_usd;
+        document.getElementById('finTotalCost').textContent = `Total: ${data.costs.total_ai_cost_usd}`;
+        document.getElementById('finProfit').textContent = data.revenue.monthly_profit_usd;
+        document.getElementById('finMargin').textContent = `Margem: ${data.revenue.profit_margin}`;
+        document.getElementById('finCostPerUser').textContent = data.costs.cost_per_active_user;
+        document.getElementById('finActiveUsers').textContent = `${data.activity.active_30_days} ativos (30d)`;
+
+        // Users section
+        document.getElementById('finTotalUsers').textContent = data.summary.total_users;
+        document.getElementById('finPremiumUsers').textContent = data.summary.premium_users;
+        document.getElementById('finFreeUsers').textContent = data.summary.free_users;
+        document.getElementById('finConversion').textContent = data.summary.conversion_rate;
+        document.getElementById('finRetention').textContent = data.summary.retention_30d;
+
+        // Messages section
+        document.getElementById('finTotalMessages').textContent = data.messages.total.toLocaleString();
+        document.getElementById('finMessagesMonth').textContent = data.messages.this_month.toLocaleString();
+        document.getElementById('finPremiumMsgs').textContent = data.messages.from_premium_users.toLocaleString();
+        document.getElementById('finFreeMsgs').textContent = data.messages.from_free_users.toLocaleString();
+        document.getElementById('finAvgMsgs').textContent = data.messages.avg_per_active_user;
+
+        // Costs section
+        document.getElementById('finTotalAICost').textContent = data.costs.total_ai_cost_usd;
+        document.getElementById('finCostPremiumMsg').textContent = data.costs.cost_per_premium_msg;
+        document.getElementById('finCostFreeMsg').textContent = data.costs.cost_per_free_msg;
+        document.getElementById('finCostPerActiveUser').textContent = data.costs.cost_per_active_user;
+
+        // Activity section
+        document.getElementById('finActive7d').textContent = data.activity.active_7_days;
+        document.getElementById('finActive30d').textContent = data.activity.active_30_days;
+        document.getElementById('finNewMonth').textContent = data.activity.new_this_month;
+        document.getElementById('finTotalConvs').textContent = data.activity.total_conversations;
+        document.getElementById('finConvsMonth').textContent = data.activity.conversations_this_month;
+
+        // Health indicators
+        document.getElementById('finEngagePremium').textContent = data.health_indicators.premium_engagement;
+        document.getElementById('finEngageFree').textContent = data.health_indicators.free_engagement;
+        document.getElementById('finAvgMsgsUser').textContent = data.health_indicators.avg_messages_per_user;
+
+      } catch (error) {
+        console.error('Erro ao carregar estatísticas financeiras:', error);
       }
     }
 

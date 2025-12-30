@@ -145,6 +145,153 @@ async def get_conversation_stats(
     )
 
 
+@router.get("/stats/financial")
+async def get_financial_stats(
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Análise financeira completa: usuários, uso, custos estimados e receitas.
+    """
+    async with db.pool.acquire() as conn:
+        # ==================== USUÁRIOS ====================
+        total_users = await conn.fetchval("SELECT COUNT(*) FROM users")
+        premium_users = await conn.fetchval("SELECT COUNT(*) FROM users WHERE is_premium = TRUE")
+        free_users = total_users - premium_users
+
+        # Ativos últimos 7 dias
+        week_ago = datetime.now() - timedelta(days=7)
+        active_7d = await conn.fetchval(
+            "SELECT COUNT(*) FROM users WHERE last_login >= $1",
+            week_ago
+        )
+
+        # Ativos últimos 30 dias
+        month_ago = datetime.now() - timedelta(days=30)
+        active_30d = await conn.fetchval(
+            "SELECT COUNT(*) FROM users WHERE last_login >= $1",
+            month_ago
+        )
+
+        # Novos este mês
+        month_start = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        new_this_month = await conn.fetchval(
+            "SELECT COUNT(*) FROM users WHERE created_at >= $1",
+            month_start
+        )
+
+        # ==================== MENSAGENS ====================
+        total_messages = await conn.fetchval("SELECT COUNT(*) FROM messages")
+
+        # Mensagens este mês
+        messages_this_month = await conn.fetchval(
+            "SELECT COUNT(*) FROM messages WHERE created_at >= $1",
+            month_start
+        )
+
+        # Mensagens por tipo de usuário (estimativa baseada em is_premium)
+        premium_messages = await conn.fetchval("""
+            SELECT COUNT(*) FROM messages m
+            JOIN conversations c ON m.conversation_id = c.id
+            JOIN users u ON c.user_id = u.id
+            WHERE u.is_premium = TRUE
+        """)
+        free_messages = total_messages - (premium_messages or 0)
+
+        # Média de mensagens por usuário ativo
+        avg_messages_per_user = total_messages / active_30d if active_30d > 0 else 0
+
+        # ==================== CONVERSAS ====================
+        total_conversations = await conn.fetchval("SELECT COUNT(*) FROM conversations")
+        conversations_this_month = await conn.fetchval(
+            "SELECT COUNT(*) FROM conversations WHERE started_at >= $1",
+            month_start
+        )
+
+        # ==================== CUSTOS ESTIMADOS ====================
+        # Preços por token (Claude Sonnet para premium, Haiku para free)
+        # Sonnet: $3/1M input, $15/1M output
+        # Haiku: $0.25/1M input, $1.25/1M output
+
+        # Estimativa média de tokens por mensagem: 200 input + 300 output
+        avg_input_tokens = 200
+        avg_output_tokens = 300
+
+        # Custo por mensagem
+        cost_per_premium_msg = (avg_input_tokens * 3 / 1_000_000) + (avg_output_tokens * 15 / 1_000_000)  # ~$0.0051
+        cost_per_free_msg = (avg_input_tokens * 0.25 / 1_000_000) + (avg_output_tokens * 1.25 / 1_000_000)  # ~$0.000425
+
+        # Custos totais estimados
+        total_premium_cost = (premium_messages or 0) * cost_per_premium_msg
+        total_free_cost = (free_messages or 0) * cost_per_free_msg
+        total_ai_cost = total_premium_cost + total_free_cost
+
+        # Custo este mês (proporção)
+        if total_messages > 0:
+            monthly_cost_ratio = messages_this_month / total_messages
+            monthly_ai_cost = total_ai_cost * monthly_cost_ratio
+        else:
+            monthly_ai_cost = 0
+
+        # ==================== RECEITA ====================
+        # Receita potencial mensal (todos premium pagando $5.99)
+        monthly_revenue = premium_users * 5.99
+
+        # Lucro estimado (receita - custos AI)
+        monthly_profit = monthly_revenue - monthly_ai_cost
+
+        # ==================== MÉTRICAS AVANÇADAS ====================
+        # Custo médio por usuário ativo
+        cost_per_active_user = total_ai_cost / active_30d if active_30d > 0 else 0
+
+        # Taxa de conversão free -> premium
+        conversion_rate = (premium_users / total_users * 100) if total_users > 0 else 0
+
+        # Retenção (ativos 30d / total)
+        retention_rate = (active_30d / total_users * 100) if total_users > 0 else 0
+
+    return {
+        "summary": {
+            "total_users": total_users,
+            "premium_users": premium_users,
+            "free_users": free_users,
+            "conversion_rate": f"{conversion_rate:.1f}%",
+            "retention_30d": f"{retention_rate:.1f}%"
+        },
+        "activity": {
+            "active_7_days": active_7d,
+            "active_30_days": active_30d,
+            "new_this_month": new_this_month,
+            "total_conversations": total_conversations,
+            "conversations_this_month": conversations_this_month
+        },
+        "messages": {
+            "total": total_messages,
+            "this_month": messages_this_month,
+            "from_premium_users": premium_messages or 0,
+            "from_free_users": free_messages or 0,
+            "avg_per_active_user": round(avg_messages_per_user, 1)
+        },
+        "costs": {
+            "total_ai_cost_usd": f"${total_ai_cost:.2f}",
+            "monthly_ai_cost_usd": f"${monthly_ai_cost:.2f}",
+            "cost_per_premium_msg": f"${cost_per_premium_msg:.4f}",
+            "cost_per_free_msg": f"${cost_per_free_msg:.4f}",
+            "cost_per_active_user": f"${cost_per_active_user:.4f}"
+        },
+        "revenue": {
+            "monthly_revenue_usd": f"${monthly_revenue:.2f}",
+            "monthly_profit_usd": f"${monthly_profit:.2f}",
+            "profit_margin": f"{(monthly_profit / monthly_revenue * 100) if monthly_revenue > 0 else 0:.1f}%"
+        },
+        "health_indicators": {
+            "avg_messages_per_user": round(avg_messages_per_user, 1),
+            "premium_engagement": f"{(premium_messages or 0) / (premium_users or 1):.1f} msgs/user" if premium_users else "N/A",
+            "free_engagement": f"{(free_messages or 0) / (free_users or 1):.1f} msgs/user" if free_users else "N/A"
+        }
+    }
+
+
 @router.get("/users", response_model=List[UserSummary])
 async def list_users(
     limit: int = 50,

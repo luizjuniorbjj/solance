@@ -1,5 +1,5 @@
 // SoulHaven Service Worker
-const CACHE_NAME = 'soulhaven-v25';
+const CACHE_NAME = 'soulhaven-v26';
 const OFFLINE_URL = '/offline.html';
 
 // Arquivos para cachear
