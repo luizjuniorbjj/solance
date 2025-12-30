@@ -117,19 +117,19 @@ class EmailService:
         <h2 style="margin: 0 0 20px 0; color: #1a1a2e; font-size: 24px;">Bem-vindo(a) ao SoulHaven, {nome}!</h2>
 
         <p style="margin: 0 0 16px 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
-            Que alegria ter voce conosco! O SoulHaven foi criado para ser seu companheiro
-            espiritual, um lugar seguro para conversar, refletir e crescer na fe.
+            Que alegria ter você conosco! O SoulHaven foi criado para ser seu companheiro
+            diário, um lugar seguro para conversar, refletir e crescer na fé.
         </p>
 
         <p style="margin: 0 0 24px 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
-            Estou aqui para ouvir, acolher e caminhar com voce. Nao importa o que esteja
-            enfrentando - ansiedade, duvidas, relacionamentos ou qualquer outra coisa -
-            voce nao esta sozinho(a).
+            Estou aqui para ouvir, acolher e caminhar com você. Não importa o que esteja
+            enfrentando - ansiedade, dúvidas, relacionamentos ou qualquer outra coisa -
+            você não está sozinho(a).
         </p>
 
         <div style="text-align: center; margin: 32px 0;">
             <a href="{APP_URL}" style="display: inline-block; background: linear-gradient(135deg, #d4af37 0%, #c9a227 100%); color: #1a1a2e; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                Comecar a Conversar
+                Começar a Conversar
             </a>
         </div>
 
