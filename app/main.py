@@ -244,14 +244,11 @@ async def serve_privacidade():
 # PITCH DECK
 # ============================================
 
-PITCHDECK_DIR = Path(__file__).parent.parent / "pitchdeck"
-
-
 @app.get("/pitch", tags=["Marketing"])
 @app.get("/pitchdeck", tags=["Marketing"])
 async def serve_pitchdeck():
     """Serve o Pitch Deck do SoulHaven"""
-    return FileResponse(PITCHDECK_DIR / "index.html")
+    return FileResponse(FRONTEND_DIR / "pitch.html")
 
 
 # ============================================

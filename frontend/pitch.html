@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoulHaven - Pitch Deck</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0a0a;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    /* Slide Container */
+    .slide {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(212, 175, 55, 0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* Slide Numbers */
+    .slide-number {
+      position: absolute;
+      bottom: 30px;
+      right: 40px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.3);
+      font-weight: 500;
+    }
+
+    /* Typography */
+    h1 {
+      font-size: 72px;
+      font-weight: 800;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, #d4af37 0%, #f4d03f 50%, #d4af37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    h2 {
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 40px;
+      color: #ffffff;
+    }
+
+    h3 {
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      color: #d4af37;
+    }
+
+    p {
+      font-size: 24px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.8);
+      max-width: 900px;
+    }
+
+    .subtitle {
+      font-size: 28px;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 60px;
+    }
+
+    /* Cover Slide */
+    .slide-cover {
+      text-align: center;
+    }
+
+    .logo-cover {
+      width: 180px;
+      height: 180px;
+      margin-bottom: 40px;
+      filter: drop-shadow(0 20px 40px rgba(212, 175, 55, 0.3));
+    }
+
+    .tagline {
+      font-size: 32px;
+      color: rgba(255,255,255,0.7);
+      margin-top: 20px;
+      font-weight: 300;
+    }
+
+    /* Content Layout */
+    .content {
+      width: 100%;
+      max-width: 1400px;
+      z-index: 1;
+    }
+
+    .two-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .three-columns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+      margin-top: 60px;
+    }
+
+    /* Cards */
+    .card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 24px;
+      padding: 40px;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(212, 175, 55, 0.3);
+      transform: translateY(-5px);
+    }
+
+    .card-icon {
+      font-size: 48px;
+      margin-bottom: 24px;
+    }
+
+    .card h4 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #ffffff;
+    }
+
+    .card p {
+      font-size: 18px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 40px;
+      margin-top: 60px;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 64px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 18px;
+      color: rgba(255,255,255,0.6);
+      margin-top: 8px;
+    }
+
+    /* Lists */
+    .feature-list {
+      list-style: none;
+    }
+
+    .feature-list li {
+      font-size: 22px;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .feature-list li:last-child {
+      border-bottom: none;
+    }
+
+    .check {
+      color: #d4af37;
+      font-size: 24px;
+    }
+
+    /* Quote */
+    .quote {
+      font-size: 36px;
+      font-style: italic;
+      color: rgba(255,255,255,0.7);
+      text-align: center;
+      max-width: 1000px;
+      line-height: 1.5;
+      position: relative;
+      padding: 40px 0;
+    }
+
+    .quote::before {
+      content: '"';
+      font-size: 120px;
+      color: rgba(212, 175, 55, 0.2);
+      position: absolute;
+      top: -20px;
+      left: -40px;
+    }
+
+    /* Timeline */
+    .timeline {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 60px;
+      position: relative;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      top: 30px;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: rgba(212, 175, 55, 0.3);
+    }
+
+    .timeline-item {
+      text-align: center;
+      flex: 1;
+      position: relative;
+    }
+
+    .timeline-dot {
+      width: 20px;
+      height: 20px;
+      background: #d4af37;
+      border-radius: 50%;
+      margin: 20px auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .timeline-item h4 {
+      font-size: 20px;
+      color: #d4af37;
+      margin-bottom: 8px;
+    }
+
+    .timeline-item p {
+      font-size: 16px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    /* Tech Stack */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 30px;
+      margin-top: 50px;
+    }
+
+    .tech-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 30px 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .tech-item:hover {
+      border-color: rgba(212, 175, 55, 0.3);
+    }
+
+    .tech-item .icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+    }
+
+    .tech-item span {
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    /* CTA */
+    .cta-button {
+      display: inline-block;
+      padding: 20px 60px;
+      background: linear-gradient(135deg, #d4af37 0%, #c9a227 100%);
+      color: #0a0a0a;
+      font-size: 20px;
+      font-weight: 700;
+      text-decoration: none;
+      border-radius: 60px;
+      margin-top: 40px;
+      transition: all 0.3s ease;
+    }
+
+    .cta-button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 20px 40px rgba(212, 175, 55, 0.3);
+    }
+
+    /* Problem icons */
+    .problem-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 30px;
+      margin-top: 40px;
+    }
+
+    .problem-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 30px;
+      background: rgba(255, 100, 100, 0.05);
+      border: 1px solid rgba(255, 100, 100, 0.1);
+      border-radius: 16px;
+    }
+
+    .problem-item .icon {
+      font-size: 36px;
+    }
+
+    .problem-item h4 {
+      font-size: 20px;
+      color: #ff6b6b;
+      margin-bottom: 8px;
+    }
+
+    .problem-item p {
+      font-size: 16px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    /* Pricing */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 40px;
+      margin-top: 50px;
+      max-width: 900px;
+    }
+
+    .pricing-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 50px 40px;
+      text-align: center;
+    }
+
+    .pricing-card.featured {
+      background: rgba(212, 175, 55, 0.08);
+      border-color: rgba(212, 175, 55, 0.3);
+      transform: scale(1.05);
+    }
+
+    .pricing-card h4 {
+      font-size: 28px;
+      margin-bottom: 16px;
+    }
+
+    .pricing-card .price {
+      font-size: 48px;
+      font-weight: 800;
+      color: #d4af37;
+      margin-bottom: 8px;
+    }
+
+    .pricing-card .price span {
+      font-size: 18px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .pricing-card ul {
+      list-style: none;
+      margin-top: 30px;
+      text-align: left;
+    }
+
+    .pricing-card ul li {
+      padding: 12px 0;
+      color: rgba(255,255,255,0.7);
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Contact */
+    .contact-info {
+      display: flex;
+      gap: 60px;
+      margin-top: 50px;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 20px;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .contact-item .icon {
+      font-size: 28px;
+      color: #d4af37;
+    }
+
+    /* Navigation */
+    .nav-dots {
+      position: fixed;
+      right: 30px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 100;
+    }
+
+    .nav-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .nav-dot:hover,
+    .nav-dot.active {
+      background: #d4af37;
+      transform: scale(1.2);
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .slide {
+        padding: 40px;
+      }
+
+      h1 {
+        font-size: 56px;
+      }
+
+      h2 {
+        font-size: 40px;
+      }
+
+      .two-columns {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+
+      .three-columns {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .tech-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 40px;
+      }
+
+      h2 {
+        font-size: 32px;
+      }
+
+      p {
+        font-size: 18px;
+      }
+
+      .nav-dots {
+        display: none;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .pricing-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .contact-info {
+        flex-direction: column;
+        gap: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Dots -->
+  <div class="nav-dots">
+    <div class="nav-dot active" onclick="scrollToSlide(0)"></div>
+    <div class="nav-dot" onclick="scrollToSlide(1)"></div>
+    <div class="nav-dot" onclick="scrollToSlide(2)"></div>
+    <div class="nav-dot" onclick="scrollToSlide(3)"></div>
+    <div class="nav-dot" onclick="scrollToSlide(4)"></div>
+    <div class="nav-dot" onclick="scrollToSlide(5)"></div>
+    <div class="nav-dot" onclick="scrollToSlide(6)"></div>
+    <div class="nav-dot" onclick="scrollToSlide(7)"></div>
+    <div class="nav-dot" onclick="scrollToSlide(8)"></div>
+    <div class="nav-dot" onclick="scrollToSlide(9)"></div>
+  </div>
+
+  <!-- Slide 1: Cover -->
+  <section class="slide slide-cover" id="slide-0">
+    <img src="/static/icons/icon-512x512.png" alt="SoulHaven" class="logo-cover">
+    <h1>SoulHaven</h1>
+    <p class="subtitle">Seu companheiro cristao de IA</p>
+    <p class="tagline">Ouvir. Entender. Guiar para Cristo.</p>
+    <span class="slide-number">01 / 10</span>
+  </section>
+
+  <!-- Slide 2: Problema -->
+  <section class="slide" id="slide-1">
+    <div class="content">
+      <h2>O Problema</h2>
+      <p style="margin-bottom: 40px;">Milhoes de cristaos enfrentam desafios emocionais e espirituais sem suporte adequado.</p>
+
+      <div class="problem-grid">
+        <div class="problem-item">
+          <span class="icon">😔</span>
+          <div>
+            <h4>Solidao Espiritual</h4>
+            <p>Muitos nao tem com quem conversar sobre questoes de fe e lutas pessoais</p>
+          </div>
+        </div>
+        <div class="problem-item">
+          <span class="icon">⏰</span>
+          <div>
+            <h4>Falta de Tempo</h4>
+            <p>Pastores sobrecarregados nao conseguem dar atencao individual a todos</p>
+          </div>
+        </div>
+        <div class="problem-item">
+          <span class="icon">🚫</span>
+          <div>
+            <h4>Vergonha de Pedir Ajuda</h4>
+            <p>Medo de julgamento impede pessoas de buscar apoio na igreja</p>
+          </div>
+        </div>
+        <div class="problem-item">
+          <span class="icon">🌙</span>
+          <div>
+            <h4>Crises Fora de Horario</h4>
+            <p>Ansiedade e angustia nao esperam o horario comercial</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <span class="slide-number">02 / 10</span>
+  </section>
+
+  <!-- Slide 3: Solucao -->
+  <section class="slide" id="slide-2">
+    <div class="content">
+      <h2>A Solucao</h2>
+      <div class="two-columns">
+        <div>
+          <h3>SoulHaven</h3>
+          <p style="margin-bottom: 30px;">Um companheiro cristao de IA disponivel 24/7, que ouve, entende e guia para Cristo atraves de conversas naturais e sabias.</p>
+          <ul class="feature-list">
+            <li><span class="check">✓</span> Disponivel a qualquer hora, qualquer dia</li>
+            <li><span class="check">✓</span> Sem julgamento, com acolhimento</li>
+            <li><span class="check">✓</span> Fundamentacao 100% biblica</li>
+            <li><span class="check">✓</span> Lembra de voce e suas lutas</li>
+            <li><span class="check">✓</span> Privacidade total com criptografia</li>
+          </ul>
+        </div>
+        <div style="text-align: center;">
+          <div class="quote">
+            "Lancando sobre ele toda a vossa ansiedade, porque ele tem cuidado de vos."
+            <p style="font-size: 18px; margin-top: 20px; font-style: normal;">1 Pedro 5:7</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <span class="slide-number">03 / 10</span>
+  </section>
+
+  <!-- Slide 4: Diferenciais -->
+  <section class="slide" id="slide-3">
+    <div class="content">
+      <h2>Diferenciais</h2>
+      <p>O que torna o SoulHaven unico no mercado</p>
+
+      <div class="three-columns">
+        <div class="card">
+          <div class="card-icon">🧠</div>
+          <h4>Memoria Permanente</h4>
+          <p>Lembra do seu nome, familia, lutas, vitorias e pedidos de oracao. Quanto mais conversa, mais te conhece.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📖</div>
+          <h4>100% Biblico</h4>
+          <p>Fundamentado exclusivamente na Biblia. Nunca valida praticas sincreticas ou contrarias a fe crista.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎭</div>
+          <h4>Papeis Adaptativos</h4>
+          <p>Alterna entre amigo, terapeuta, pastor e conselheiro conforme sua necessidade no momento.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔒</div>
+          <h4>Privacidade Total</h4>
+          <p>Mensagens criptografadas. Seus desabafos sao protegidos com a mais alta seguranca.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📊</div>
+          <h4>Aprendizado Continuo</h4>
+          <p>Sistema de IA que aprende seu estilo, preferencias e necessidades ao longo do tempo.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🌍</div>
+          <h4>Brasileiro</h4>
+          <p>Tom informal, acolhedor, com linguagem natural do dia a dia brasileiro.</p>
+        </div>
+      </div>
+    </div>
+    <span class="slide-number">04 / 10</span>
+  </section>
+
+  <!-- Slide 5: Mercado -->
+  <section class="slide" id="slide-4">
+    <div class="content" style="text-align: center;">
+      <h2>Oportunidade de Mercado</h2>
+      <p>O Brasil tem a maior populacao evangelica fora dos EUA</p>
+
+      <div class="stats-grid">
+        <div class="stat">
+          <div class="stat-number">50M+</div>
+          <div class="stat-label">Evangelicos no Brasil</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">31%</div>
+          <div class="stat-label">da populacao brasileira</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">R$60B</div>
+          <div class="stat-label">Mercado religioso/ano</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">24/7</div>
+          <div class="stat-label">Necessidade de suporte</div>
+        </div>
+      </div>
+
+      <p style="margin-top: 60px; font-size: 20px;">
+        Apps de saude mental cresceram 200% pos-pandemia.<br>
+        SoulHaven une fe + tecnologia em um mercado inexplorado.
+      </p>
+    </div>
+    <span class="slide-number">05 / 10</span>
+  </section>
+
+  <!-- Slide 6: Como Funciona -->
+  <section class="slide" id="slide-5">
+    <div class="content">
+      <h2>Como Funciona</h2>
+      <p>Uma experiencia simples e poderosa</p>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <h4>1. Cadastro</h4>
+          <div class="timeline-dot"></div>
+          <p>Crie sua conta em segundos</p>
+        </div>
+        <div class="timeline-item">
+          <h4>2. Conversa</h4>
+          <div class="timeline-dot"></div>
+          <p>Desabafe, pergunte, busque direcao</p>
+        </div>
+        <div class="timeline-item">
+          <h4>3. Acolhimento</h4>
+          <div class="timeline-dot"></div>
+          <p>Receba apoio personalizado</p>
+        </div>
+        <div class="timeline-item">
+          <h4>4. Orientacao</h4>
+          <div class="timeline-dot"></div>
+          <p>Seja guiado com sabedoria biblica</p>
+        </div>
+        <div class="timeline-item">
+          <h4>5. Crescimento</h4>
+          <div class="timeline-dot"></div>
+          <p>Amadureca na fe, um passo de cada vez</p>
+        </div>
+      </div>
+    </div>
+    <span class="slide-number">06 / 10</span>
+  </section>
+
+  <!-- Slide 7: Tecnologia -->
+  <section class="slide" id="slide-6">
+    <div class="content" style="text-align: center;">
+      <h2>Tecnologia</h2>
+      <p>Construido com as melhores ferramentas do mercado</p>
+
+      <div class="tech-grid">
+        <div class="tech-item">
+          <div class="icon">🤖</div>
+          <span>Claude AI</span>
+        </div>
+        <div class="tech-item">
+          <div class="icon">🐍</div>
+          <span>Python / FastAPI</span>
+        </div>
+        <div class="tech-item">
+          <div class="icon">🐘</div>
+          <span>PostgreSQL</span>
+        </div>
+        <div class="tech-item">
+          <div class="icon">🔐</div>
+          <span>AES Encryption</span>
+        </div>
+        <div class="tech-item">
+          <div class="icon">📱</div>
+          <span>PWA</span>
+        </div>
+      </div>
+
+      <div class="three-columns" style="margin-top: 60px;">
+        <div class="card">
+          <h4>Infraestrutura</h4>
+          <p>Railway (cloud), CI/CD automatico, monitoramento 24/7</p>
+        </div>
+        <div class="card">
+          <h4>Seguranca</h4>
+          <p>JWT auth, bcrypt, Fernet encryption, HTTPS obrigatorio</p>
+        </div>
+        <div class="card">
+          <h4>Escalabilidade</h4>
+          <p>Arquitetura preparada para milhoes de usuarios</p>
+        </div>
+      </div>
+    </div>
+    <span class="slide-number">07 / 10</span>
+  </section>
+
+  <!-- Slide 8: Modelo de Negocio -->
+  <section class="slide" id="slide-7">
+    <div class="content" style="text-align: center;">
+      <h2>Modelo de Negocio</h2>
+      <p>Freemium com conversao para Premium</p>
+
+      <div class="pricing-grid" style="margin: 50px auto;">
+        <div class="pricing-card">
+          <h4>Gratuito</h4>
+          <div class="price">R$0</div>
+          <ul>
+            <li><span class="check">✓</span> 5 mensagens/dia</li>
+            <li><span class="check">✓</span> Memoria basica</li>
+            <li><span class="check">✓</span> Suporte biblico</li>
+            <li><span class="check">✓</span> Acesso web e mobile</li>
+          </ul>
+        </div>
+        <div class="pricing-card featured">
+          <h4>Premium</h4>
+          <div class="price">R$29<span>/mes</span></div>
+          <ul>
+            <li><span class="check">✓</span> Mensagens ilimitadas</li>
+            <li><span class="check">✓</span> Memoria avancada</li>
+            <li><span class="check">✓</span> Analise emocional</li>
+            <li><span class="check">✓</span> Suporte prioritario</li>
+            <li><span class="check">✓</span> Sem anuncios</li>
+          </ul>
+        </div>
+      </div>
+
+      <p style="font-size: 20px; margin-top: 40px;">
+        Meta: 5% de conversao = 2.500 assinantes em 50.000 usuarios<br>
+        <strong style="color: #d4af37;">= R$72.500/mes recorrente</strong>
+      </p>
+    </div>
+    <span class="slide-number">08 / 10</span>
+  </section>
+
+  <!-- Slide 9: Roadmap -->
+  <section class="slide" id="slide-8">
+    <div class="content">
+      <h2>Roadmap</h2>
+      <p>Proximos passos para escalar o SoulHaven</p>
+
+      <div class="three-columns" style="margin-top: 50px;">
+        <div class="card">
+          <h3>Fase 1</h3>
+          <h4>Validacao</h4>
+          <ul class="feature-list">
+            <li><span class="check">✓</span> MVP funcional</li>
+            <li><span class="check">✓</span> Primeiros usuarios</li>
+            <li><span class="check">✓</span> Sistema de memoria</li>
+            <li><span class="check">✓</span> PWA mobile</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Fase 2</h3>
+          <h4>Crescimento</h4>
+          <ul class="feature-list">
+            <li><span class="check">○</span> Google Play / App Store</li>
+            <li><span class="check">○</span> Marketing para igrejas</li>
+            <li><span class="check">○</span> Parcerias com lideres</li>
+            <li><span class="check">○</span> Plano Premium</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Fase 3</h3>
+          <h4>Expansao</h4>
+          <ul class="feature-list">
+            <li><span class="check">○</span> Versao para igrejas (B2B)</li>
+            <li><span class="check">○</span> Devocionais personalizados</li>
+            <li><span class="check">○</span> Grupos de oracao</li>
+            <li><span class="check">○</span> Expansao LATAM</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <span class="slide-number">09 / 10</span>
+  </section>
+
+  <!-- Slide 10: CTA -->
+  <section class="slide slide-cover" id="slide-9">
+    <div class="content" style="text-align: center;">
+      <img src="/static/icons/icon-512x512.png" alt="SoulHaven" style="width: 120px; margin-bottom: 30px;">
+      <h2>Vamos Construir Juntos?</h2>
+      <p style="margin-bottom: 40px;">
+        SoulHaven esta pronto para transformar como cristaos<br>
+        recebem apoio espiritual e emocional.
+      </p>
+
+      <a href="https://www.soulhavenapp.com" class="cta-button">Conhecer o App</a>
+
+      <div class="contact-info" style="justify-content: center; margin-top: 60px;">
+        <div class="contact-item">
+          <span class="icon">🌐</span>
+          <span>www.soulhavenapp.com</span>
+        </div>
+        <div class="contact-item">
+          <span class="icon">📧</span>
+          <span>contato@soulhavenapp.com</span>
+        </div>
+      </div>
+    </div>
+    <span class="slide-number">10 / 10</span>
+  </section>
+
+  <script>
+    // Navigation
+    function scrollToSlide(index) {
+      const slides = document.querySelectorAll('.slide');
+      slides[index].scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Update active dot on scroll
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.nav-dot');
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const index = Array.from(slides).indexOf(entry.target);
+          dots.forEach((dot, i) => {
+            dot.classList.toggle('active', i === index);
+          });
+        }
+      });
+    }, { threshold: 0.5 });
+
+    slides.forEach(slide => observer.observe(slide));
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      const currentIndex = Array.from(dots).findIndex(dot => dot.classList.contains('active'));
+
+      if (e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        if (currentIndex < slides.length - 1) {
+          scrollToSlide(currentIndex + 1);
+        }
+      } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+        e.preventDefault();
+        if (currentIndex > 0) {
+          scrollToSlide(currentIndex - 1);
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>
