@@ -358,11 +358,11 @@ async def get_notification_stats(
             "SELECT COUNT(*) FROM notification_deliveries WHERE status = 'failed'"
         )
 
-        # Usuários com push habilitado
-        push_enabled = await conn.fetchval(
+        # Usuários com push REGISTRADO (têm subscription ativa)
+        push_registered = await conn.fetchval(
             """
-            SELECT COUNT(*) FROM user_profiles
-            WHERE push_notifications = TRUE OR push_notifications IS NULL
+            SELECT COUNT(DISTINCT user_id) FROM push_subscriptions
+            WHERE is_active = TRUE
             """
         )
 
@@ -379,7 +379,7 @@ async def get_notification_stats(
         "sent_notifications": sent or 0,
         "total_deliveries": total_deliveries or 0,
         "failed_deliveries": failed_deliveries or 0,
-        "users_push_enabled": push_enabled or 0,
+        "users_push_registered": push_registered or 0,
         "users_email_enabled": email_enabled or 0
     }
 

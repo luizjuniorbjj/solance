@@ -765,8 +765,8 @@
           <div class="stat-value" id="statDeliveries" style="color: var(--green);">-</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Push Habilitado</div>
-          <div class="stat-value" id="statPushEnabled">-</div>
+          <div class="stat-label">Push Registrado</div>
+          <div class="stat-value" id="statPushRegistered" style="color: var(--primary);">-</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Email Habilitado</div>
@@ -1521,7 +1521,7 @@
           const data = await response.json();
           document.getElementById('statTotalNotifications').textContent = data.total_notifications;
           document.getElementById('statDeliveries').textContent = data.total_deliveries;
-          document.getElementById('statPushEnabled').textContent = data.users_push_enabled;
+          document.getElementById('statPushRegistered').textContent = data.users_push_registered;
           document.getElementById('statEmailEnabled').textContent = data.users_email_enabled;
         }
       } catch (error) {
