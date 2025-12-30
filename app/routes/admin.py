@@ -1532,6 +1532,31 @@ async def trigger_engagement_notifications(
     }
 
 
+@router.post("/debug/create-push-table")
+async def create_push_subscriptions_table(
+    db: Database = Depends(get_db)
+):
+    """
+    Debug: cria a tabela push_subscriptions se não existir.
+    TEMPORÁRIO
+    """
+    async with db.pool.acquire() as conn:
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS push_subscriptions (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                endpoint TEXT NOT NULL UNIQUE,
+                p256dh TEXT NOT NULL,
+                auth TEXT NOT NULL,
+                user_agent TEXT,
+                is_active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                last_used_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+            )
+        """)
+        return {"success": True, "message": "Tabela push_subscriptions criada/verificada"}
+
+
 @router.get("/debug/user-push/{email}")
 async def debug_user_push(
     email: str,
