@@ -322,6 +322,37 @@ class EmailService:
             html=self._base_template(content)
         )
 
+    async def send_notification_email(self, to: str, nome: str, title: str, message: str) -> bool:
+        """Email de notificação/comunicado do SoulHaven"""
+        content = f"""
+        <h2 style="margin: 0 0 20px 0; color: #1a1a2e; font-size: 24px;">{title}</h2>
+
+        <p style="margin: 0 0 16px 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
+            Olá, {nome}!
+        </p>
+
+        <p style="margin: 0 0 24px 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
+            {message}
+        </p>
+
+        <div style="text-align: center; margin: 32px 0;">
+            <a href="{APP_URL}" style="display: inline-block; background: linear-gradient(135deg, #d4af37 0%, #c9a227 100%); color: #1a1a2e; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                Abrir SoulHaven
+            </a>
+        </div>
+
+        <p style="margin: 24px 0 0 0; color: #6c757d; font-size: 13px; text-align: center;">
+            Você está recebendo este email porque tem notificações por email ativadas.
+            <br>Para desativar, acesse Configurações no aplicativo.
+        </p>
+        """
+
+        return await self.send_email(
+            to=to,
+            subject=f"{title} - {APP_NAME}",
+            html=self._base_template(content)
+        )
+
 
 # Instancia global
 email_service = EmailService()

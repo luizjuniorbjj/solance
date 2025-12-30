@@ -2065,3 +2065,11 @@ async def get_db() -> Database:
     if not _pool:
         await init_db()
     return Database(_pool)
+
+
+async def get_db_pool():
+    """Retorna o pool de conexões diretamente (para uso em background tasks)"""
+    global _pool
+    if not _pool:
+        await init_db()
+    return _pool

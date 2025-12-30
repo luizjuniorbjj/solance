@@ -114,6 +114,65 @@ async def send_push_notification(
         return False
 
 
+async def send_push_to_user(
+    user_id: str,
+    title: str,
+    body: str,
+    icon: str = "/static/icons/icon-192x192.png",
+    url: str = "/"
+) -> bool:
+    """
+    Envia push notification para todos os dispositivos de um usuário.
+    Usado pelo sistema de notificações do admin.
+    """
+    from app.database import get_db_pool
+
+    try:
+        pool = await get_db_pool()
+
+        # Buscar todas as subscriptions ativas do usuário
+        subscriptions = await pool.fetch(
+            """
+            SELECT endpoint, p256dh, auth
+            FROM push_subscriptions
+            WHERE user_id = $1 AND is_active = TRUE
+            """,
+            user_id if isinstance(user_id, str) else str(user_id)
+        )
+
+        if not subscriptions:
+            print(f"[PUSH] Nenhuma subscription encontrada para user {user_id}")
+            return False
+
+        success = False
+        for sub in subscriptions:
+            subscription_info = {
+                "endpoint": sub["endpoint"],
+                "keys": {
+                    "p256dh": sub["p256dh"],
+                    "auth": sub["auth"]
+                }
+            }
+
+            result = await send_push_notification(
+                subscription_info=subscription_info,
+                title=title,
+                body=body,
+                icon=icon,
+                url=url,
+                notification_type="admin_broadcast"
+            )
+
+            if result:
+                success = True
+
+        return success
+
+    except Exception as e:
+        print(f"[PUSH] Erro ao enviar push para user {user_id}: {e}")
+        return False
+
+
 # ============================================
 # PUBLIC ENDPOINTS
 # ============================================

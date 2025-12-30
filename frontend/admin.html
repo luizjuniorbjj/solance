@@ -610,9 +610,10 @@
     </div>
 
     <!-- Tabs -->
-    <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+    <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
       <button class="btn btn-primary" id="tabUsers" onclick="showTab('users')" style="opacity: 1;">Usuários</button>
       <button class="btn btn-secondary" id="tabFeedbacks" onclick="showTab('feedbacks')">Feedbacks <span id="feedbackBadge" style="background: var(--red); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-left: 4px; display: none;">0</span></button>
+      <button class="btn btn-secondary" id="tabNotifications" onclick="showTab('notifications')">Notificações</button>
       <button class="btn btn-secondary" id="tabBackup" onclick="showTab('backup')">Backup</button>
     </div>
 
@@ -750,6 +751,102 @@
         </div>
       </div>
     </div>
+
+    <!-- Notifications Tab -->
+    <div id="notificationsTab" style="display: none;">
+      <!-- Notification Stats -->
+      <div class="stats-grid" style="margin-bottom: 20px;">
+        <div class="stat-card">
+          <div class="stat-label">Total Enviadas</div>
+          <div class="stat-value" id="statTotalNotifications">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Entregas com Sucesso</div>
+          <div class="stat-value" id="statDeliveries" style="color: var(--green);">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Push Habilitado</div>
+          <div class="stat-value" id="statPushEnabled">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Email Habilitado</div>
+          <div class="stat-value" id="statEmailEnabled">-</div>
+        </div>
+      </div>
+
+      <!-- Send Notification Form -->
+      <div class="card" style="margin-bottom: 20px;">
+        <div class="card-header">
+          <h2>Enviar Nova Notificação</h2>
+        </div>
+        <div class="card-body" style="padding: 24px;">
+          <div style="display: grid; gap: 16px;">
+            <div>
+              <label style="display: block; margin-bottom: 8px; font-weight: 500;">Título *</label>
+              <input type="text" id="notifTitle" placeholder="Ex: Feliz Ano Novo!" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div>
+              <label style="display: block; margin-bottom: 8px; font-weight: 500;">Mensagem *</label>
+              <textarea id="notifMessage" placeholder="Ex: Que este novo ano seja repleto de bênçãos e conquistas!" rows="4" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+              <div>
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Tipo de Envio</label>
+                <div style="display: flex; gap: 16px;">
+                  <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="sendPush" checked style="width: 18px; height: 18px;">
+                    Push
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="sendEmail" checked style="width: 18px; height: 18px;">
+                    Email
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Destinatários</label>
+                <select id="targetAudience" onchange="updateRecipientPreview()" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;">
+                  <option value="all">Todos os Usuários</option>
+                  <option value="premium">Apenas Premium</option>
+                  <option value="free">Apenas Gratuitos</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="recipientPreview" style="background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 12px; display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 20px;">📊</span>
+              <div>
+                <div style="font-weight: 500; color: #0369a1;">Preview de Destinatários</div>
+                <div style="font-size: 14px; color: #0369a1;" id="previewText">Carregando...</div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 8px;">
+              <button class="btn btn-secondary" onclick="clearNotificationForm()">Limpar</button>
+              <button class="btn btn-primary" onclick="sendNotification()" style="padding: 12px 24px;">
+                📤 Enviar Notificação
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notification History -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Histórico de Envios</h2>
+          <button class="btn btn-secondary" onclick="loadNotificationHistory()" style="padding: 8px 16px;">🔄 Atualizar</button>
+        </div>
+        <div class="card-body">
+          <div id="notificationHistory">
+            <div class="loading">Carregando...</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Modal de Detalhes do Feedback -->
@@ -847,11 +944,13 @@
       // Hide all tabs
       document.getElementById('usersTab').style.display = 'none';
       document.getElementById('feedbacksTab').style.display = 'none';
+      document.getElementById('notificationsTab').style.display = 'none';
       document.getElementById('backupTab').style.display = 'none';
 
       // Reset all buttons
       document.getElementById('tabUsers').className = 'btn btn-secondary';
       document.getElementById('tabFeedbacks').className = 'btn btn-secondary';
+      document.getElementById('tabNotifications').className = 'btn btn-secondary';
       document.getElementById('tabBackup').className = 'btn btn-secondary';
 
       // Show selected tab
@@ -862,6 +961,12 @@
         document.getElementById('feedbacksTab').style.display = 'block';
         document.getElementById('tabFeedbacks').className = 'btn btn-primary';
         loadFeedbacks();
+      } else if (tab === 'notifications') {
+        document.getElementById('notificationsTab').style.display = 'block';
+        document.getElementById('tabNotifications').className = 'btn btn-primary';
+        loadNotificationStats();
+        loadNotificationHistory();
+        updateRecipientPreview();
       } else if (tab === 'backup') {
         document.getElementById('backupTab').style.display = 'block';
         document.getElementById('tabBackup').className = 'btn btn-primary';
@@ -1400,6 +1505,165 @@
         console.error('Error:', error);
         alert('Erro ao marcar feedback');
       }
+    }
+
+    // ============================================
+    // NOTIFICATIONS FUNCTIONS
+    // ============================================
+
+    async function loadNotificationStats() {
+      try {
+        const response = await fetch(`${API_URL}/notifications/stats`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('statTotalNotifications').textContent = data.total_notifications;
+          document.getElementById('statDeliveries').textContent = data.total_deliveries;
+          document.getElementById('statPushEnabled').textContent = data.users_push_enabled;
+          document.getElementById('statEmailEnabled').textContent = data.users_email_enabled;
+        }
+      } catch (error) {
+        console.error('Erro ao carregar stats de notificações:', error);
+      }
+    }
+
+    async function loadNotificationHistory() {
+      try {
+        const response = await fetch(`${API_URL}/notifications/list?limit=20`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const notifications = await response.json();
+          const container = document.getElementById('notificationHistory');
+
+          if (notifications.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 40px;">Nenhuma notificação enviada ainda.</p>';
+            return;
+          }
+
+          container.innerHTML = `
+            <table style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Título</th>
+                  <th>Tipo</th>
+                  <th>Destinatários</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${notifications.map(n => `
+                  <tr>
+                    <td>${new Date(n.created_at).toLocaleDateString('pt-BR')} ${new Date(n.created_at).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}</td>
+                    <td><strong>${n.title}</strong></td>
+                    <td>
+                      ${n.send_push ? '<span style="background: #dbeafe; color: #1d4ed8; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-right: 4px;">Push</span>' : ''}
+                      ${n.send_email ? '<span style="background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 4px; font-size: 12px;">Email</span>' : ''}
+                    </td>
+                    <td>
+                      <span style="color: var(--green);">${n.sent_count}</span> / ${n.total_recipients}
+                      ${n.failed_count > 0 ? `<span style="color: var(--red);">(${n.failed_count} falhas)</span>` : ''}
+                    </td>
+                    <td>
+                      ${n.status === 'sent' ? '<span style="color: var(--green);">✓ Enviado</span>' :
+                        n.status === 'sending' ? '<span style="color: var(--gold);">⏳ Enviando...</span>' :
+                        n.status === 'pending' ? '<span style="color: var(--text-secondary);">Pendente</span>' : n.status}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+        }
+      } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+        document.getElementById('notificationHistory').innerHTML = '<p style="color: var(--red); text-align: center;">Erro ao carregar histórico</p>';
+      }
+    }
+
+    async function updateRecipientPreview() {
+      const target = document.getElementById('targetAudience').value;
+
+      try {
+        const response = await fetch(`${API_URL}/notifications/users-preview?target_audience=${target}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('previewText').textContent =
+            `${data.total_users} usuários | ${data.push_enabled} com Push | ${data.email_enabled} com Email`;
+        }
+      } catch (error) {
+        console.error('Erro ao carregar preview:', error);
+        document.getElementById('previewText').textContent = 'Erro ao carregar preview';
+      }
+    }
+
+    async function sendNotification() {
+      const title = document.getElementById('notifTitle').value.trim();
+      const message = document.getElementById('notifMessage').value.trim();
+      const sendPush = document.getElementById('sendPush').checked;
+      const sendEmail = document.getElementById('sendEmail').checked;
+      const targetAudience = document.getElementById('targetAudience').value;
+
+      if (!title || !message) {
+        alert('Preencha o título e a mensagem');
+        return;
+      }
+
+      if (!sendPush && !sendEmail) {
+        alert('Selecione pelo menos um tipo de envio (Push ou Email)');
+        return;
+      }
+
+      if (!confirm(`Enviar notificação para ${targetAudience === 'all' ? 'TODOS os usuários' : targetAudience === 'premium' ? 'usuários PREMIUM' : 'usuários GRATUITOS'}?`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/notifications/send`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            title,
+            message,
+            send_push: sendPush,
+            send_email: sendEmail,
+            target_audience: targetAudience
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          alert(`Notificação sendo enviada para ${data.total_recipients} usuários!`);
+          clearNotificationForm();
+          loadNotificationStats();
+          loadNotificationHistory();
+        } else {
+          const error = await response.json();
+          alert('Erro: ' + (error.detail || 'Erro ao enviar notificação'));
+        }
+      } catch (error) {
+        console.error('Erro ao enviar:', error);
+        alert('Erro de conexão ao enviar notificação');
+      }
+    }
+
+    function clearNotificationForm() {
+      document.getElementById('notifTitle').value = '';
+      document.getElementById('notifMessage').value = '';
+      document.getElementById('sendPush').checked = true;
+      document.getElementById('sendEmail').checked = true;
+      document.getElementById('targetAudience').value = 'all';
+      updateRecipientPreview();
     }
   </script>
 </body>
