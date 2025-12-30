@@ -217,8 +217,12 @@ async def process_notification_delivery(
     import asyncio
 
     pool = await get_db_pool()
-    sent_count = 0
-    failed_count = 0
+
+    # Contadores separados para Push e Email
+    push_sent = 0
+    push_failed = 0
+    email_sent = 0
+    email_failed = 0
     total_users = len(users)
 
     print(f"[NOTIFICATION] Iniciando envio para {total_users} usuários...")
@@ -255,7 +259,7 @@ async def process_notification_delivery(
                         """,
                         UUID(notification_id), user["id"]
                     )
-                    sent_count += 1
+                    push_sent += 1
                     continue
 
                 success = await send_push_to_user(user_id, title, message)
@@ -271,12 +275,12 @@ async def process_notification_delivery(
                 )
 
                 if success:
-                    sent_count += 1
+                    push_sent += 1
                 else:
-                    failed_count += 1
+                    push_failed += 1
             except Exception as e:
                 print(f"[NOTIFICATION] Erro push {email}: {e}")
-                failed_count += 1
+                push_failed += 1
 
         # Enviar Email
         if send_email and user.get("email_notifications", True):
@@ -306,7 +310,7 @@ async def process_notification_delivery(
                         """,
                         UUID(notification_id), user["id"]
                     )
-                    sent_count += 1
+                    email_sent += 1
                     continue
 
                 success = await email_service.send_notification_email(
@@ -327,41 +331,59 @@ async def process_notification_delivery(
                 )
 
                 if success:
-                    sent_count += 1
+                    email_sent += 1
                 else:
-                    failed_count += 1
+                    email_failed += 1
             except Exception as e:
                 print(f"[NOTIFICATION] Erro email {email}: {e}")
-                failed_count += 1
+                email_failed += 1
+
+        # Calcular totais
+        total_sent = push_sent + email_sent
+        total_failed = push_failed + email_failed
 
         # Atualizar contagem a cada 5 usuários
         if (i + 1) % 5 == 0 or (i + 1) == total_users:
             await pool.execute(
                 """
                 UPDATE notifications
-                SET sent_count = $1, failed_count = $2
-                WHERE id = $3
+                SET sent_count = $1, failed_count = $2,
+                    push_sent = $3, push_failed = $4,
+                    email_sent = $5, email_failed = $6
+                WHERE id = $7
                 """,
-                sent_count, failed_count, UUID(notification_id)
+                total_sent, total_failed,
+                push_sent, push_failed,
+                email_sent, email_failed,
+                UUID(notification_id)
             )
-            print(f"[NOTIFICATION] Progresso: {i+1}/{total_users} ({sent_count} ok, {failed_count} falhas)")
+            print(f"[NOTIFICATION] Progresso: {i+1}/{total_users} | Push: {push_sent}ok/{push_failed}falhas | Email: {email_sent}ok/{email_failed}falhas")
 
         # Pequeno delay para evitar rate limiting (100ms entre emails)
         if send_email and (i + 1) < total_users:
             await asyncio.sleep(0.1)
+
+    # Calcular totais finais
+    total_sent = push_sent + email_sent
+    total_failed = push_failed + email_failed
 
     # Marcar como concluído
     await pool.execute(
         """
         UPDATE notifications
         SET status = 'sent', sent_at = NOW(),
-            sent_count = $1, failed_count = $2
-        WHERE id = $3
+            sent_count = $1, failed_count = $2,
+            push_sent = $3, push_failed = $4,
+            email_sent = $5, email_failed = $6
+        WHERE id = $7
         """,
-        sent_count, failed_count, UUID(notification_id)
+        total_sent, total_failed,
+        push_sent, push_failed,
+        email_sent, email_failed,
+        UUID(notification_id)
     )
 
-    print(f"[NOTIFICATION] Envio concluído: {sent_count} enviados, {failed_count} falhas")
+    print(f"[NOTIFICATION] Envio concluído | Push: {push_sent}ok/{push_failed}falhas | Email: {email_sent}ok/{email_failed}falhas")
 
 
 @router.get("/list")
@@ -378,8 +400,12 @@ async def list_notifications(
             """
             SELECT id, title, message, send_push, send_email,
                    target_audience, status, total_recipients,
-                   sent_count, failed_count, created_at,
-                   scheduled_at, sent_at
+                   sent_count, failed_count,
+                   COALESCE(push_sent, 0) as push_sent,
+                   COALESCE(push_failed, 0) as push_failed,
+                   COALESCE(email_sent, 0) as email_sent,
+                   COALESCE(email_failed, 0) as email_failed,
+                   created_at, scheduled_at, sent_at
             FROM notifications
             ORDER BY created_at DESC
             LIMIT $1 OFFSET $2
@@ -399,6 +425,10 @@ async def list_notifications(
             "total_recipients": row["total_recipients"] or 0,
             "sent_count": row["sent_count"] or 0,
             "failed_count": row["failed_count"] or 0,
+            "push_sent": row["push_sent"] or 0,
+            "push_failed": row["push_failed"] or 0,
+            "email_sent": row["email_sent"] or 0,
+            "email_failed": row["email_failed"] or 0,
             "created_at": row["created_at"].isoformat(),
             "scheduled_at": row["scheduled_at"].isoformat() if row["scheduled_at"] else None,
             "sent_at": row["sent_at"].isoformat() if row["sent_at"] else None

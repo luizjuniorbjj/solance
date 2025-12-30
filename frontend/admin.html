@@ -1550,8 +1550,8 @@
                 <tr>
                   <th>Data</th>
                   <th>Título</th>
-                  <th>Tipo</th>
-                  <th>Destinatários</th>
+                  <th>Push</th>
+                  <th>Email</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -1561,12 +1561,16 @@
                     <td>${new Date(n.created_at).toLocaleDateString('pt-BR')} ${new Date(n.created_at).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})}</td>
                     <td><strong>${n.title}</strong></td>
                     <td>
-                      ${n.send_push ? '<span style="background: #dbeafe; color: #1d4ed8; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-right: 4px;">Push</span>' : ''}
-                      ${n.send_email ? '<span style="background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 4px; font-size: 12px;">Email</span>' : ''}
+                      ${n.send_push ?
+                        `<span style="color: var(--green);">${n.push_sent || 0}</span>` +
+                        (n.push_failed > 0 ? ` <span style="color: var(--red);">(${n.push_failed} falhas)</span>` : '')
+                        : '<span style="color: var(--text-secondary);">-</span>'}
                     </td>
                     <td>
-                      <span style="color: var(--green);">${n.sent_count}</span> / ${n.total_recipients}
-                      ${n.failed_count > 0 ? `<span style="color: var(--red);">(${n.failed_count} falhas)</span>` : ''}
+                      ${n.send_email ?
+                        `<span style="color: var(--green);">${n.email_sent || 0}</span>` +
+                        (n.email_failed > 0 ? ` <span style="color: var(--red);">(${n.email_failed} falhas)</span>` : '')
+                        : '<span style="color: var(--text-secondary);">-</span>'}
                     </td>
                     <td>
                       ${n.status === 'sent' ? '<span style="color: var(--green);">✓ Enviado</span>' :
