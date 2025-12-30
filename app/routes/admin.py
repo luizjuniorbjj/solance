@@ -1731,10 +1731,12 @@ async def test_push_direct(
     db: Database = Depends(get_db)
 ):
     """
-    Debug: testa envio de push direto para um usuário (sem usar sistema de notificações).
+    Debug: testa envio de push direto para um usuário com detalhes do erro.
     """
-    from app.routes.push import send_push_to_user
+    from pywebpush import webpush, WebPushException
+    from app.config import VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_CLAIMS_EMAIL
     import uuid
+    import json
 
     try:
         user_uuid = uuid.UUID(user_id)
@@ -1750,29 +1752,73 @@ async def test_push_direct(
         subs = await conn.fetch("""
             SELECT endpoint, p256dh, auth, is_active
             FROM push_subscriptions
-            WHERE user_id = $1
+            WHERE user_id = $1 AND is_active = TRUE
         """, user_uuid)
 
         if not subs:
             return {
-                "error": "Nenhuma subscription encontrada",
+                "error": "Nenhuma subscription ativa encontrada",
                 "user_email": user["email"]
             }
 
-    # Tentar enviar
-    print(f"[DEBUG] Tentando enviar push para {user['email']} - {len(subs)} subscriptions")
+    # Tentar enviar diretamente com captura de erro
+    results = []
+    for sub in subs:
+        subscription_info = {
+            "endpoint": sub["endpoint"],
+            "keys": {
+                "p256dh": sub["p256dh"],
+                "auth": sub["auth"]
+            }
+        }
 
-    success = await send_push_to_user(
-        user_id=user_id,
-        title="Teste Direto",
-        body="Esta é uma notificação de teste direto do admin."
-    )
+        payload = json.dumps({
+            "title": "Teste Direto",
+            "body": "Esta é uma notificação de teste direto do admin.",
+            "icon": "/static/icons/icon-192x192.png",
+            "url": "/app"
+        })
+
+        try:
+            webpush(
+                subscription_info=subscription_info,
+                data=payload,
+                vapid_private_key=VAPID_PRIVATE_KEY,
+                vapid_claims={
+                    "sub": f"mailto:{VAPID_CLAIMS_EMAIL}"
+                }
+            )
+            results.append({
+                "endpoint": sub["endpoint"][:60] + "...",
+                "success": True,
+                "error": None
+            })
+        except WebPushException as e:
+            error_detail = str(e)
+            if e.response:
+                error_detail += f" | Status: {e.response.status_code} | Body: {e.response.text[:200]}"
+            results.append({
+                "endpoint": sub["endpoint"][:60] + "...",
+                "success": False,
+                "error": error_detail
+            })
+        except Exception as e:
+            results.append({
+                "endpoint": sub["endpoint"][:60] + "...",
+                "success": False,
+                "error": f"Unexpected: {str(e)}"
+            })
+
+    success_count = sum(1 for r in results if r["success"])
 
     return {
-        "success": success,
         "user_email": user["email"],
-        "subscriptions_found": len(subs),
-        "subscriptions_active": sum(1 for s in subs if s["is_active"])
+        "subscriptions_tested": len(results),
+        "success_count": success_count,
+        "vapid_email": VAPID_CLAIMS_EMAIL,
+        "vapid_public_key_preview": VAPID_PUBLIC_KEY[:20] + "..." if VAPID_PUBLIC_KEY else "NOT SET",
+        "vapid_private_key_set": bool(VAPID_PRIVATE_KEY),
+        "results": results
     }
 
 
