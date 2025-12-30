@@ -6113,14 +6113,22 @@
     }
 
     window.addEventListener('beforeinstallprompt', (e) => {
+      console.log('[PWA] beforeinstallprompt disparado!');
       // Previne o mini-infobar de aparecer no mobile
       e.preventDefault();
       // Guarda o evento para usar depois
       deferredPrompt = e;
-      console.log('[PWA] App pode ser instalado');
+      console.log('[PWA] App pode ser instalado, prompt salvo');
       // Mostra botão de instalar no menu
       updateInstallButton();
     });
+
+    // Log para debug - verificar se SW está ativo
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(reg => {
+        console.log('[PWA] Service Worker ativo:', reg.active?.state);
+      });
+    }
 
     window.addEventListener('appinstalled', () => {
       console.log('[PWA] App instalado com sucesso!');
@@ -6152,6 +6160,7 @@
       }
 
       if (deferredPrompt) {
+        console.log('[PWA] Usando prompt nativo');
         // Mostra o prompt de instalação nativo
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
@@ -6161,13 +6170,39 @@
           if (installBtn) installBtn.style.display = 'none';
         }
       } else {
-        // Navegador não suporta ou já está instalado
-        alert(
-          'Para instalar o SoulHaven:\n\n' +
-          'No Chrome: Menu (3 pontos) → "Adicionar à tela inicial" ou "Instalar app"\n\n' +
-          'No Edge: Menu (3 pontos) → "Apps" → "Instalar este site como app"\n\n' +
-          'No Safari: Botão compartilhar → "Adicionar à Tela de Início"'
-        );
+        console.log('[PWA] deferredPrompt não disponível, verificando alternativas...');
+
+        // Tentar usar getInstalledRelatedApps para verificar se já está instalado
+        if ('getInstalledRelatedApps' in navigator) {
+          const relatedApps = await navigator.getInstalledRelatedApps();
+          if (relatedApps.length > 0) {
+            alert('O SoulHaven já está instalado no seu dispositivo!');
+            return;
+          }
+        }
+
+        // Verificar se é Android e Chrome - tentar forçar o banner
+        const isAndroid = /android/i.test(navigator.userAgent);
+        const isChrome = /chrome/i.test(navigator.userAgent) && !/edge|edg/i.test(navigator.userAgent);
+
+        if (isAndroid && isChrome) {
+          // No Android Chrome, o prompt pode aparecer automaticamente se recarregar
+          const shouldReload = confirm(
+            'O botão de instalação nativo não apareceu.\n\n' +
+            'Deseja recarregar a página? O Chrome deve mostrar o prompt de instalação automaticamente.'
+          );
+          if (shouldReload) {
+            window.location.reload();
+          }
+        } else {
+          // Navegador não suporta
+          alert(
+            'Para instalar o SoulHaven:\n\n' +
+            'No Chrome: Menu (3 pontos) → "Adicionar à tela inicial" ou "Instalar app"\n\n' +
+            'No Edge: Menu (3 pontos) → "Apps" → "Instalar este site como app"\n\n' +
+            'No Safari: Botão compartilhar → "Adicionar à Tela de Início"'
+          );
+        }
       }
     }
 
