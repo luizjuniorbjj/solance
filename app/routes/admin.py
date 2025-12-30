@@ -1822,6 +1822,34 @@ async def test_push_direct(
     }
 
 
+@router.get("/debug/generate-vapid-keys")
+async def generate_vapid_keys():
+    """
+    Debug: gera novas chaves VAPID no formato correto para pywebpush.
+    """
+    from py_vapid import Vapid
+
+    vapid = Vapid()
+    vapid.generate_keys()
+
+    # Obter as chaves no formato correto
+    public_key = vapid.public_key_urlsafe_base64
+    private_key = vapid.private_key_urlsafe_base64
+
+    return {
+        "message": "Novas chaves VAPID geradas. Configure no Railway:",
+        "VAPID_PUBLIC_KEY": public_key,
+        "VAPID_PRIVATE_KEY": private_key,
+        "instructions": [
+            "1. Copie as chaves acima",
+            "2. No Railway, vá em Variables",
+            "3. Adicione VAPID_PUBLIC_KEY e VAPID_PRIVATE_KEY",
+            "4. Atualize também a chave pública no frontend (index.html)",
+            "5. Depois, os usuários precisarão re-registrar as subscriptions"
+        ]
+    }
+
+
 @router.get("/debug/push-subscriptions")
 async def list_all_push_subscriptions(
     db: Database = Depends(get_db)
