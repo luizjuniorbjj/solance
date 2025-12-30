@@ -4765,7 +4765,7 @@
         console.log('[PUSH] Service worker pronto');
 
         // Buscar chave publica VAPID do servidor
-        const vapidResponse = await fetch(`${API_URL}/push/vapid-public-key`);
+        const vapidResponse = await fetch(`${API_URL}/api/push/vapid-public-key`);
         if (!vapidResponse.ok) {
           console.error('[PUSH] Erro ao buscar VAPID key');
           return;
@@ -4804,7 +4804,7 @@
         };
         console.log('[PUSH] Enviando subscription para servidor:', subscriptionData.endpoint.substring(0, 50) + '...');
 
-        const response = await fetch(`${API_URL}/push/subscribe`, {
+        const response = await fetch(`${API_URL}/api/push/subscribe`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
