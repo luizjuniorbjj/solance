@@ -3929,9 +3929,9 @@
         loadUserProfile();
         loadConversations();
 
-        // Registrar push notifications automaticamente (após pequeno delay para UX)
+        // Após login: verificar se deve mostrar banner de instalação ou modal de push
         setTimeout(() => {
-          autoRegisterPushNotifications(true); // true = forçar para login novo
+          handlePostLoginPrompts();
         }, 2500);
 
         return true;
@@ -6084,9 +6084,14 @@
         showApp();
         loadUserProfile();
         loadConversations();
-        // Tentar registrar push para usuário já logado
+        // Para usuário já logado: mostrar prompts apropriados
+        // (não forçar, respeitar cooldowns)
         setTimeout(() => {
-          autoRegisterPushNotifications();
+          // Se está no PWA, tentar registrar push silenciosamente
+          if (isPWAInstalled()) {
+            autoRegisterPushNotifications(false);
+          }
+          // Não mostrar banner de instalação no reload (só no login)
         }, 3000);
       } else {
         showAuthModal();
@@ -6290,6 +6295,37 @@
     });
 
     // ============================================
+    // GERENCIADOR DE PROMPTS PÓS-LOGIN
+    // ============================================
+    // Ordem correta:
+    // 1. Se NÃO instalado como PWA → mostrar banner de instalação
+    // 2. Se JÁ instalado como PWA → mostrar modal de push notifications
+
+    function handlePostLoginPrompts() {
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+      console.log('[PROMPTS] Verificando... isPWA:', isPWAInstalled(), 'isMobile:', isMobile);
+
+      // Se está instalado como PWA, pedir permissão de push
+      if (isPWAInstalled()) {
+        console.log('[PROMPTS] App instalado, mostrando modal de push...');
+        autoRegisterPushNotifications(true);
+        return;
+      }
+
+      // Se é mobile e NÃO está instalado, mostrar banner de instalação
+      if (isMobile) {
+        console.log('[PROMPTS] Mobile sem app instalado, mostrando banner de instalação...');
+        showInstallBanner();
+        return;
+      }
+
+      // Desktop: pedir push direto (não faz sentido pedir para instalar)
+      console.log('[PROMPTS] Desktop, mostrando modal de push...');
+      autoRegisterPushNotifications(true);
+    }
+
+    // ============================================
     // BANNER AUTOMÁTICO PARA INSTALAR O APP
     // ============================================
     function shouldShowInstallBanner() {
@@ -6394,7 +6430,7 @@
       localStorage.setItem('soulhaven_install_dismissed', (dismissCount + 1).toString());
     }
 
-    // Mostrar banner após 2 mensagens enviadas ou 60 segundos de uso
+    // Mostrar banner após 2 mensagens enviadas (reforço)
     let messagesSentCount = 0;
     function trackMessageForInstallBanner() {
       if (isPWAInstalled()) return;
@@ -6402,18 +6438,11 @@
       messagesSentCount++;
       console.log('[INSTALL] Mensagens enviadas:', messagesSentCount);
 
-      // Após 2 mensagens, mostrar banner
+      // Após 2 mensagens, mostrar banner novamente (se não instalou ainda)
       if (messagesSentCount === 2) {
         setTimeout(showInstallBanner, 1000);
       }
     }
-
-    // Também mostrar após 60 segundos de uso (se logado)
-    setTimeout(() => {
-      if (state.token && !isPWAInstalled()) {
-        showInstallBanner();
-      }
-    }, 60000);
 
     // ============================================
     // FEEDBACK SYSTEM
