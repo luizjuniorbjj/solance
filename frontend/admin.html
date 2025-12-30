@@ -500,6 +500,39 @@
       border-color: var(--gold);
     }
 
+    .password-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .password-wrapper input {
+      padding-right: 44px;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9ca3af;
+      transition: color 0.2s;
+    }
+
+    .password-toggle:hover {
+      color: #6b7280;
+    }
+
+    .password-toggle svg {
+      width: 20px;
+      height: 20px;
+    }
+
     .login-btn {
       width: 100%;
       padding: 14px;
@@ -545,7 +578,19 @@
         </div>
         <div class="form-group">
           <label>Senha</label>
-          <input type="password" id="loginPassword" placeholder="Sua senha" required>
+          <div class="password-wrapper">
+            <input type="password" id="loginPassword" placeholder="Sua senha" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)" aria-label="Mostrar senha">
+              <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
         </div>
         <button type="submit" class="login-btn">Entrar</button>
         <div id="loginError" class="error-msg" style="display: none;"></div>
@@ -871,6 +916,25 @@
     if (token) {
       showDashboard();
       loadData();
+    }
+
+    // Toggle password visibility
+    function togglePassword(inputId, button) {
+      const input = document.getElementById(inputId);
+      const eyeOpen = button.querySelector('.eye-open');
+      const eyeClosed = button.querySelector('.eye-closed');
+
+      if (input.type === 'password') {
+        input.type = 'text';
+        eyeOpen.style.display = 'none';
+        eyeClosed.style.display = 'block';
+        button.setAttribute('aria-label', 'Ocultar senha');
+      } else {
+        input.type = 'password';
+        eyeOpen.style.display = 'block';
+        eyeClosed.style.display = 'none';
+        button.setAttribute('aria-label', 'Mostrar senha');
+      }
     }
 
     async function handleLogin(e) {
