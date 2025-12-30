@@ -1595,8 +1595,11 @@
 
         if (response.ok) {
           const data = await response.json();
+          const pushInfo = data.push_registered > 0
+            ? `${data.push_registered} com Push ativo`
+            : `0 com Push (${data.push_enabled} habilitaram, mas não registraram)`;
           document.getElementById('previewText').textContent =
-            `${data.total_users} usuários | ${data.push_enabled} com Push | ${data.email_enabled} com Email`;
+            `${data.total_users} usuários | ${pushInfo} | ${data.email_enabled} com Email`;
         }
       } catch (error) {
         console.error('Erro ao carregar preview:', error);

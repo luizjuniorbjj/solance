@@ -432,73 +432,47 @@ async def preview_recipients(
     """Preview de quantos usuários receberão a notificação"""
 
     async with db.pool.acquire() as conn:
+        # Base query filter
         if target_audience == "all":
-            total = await conn.fetchval(
-                "SELECT COUNT(*) FROM users WHERE is_active = TRUE"
-            )
-            push_count = await conn.fetchval(
-                """
-                SELECT COUNT(*) FROM users u
-                LEFT JOIN user_profiles up ON u.id = up.user_id
-                WHERE u.is_active = TRUE
-                AND (up.push_notifications = TRUE OR up.push_notifications IS NULL)
-                """
-            )
-            email_count = await conn.fetchval(
-                """
-                SELECT COUNT(*) FROM users u
-                LEFT JOIN user_profiles up ON u.id = up.user_id
-                WHERE u.is_active = TRUE
-                AND (up.email_notifications = TRUE OR up.email_notifications IS NULL)
-                """
-            )
+            user_filter = "u.is_active = TRUE"
         elif target_audience == "premium":
-            total = await conn.fetchval(
-                "SELECT COUNT(*) FROM users WHERE is_active = TRUE AND is_premium = TRUE"
-            )
-            push_count = await conn.fetchval(
-                """
-                SELECT COUNT(*) FROM users u
-                LEFT JOIN user_profiles up ON u.id = up.user_id
-                WHERE u.is_active = TRUE AND u.is_premium = TRUE
-                AND (up.push_notifications = TRUE OR up.push_notifications IS NULL)
-                """
-            )
-            email_count = await conn.fetchval(
-                """
-                SELECT COUNT(*) FROM users u
-                LEFT JOIN user_profiles up ON u.id = up.user_id
-                WHERE u.is_active = TRUE AND u.is_premium = TRUE
-                AND (up.email_notifications = TRUE OR up.email_notifications IS NULL)
-                """
-            )
+            user_filter = "u.is_active = TRUE AND u.is_premium = TRUE"
         elif target_audience == "free":
-            total = await conn.fetchval(
-                "SELECT COUNT(*) FROM users WHERE is_active = TRUE AND is_premium = FALSE"
-            )
-            push_count = await conn.fetchval(
-                """
-                SELECT COUNT(*) FROM users u
-                LEFT JOIN user_profiles up ON u.id = up.user_id
-                WHERE u.is_active = TRUE AND u.is_premium = FALSE
-                AND (up.push_notifications = TRUE OR up.push_notifications IS NULL)
-                """
-            )
-            email_count = await conn.fetchval(
-                """
-                SELECT COUNT(*) FROM users u
-                LEFT JOIN user_profiles up ON u.id = up.user_id
-                WHERE u.is_active = TRUE AND u.is_premium = FALSE
-                AND (up.email_notifications = TRUE OR up.email_notifications IS NULL)
-                """
-            )
+            user_filter = "u.is_active = TRUE AND u.is_premium = FALSE"
         else:
-            total = 0
-            push_count = 0
-            email_count = 0
+            return {"total_users": 0, "push_enabled": 0, "push_registered": 0, "email_enabled": 0}
+
+        # Total de usuários
+        total = await conn.fetchval(f"SELECT COUNT(*) FROM users u WHERE {user_filter}")
+
+        # Usuários com preferência de push habilitada
+        push_enabled = await conn.fetchval(f"""
+            SELECT COUNT(*) FROM users u
+            LEFT JOIN user_profiles up ON u.id = up.user_id
+            WHERE {user_filter}
+            AND (up.push_notifications = TRUE OR up.push_notifications IS NULL)
+        """)
+
+        # Usuários com push subscription REGISTRADA (estes vão receber de fato)
+        push_registered = await conn.fetchval(f"""
+            SELECT COUNT(DISTINCT u.id) FROM users u
+            INNER JOIN push_subscriptions ps ON u.id = ps.user_id AND ps.is_active = TRUE
+            LEFT JOIN user_profiles up ON u.id = up.user_id
+            WHERE {user_filter}
+            AND (up.push_notifications = TRUE OR up.push_notifications IS NULL)
+        """)
+
+        # Usuários com email habilitado
+        email_enabled = await conn.fetchval(f"""
+            SELECT COUNT(*) FROM users u
+            LEFT JOIN user_profiles up ON u.id = up.user_id
+            WHERE {user_filter}
+            AND (up.email_notifications = TRUE OR up.email_notifications IS NULL)
+        """)
 
     return {
         "total_users": total or 0,
-        "push_enabled": push_count or 0,
-        "email_enabled": email_count or 0
+        "push_enabled": push_enabled or 0,
+        "push_registered": push_registered or 0,
+        "email_enabled": email_enabled or 0
     }
