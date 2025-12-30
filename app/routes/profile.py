@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 from app.auth import get_current_user
 from app.database import get_db, Database
+from app.security import verify_password
 
 router = APIRouter(prefix="/profile", tags=["Perfil"])
 
@@ -61,6 +62,11 @@ class OnboardingStep3(BaseModel):
     """O que trouxe ao SoulHaven"""
     motivo_principal: str  # "ansiedade", "relacionamento", "fé", "estudo", "apoio", "outro"
     expectativa: Optional[str] = None
+
+
+class DeleteAccountRequest(BaseModel):
+    """Request para exclusão de conta"""
+    password: str
 
 
 class ProfileResponse(BaseModel):
@@ -273,14 +279,24 @@ async def get_onboarding_status(
 
 @router.delete("/delete-account")
 async def delete_account(
+    request: DeleteAccountRequest,
     current_user: dict = Depends(get_current_user),
     db: Database = Depends(get_db)
 ):
     """
     Exclui permanentemente a conta do usuario e todos os dados associados.
-    Esta acao e irreversivel.
+    Esta acao e irreversivel. Requer confirmacao com senha.
     """
     user_id = current_user["user_id"]
+
+    # Verificar senha do usuario
+    user = await db.pool.fetchrow(
+        "SELECT password_hash FROM users WHERE id = $1",
+        user_id
+    )
+
+    if not user or not verify_password(request.password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Senha incorreta")
 
     try:
         # Log de auditoria antes de excluir

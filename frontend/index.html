@@ -4501,6 +4501,8 @@
           notificationBlocked = true;
         }
 
+        const emailNotificationsEnabled = localStorage.getItem('soulhaven_email_notifications') !== 'false';
+
         modal.innerHTML = `
           <div class="settings-modal-content">
             <div class="settings-header">
@@ -4508,18 +4510,6 @@
               <button class="settings-close" onclick="closeSettings()">&times;</button>
             </div>
             <div class="settings-body">
-              <!-- Aparencia -->
-              <div class="settings-section">
-                <div class="settings-section-title">Aparência</div>
-                <div class="settings-item">
-                  <div class="settings-item-info">
-                    <div class="settings-item-label">Tema Escuro</div>
-                    <div class="settings-item-desc">Reduz o cansaço visual em ambientes escuros</div>
-                  </div>
-                  <div class="settings-toggle ${isDark ? 'active' : ''}" id="themeToggle" onclick="toggleTheme()"></div>
-                </div>
-              </div>
-
               <!-- Notificacoes -->
               <div class="settings-section">
                 <div class="settings-section-title">Notificações</div>
@@ -4532,26 +4522,27 @@
                 </div>
                 <div class="settings-item">
                   <div class="settings-item-info">
-                    <div class="settings-item-label">Horário do Lembrete</div>
-                    <div class="settings-item-desc">Momento diário para reflexão</div>
+                    <div class="settings-item-label">Notificações por Email</div>
+                    <div class="settings-item-desc">Receba lembretes e atualizações por email</div>
                   </div>
-                  <select class="settings-select" id="reminderTime" onchange="updateReminderTime(this.value)">
-                    <option value="06:00" ${reminderTime === '06:00' ? 'selected' : ''}>06:00</option>
-                    <option value="07:00" ${reminderTime === '07:00' ? 'selected' : ''}>07:00</option>
-                    <option value="08:00" ${reminderTime === '08:00' ? 'selected' : ''}>08:00</option>
-                    <option value="09:00" ${reminderTime === '09:00' ? 'selected' : ''}>09:00</option>
-                    <option value="12:00" ${reminderTime === '12:00' ? 'selected' : ''}>12:00</option>
-                    <option value="18:00" ${reminderTime === '18:00' ? 'selected' : ''}>18:00</option>
-                    <option value="20:00" ${reminderTime === '20:00' ? 'selected' : ''}>20:00</option>
-                    <option value="21:00" ${reminderTime === '21:00' ? 'selected' : ''}>21:00</option>
-                    <option value="22:00" ${reminderTime === '22:00' ? 'selected' : ''}>22:00</option>
-                  </select>
+                  <div class="settings-toggle ${emailNotificationsEnabled ? 'active' : ''}" id="emailNotificationToggle" onclick="toggleEmailNotifications()"></div>
                 </div>
               </div>
 
               <!-- Privacidade e Dados -->
               <div class="settings-section">
                 <div class="settings-section-title">Privacidade e Dados</div>
+                <a href="/termos" target="_blank" class="settings-link">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10 9 9 9 8 9"/>
+                  </svg>
+                  Termos de Uso
+                </a>
+                <div style="height: 10px;"></div>
                 <a href="/privacidade" target="_blank" class="settings-link">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -4559,7 +4550,7 @@
                   Política de Privacidade
                 </a>
                 <div style="height: 10px;"></div>
-                <button class="settings-btn-danger" onclick="confirmDeleteAccount()">
+                <button class="settings-btn-danger" onclick="showDeleteAccountModal()">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
                     <line x1="10" y1="11" x2="10" y2="17"/>
@@ -4807,27 +4798,113 @@
       }
     }
 
-    function confirmDeleteAccount() {
-      const confirmed = confirm(
-        'ATENCAO: Esta acao e irreversivel!\n\n' +
-        'Ao excluir sua conta, todos os seus dados serao permanentemente removidos:\n' +
-        '- Historico de conversas\n' +
-        '- Perfil e configuracoes\n' +
-        '- Assinatura (se houver)\n\n' +
-        'Deseja realmente excluir sua conta?'
-      );
+    function toggleEmailNotifications() {
+      const toggle = document.getElementById('emailNotificationToggle');
+      const isEnabled = toggle.classList.contains('active');
 
-      if (confirmed) {
-        const doubleConfirm = prompt(
-          'Para confirmar, digite "EXCLUIR" (em maiusculas):'
-        );
+      toggle.classList.toggle('active', !isEnabled);
+      localStorage.setItem('soulhaven_email_notifications', !isEnabled ? 'true' : 'false');
 
-        if (doubleConfirm === 'EXCLUIR') {
-          deleteAccount();
-        } else if (doubleConfirm !== null) {
-          showToast('Texto incorreto. Conta nao excluida.');
-        }
+      // Salvar no servidor
+      const token = localStorage.getItem('token');
+      if (token) {
+        fetch(`${API_URL}/profile/preferences`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email_notifications: !isEnabled })
+        }).catch(e => console.error('Erro ao salvar preferência:', e));
       }
+
+      showToast(!isEnabled ? 'Notificações por email ativadas' : 'Notificações por email desativadas');
+    }
+
+    function showDeleteAccountModal() {
+      closeSettings();
+
+      const modal = document.createElement('div');
+      modal.id = 'deleteAccountModal';
+      modal.className = 'confirm-modal active';
+      modal.innerHTML = `
+        <div class="confirm-container" style="max-width: 400px;">
+          <h2 style="color: #dc3545; margin-bottom: 16px;">Excluir Conta</h2>
+          <p style="margin-bottom: 16px; color: #666; font-size: 14px;">
+            <strong>ATENÇÃO:</strong> Esta ação é irreversível!<br><br>
+            Ao excluir sua conta, todos os seus dados serão permanentemente removidos:
+          </p>
+          <ul style="text-align: left; margin-bottom: 16px; color: #666; font-size: 14px; padding-left: 20px;">
+            <li>Histórico de conversas</li>
+            <li>Perfil e configurações</li>
+            <li>Assinatura (se houver)</li>
+          </ul>
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-size: 14px; color: #333;">Digite sua senha para confirmar:</label>
+            <input type="password" id="deleteAccountPassword" placeholder="Sua senha" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box;">
+          </div>
+          <div class="confirm-buttons">
+            <button onclick="closeDeleteAccountModal()" style="flex: 1; padding: 12px; border: 1px solid #ddd; background: white; border-radius: 8px; cursor: pointer;">Cancelar</button>
+            <button onclick="confirmDeleteWithPassword()" style="flex: 1; padding: 12px; border: none; background: #dc3545; color: white; border-radius: 8px; cursor: pointer; font-weight: 600;">Excluir Conta</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      document.getElementById('deleteAccountPassword').focus();
+    }
+
+    function closeDeleteAccountModal() {
+      const modal = document.getElementById('deleteAccountModal');
+      if (modal) modal.remove();
+    }
+
+    async function confirmDeleteWithPassword() {
+      const password = document.getElementById('deleteAccountPassword').value;
+
+      if (!password) {
+        showToast('Digite sua senha para confirmar');
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          showToast('Você precisa estar logado');
+          return;
+        }
+
+        const response = await fetch(`${API_URL}/profile/delete-account`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ password: password })
+        });
+
+        if (response.ok) {
+          closeDeleteAccountModal();
+          localStorage.removeItem('token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('soulhaven_theme');
+          localStorage.removeItem('soulhaven_notifications');
+          localStorage.removeItem('soulhaven_email_notifications');
+
+          alert('Sua conta foi excluída com sucesso. Sentiremos sua falta!');
+          window.location.reload();
+        } else {
+          const data = await response.json();
+          showToast(data.detail || 'Senha incorreta ou erro ao excluir conta');
+        }
+      } catch (e) {
+        console.error('Erro ao excluir conta:', e);
+        showToast('Erro de conexão. Tente novamente.');
+      }
+    }
+
+    function confirmDeleteAccount() {
+      showDeleteAccountModal();
     }
 
     async function deleteAccount() {
