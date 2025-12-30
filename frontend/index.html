@@ -3238,9 +3238,16 @@
     }
 
     @media (max-width: 480px) {
+      .upgrade-modal {
+        padding: 10px;
+        align-items: flex-start;
+        overflow-y: auto;
+      }
+
       .upgrade-container {
-        max-height: 100vh;
-        border-radius: 16px 16px 0 0;
+        max-height: none;
+        border-radius: 16px;
+        margin: 20px 0;
       }
 
       .upgrade-header {
@@ -3253,6 +3260,14 @@
 
       .upgrade-price .price {
         font-size: 40px;
+      }
+
+      .upgrade-content {
+        padding: 20px;
+      }
+
+      .upgrade-footer {
+        padding: 16px 20px;
       }
     }
 
@@ -3586,17 +3601,17 @@
           </svg>
         </div>
         <h2>SoulHaven Premium</h2>
-        <p>Eleve sua jornada espiritual ao proximo nivel</p>
+        <p id="upgradeWelcomeText">Seu companheiro diário de fé e acolhimento</p>
       </div>
 
       <div class="upgrade-content">
         <div class="upgrade-price">
           <div class="price">$5<span>.99</span></div>
-          <div class="period">por mes, cancele quando quiser</div>
+          <div class="period">por mês, cancele quando quiser</div>
         </div>
 
         <div class="upgrade-features">
-          <h3>O que esta incluso</h3>
+          <h3>O que está incluso</h3>
 
           <div class="feature-item">
             <div class="feature-check">
@@ -3617,8 +3632,8 @@
               </svg>
             </div>
             <div class="feature-text">
-              <strong>Memoria completa</strong>
-              <span>Lembra de todas suas conversas e preferencias</span>
+              <strong>Memória completa</strong>
+              <span>Lembra de todas suas conversas e preferências</span>
             </div>
           </div>
 
@@ -3629,19 +3644,7 @@
               </svg>
             </div>
             <div class="feature-text">
-              <strong>Devocionais personalizados</strong>
-              <span>Conteudo diario baseado em suas necessidades</span>
-            </div>
-          </div>
-
-          <div class="feature-item">
-            <div class="feature-check">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-            </div>
-            <div class="feature-text">
-              <strong>Companheiro sempre disponivel</strong>
+              <strong>Companheiro sempre disponível</strong>
               <span>Apoio espiritual 24 horas por dia</span>
             </div>
           </div>
