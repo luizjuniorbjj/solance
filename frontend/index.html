@@ -4629,7 +4629,7 @@
       }
     }
 
-    function toggleNotifications() {
+    async function toggleNotifications() {
       const toggle = document.getElementById('notificationToggle');
       const isEnabled = toggle.classList.contains('active');
 
@@ -4640,10 +4640,15 @@
           return;
         }
 
+        // Verificar se Service Worker está disponível
+        if (!('serviceWorker' in navigator)) {
+          showToast('Service Worker não suportado', 'error');
+          return;
+        }
+
         // Verificar se já foi negado permanentemente
         if (Notification.permission === 'denied') {
           showToast('Notificações bloqueadas. Habilite nas configurações do navegador.', 'error');
-          // Mostrar instrução
           alert(
             'As notificações foram bloqueadas anteriormente.\n\n' +
             'Para habilitar:\n' +
@@ -4655,31 +4660,50 @@
           return;
         }
 
-        // Solicitar permissão
-        Notification.requestPermission().then(permission => {
+        // Se já tem permissão, apenas registrar push
+        if (Notification.permission === 'granted') {
+          localStorage.setItem('soulhaven_notifications', 'true');
+          toggle.classList.add('active');
+          showToast('Notificações ativadas!');
+          await registerPushNotifications();
+          return;
+        }
+
+        // Precisa pedir permissão - DEVE ser em resposta a user gesture (clique)
+        try {
+          // Aguardar Service Worker estar pronto ANTES de pedir permissão
+          await navigator.serviceWorker.ready;
+          console.log('[PUSH] Service Worker pronto, solicitando permissão...');
+
+          const permission = await Notification.requestPermission();
+          console.log('[PUSH] Permissão recebida:', permission);
+
           if (permission === 'granted') {
             localStorage.setItem('soulhaven_notifications', 'true');
             toggle.classList.add('active');
             showToast('Notificações ativadas!');
 
-            // Mostrar notificação de teste
-            new Notification('SoulHaven', {
-              body: 'Notificações ativadas com sucesso!',
-              icon: '/static/icons/icon-192x192.png'
-            });
+            // Registrar push subscription
+            await registerPushNotifications();
 
-            // Registrar service worker para push
-            registerPushNotifications();
+            // Mostrar notificação de teste via Service Worker
+            const registration = await navigator.serviceWorker.ready;
+            registration.showNotification('SoulHaven', {
+              body: 'Notificações ativadas com sucesso!',
+              icon: '/static/icons/icon-192x192.png',
+              tag: 'test-notification'
+            });
           } else if (permission === 'denied') {
             showToast('Permissão de notificação negada', 'error');
           } else {
             showToast('Permissão não concedida', 'error');
           }
-        }).catch(err => {
-          console.error('Erro ao solicitar permissão:', err);
-          showToast('Erro ao solicitar permissão', 'error');
-        });
+        } catch (err) {
+          console.error('[PUSH] Erro ao solicitar permissão:', err);
+          showToast('Erro ao ativar notificações. Tente novamente.', 'error');
+        }
       } else {
+        // Desativar
         localStorage.setItem('soulhaven_notifications', 'false');
         toggle.classList.remove('active');
         showToast('Notificações desativadas');
