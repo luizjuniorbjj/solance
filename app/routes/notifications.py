@@ -214,17 +214,21 @@ async def process_notification_delivery(
 ):
     """Processa o envio das notificações em background"""
     from app.database import get_db_pool
+    import asyncio
 
     pool = await get_db_pool()
     sent_count = 0
     failed_count = 0
+    total_users = len(users)
 
-    for user in users:
+    print(f"[NOTIFICATION] Iniciando envio para {total_users} usuários...")
+
+    for i, user in enumerate(users):
         user_id = str(user["id"])
         email = user["email"]
         nome = user.get("nome") or email.split("@")[0]
 
-        # Enviar Push
+        # Enviar Push (só se tiver subscription)
         if send_push and user.get("push_notifications", True):
             try:
                 success = await send_push_to_user(user_id, title, message)
@@ -244,7 +248,7 @@ async def process_notification_delivery(
                 else:
                     failed_count += 1
             except Exception as e:
-                print(f"[NOTIFICATION] Erro ao enviar push para {email}: {e}")
+                print(f"[NOTIFICATION] Erro push {email}: {e}")
                 failed_count += 1
 
         # Enviar Email
@@ -272,10 +276,26 @@ async def process_notification_delivery(
                 else:
                     failed_count += 1
             except Exception as e:
-                print(f"[NOTIFICATION] Erro ao enviar email para {email}: {e}")
+                print(f"[NOTIFICATION] Erro email {email}: {e}")
                 failed_count += 1
 
-    # Atualizar status da notificação
+        # Atualizar contagem a cada 5 usuários
+        if (i + 1) % 5 == 0 or (i + 1) == total_users:
+            await pool.execute(
+                """
+                UPDATE notifications
+                SET sent_count = $1, failed_count = $2
+                WHERE id = $3
+                """,
+                sent_count, failed_count, UUID(notification_id)
+            )
+            print(f"[NOTIFICATION] Progresso: {i+1}/{total_users} ({sent_count} ok, {failed_count} falhas)")
+
+        # Pequeno delay para evitar rate limiting (100ms entre emails)
+        if send_email and (i + 1) < total_users:
+            await asyncio.sleep(0.1)
+
+    # Marcar como concluído
     await pool.execute(
         """
         UPDATE notifications
