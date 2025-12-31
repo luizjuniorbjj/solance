@@ -1,5 +1,5 @@
 """
-AiSYSTER - Configuracoes
+AiSyster - Configuracoes
 Variaveis de ambiente e configuracoes globais
 """
 
@@ -43,7 +43,7 @@ JWT_EXPIRATION_HOURS = 24 * 7  # 7 dias
 # ============================================
 # APP SETTINGS
 # ============================================
-APP_NAME = "AiSYSTER"
+APP_NAME = "AiSyster"
 APP_VERSION = "2.0.0"
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
@@ -118,7 +118,7 @@ PRODUCTION_ORIGINS = [
 # EMAIL SETTINGS (Resend)
 # ============================================
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
-EMAIL_FROM = "AiSYSTER <noreply@aisyster.com>"
+EMAIL_FROM = "AiSyster <noreply@aisyster.com>"
 EMAIL_REPLY_TO = "contato@aisyster.com"
 APP_URL = os.getenv("APP_URL", "https://www.aisyster.com")
 

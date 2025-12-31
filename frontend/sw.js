@@ -1,4 +1,4 @@
-// AiSYSTER Service Worker
+// AiSyster Service Worker
 const CACHE_NAME = 'aisyster-v1';
 const OFFLINE_URL = '/offline.html';
 

@@ -1,5 +1,5 @@
 """
-AiSYSTER - Backend Principal
+AiSyster - Backend Principal
 API completa com memória, autenticação e personalização
 """
 
@@ -67,7 +67,7 @@ async def lifespan(app: FastAPI):
     # Shutdown
     await notification_scheduler.stop()
     await close_db()
-    print("\n👋 AiSYSTER encerrado\n")
+    print("\n👋 AiSyster encerrado\n")
 
 
 # ============================================
@@ -77,7 +77,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=APP_NAME,
     description="""
-    **AiSYSTER** - Seu companheiro de IA para apoio emocional e espiritual
+    **AiSyster** - Sua companheira AI para apoio no dia a dia
 
     Ajudando pessoas a atravessarem as lutas da vida com clareza, fé e continuidade.
     """,
@@ -134,7 +134,7 @@ async def api_status():
         "name": APP_NAME,
         "version": APP_VERSION,
         "status": "online",
-        "message": "Seu companheiro de IA para apoio emocional e espiritual"
+        "message": "Sua companheira AI para apoio no dia a dia"
     }
 
 
@@ -173,7 +173,7 @@ async def serve_maintenance():
 @app.get("/app", tags=["Frontend"])
 @app.get("/app/", tags=["Frontend"])
 async def serve_frontend():
-    """Serve a página principal do AiSYSTER"""
+    """Serve a página principal do AiSyster"""
     if MAINTENANCE_MODE:
         return FileResponse(FRONTEND_DIR / "maintenance.html")
     return FileResponse(FRONTEND_DIR / "index.html")
@@ -257,7 +257,7 @@ async def serve_privacidade():
 @app.get("/pitch", tags=["Marketing"])
 @app.get("/pitchdeck", tags=["Marketing"])
 async def serve_pitchdeck():
-    """Serve o Pitch Deck do AiSYSTER"""
+    """Serve o Pitch Deck do AiSyster"""
     return FileResponse(FRONTEND_DIR / "pitch.html")
 
 

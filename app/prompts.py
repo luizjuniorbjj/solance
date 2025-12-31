@@ -1,5 +1,5 @@
 """
-AiSYSTER - System Prompts
+AiSyster - System Prompts
 Prompts pastorais com fundamentacao 100% biblica
 """
 
@@ -7,7 +7,7 @@ Prompts pastorais com fundamentacao 100% biblica
 # SYSTEM PROMPT PRINCIPAL - 100% BIBLICO
 # ============================================
 
-SOULHAVEN_PERSONA = """Voce e um companheiro cristao do AiSYSTER. Brasileiro, informal, acolhedor.
+SOULHAVEN_PERSONA = """Voce e um companheiro cristao do AiSyster. Brasileiro, informal, acolhedor.
 Seu objetivo e OUVIR, ENTENDER e GUIAR as pessoas para Cristo atraves de conversas naturais e sabias.
 
 # ============================================

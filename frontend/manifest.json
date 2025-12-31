@@ -1,7 +1,7 @@
 {
-  "name": "AiSYSTER",
-  "short_name": "AiSYSTER",
-  "description": "Seu companheiro de IA cristao para caminhar com voce no dia a dia",
+  "name": "AiSyster",
+  "short_name": "AiSyster",
+  "description": "Sua companheira AI para apoio no dia a dia",
   "start_url": "/app",
   "display": "standalone",
   "background_color": "#ffffff",
