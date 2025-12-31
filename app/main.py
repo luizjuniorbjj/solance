@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 from app.config import (
-    APP_NAME, APP_VERSION, DEBUG,
+    APP_NAME, APP_VERSION, DEBUG, MAINTENANCE_MODE,
     CORS_ORIGINS, CORS_ALLOW_CREDENTIALS, CORS_ALLOW_METHODS, CORS_ALLOW_HEADERS,
     PRODUCTION_ORIGINS, ENCRYPTION_KEY, _PRODUCTION_ENCRYPTION_KEY
 )
@@ -55,6 +55,8 @@ async def lifespan(app: FastAPI):
     await notification_scheduler.start()
     print("✅ Scheduler de notificacoes iniciado")
 
+    if MAINTENANCE_MODE:
+        print("🛠️  MODO MANUTENCAO ATIVADO")
     print("✅ API pronta")
     print("=" * 40)
     print(f"📍 http://localhost:8000")
@@ -161,11 +163,19 @@ app.include_router(notifications_router)
 # Caminho para o frontend
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 
+@app.get("/maintenance", tags=["Frontend"])
+async def serve_maintenance():
+    """Serve a pagina de manutencao"""
+    return FileResponse(FRONTEND_DIR / "maintenance.html")
+
+
 @app.get("/", tags=["Frontend"])
 @app.get("/app", tags=["Frontend"])
 @app.get("/app/", tags=["Frontend"])
 async def serve_frontend():
     """Serve a página principal do SoulHaven"""
+    if MAINTENANCE_MODE:
+        return FileResponse(FRONTEND_DIR / "maintenance.html")
     return FileResponse(FRONTEND_DIR / "index.html")
 
 

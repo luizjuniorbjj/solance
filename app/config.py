@@ -47,6 +47,9 @@ APP_NAME = "SoulHaven"
 APP_VERSION = "1.0.0"
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
+# Modo manutencao - ativa pagina de manutencao para todos usuarios
+MAINTENANCE_MODE = os.getenv("MAINTENANCE_MODE", "True").lower() == "true"
+
 # ============================================
 # AI SETTINGS
 # ============================================
