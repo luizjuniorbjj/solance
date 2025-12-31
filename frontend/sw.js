@@ -1,5 +1,5 @@
-// SoulHaven Service Worker
-const CACHE_NAME = 'soulhaven-v28';
+// AiSYSTER Service Worker
+const CACHE_NAME = 'aisyster-v1';
 const OFFLINE_URL = '/offline.html';
 
 // Arquivos para cachear
@@ -10,8 +10,8 @@ const STATIC_ASSETS = [
   '/manifest.json',
   '/static/icons/icon-192x192.png',
   '/static/icons/icon-512x512.png',
-  '/static/icons/logo-full.png',
-  '/static/icons/logo-header.png'
+  '/static/icons/icon-192x192-maskable.png',
+  '/static/icons/icon-512x512-maskable.png'
 ];
 
 // Instalação do Service Worker

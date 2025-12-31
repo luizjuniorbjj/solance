@@ -1,11 +1,11 @@
 {
-  "name": "SoulHaven",
-  "short_name": "SoulHaven",
-  "description": "Um companheiro de IA para caminhar com voce no dia a dia",
+  "name": "AiSYSTER",
+  "short_name": "AiSYSTER",
+  "description": "Seu companheiro de IA cristao para caminhar com voce no dia a dia",
   "start_url": "/app",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#d4a056",
+  "theme_color": "#4285F4",
   "orientation": "portrait",
   "scope": "/",
   "id": "/app",
@@ -23,13 +23,13 @@
       "purpose": "any"
     },
     {
-      "src": "/static/icons/icon-192x192.png",
+      "src": "/static/icons/icon-192x192-maskable.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/static/icons/icon-512x512.png",
+      "src": "/static/icons/icon-512x512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

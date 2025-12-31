@@ -1,6 +1,6 @@
 """
-SoulHaven - Configurações
-Variáveis de ambiente e configurações globais
+AiSYSTER - Configuracoes
+Variaveis de ambiente e configuracoes globais
 """
 
 import os
@@ -43,8 +43,8 @@ JWT_EXPIRATION_HOURS = 24 * 7  # 7 dias
 # ============================================
 # APP SETTINGS
 # ============================================
-APP_NAME = "SoulHaven"
-APP_VERSION = "1.0.0"
+APP_NAME = "AiSYSTER"
+APP_VERSION = "2.0.0"
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 # Modo manutencao - ativa pagina de manutencao para todos usuarios
@@ -107,20 +107,20 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 CORS_ALLOW_HEADERS = ["*"]
 
-# Domínios padrão para produção
+# Dominios padrao para producao
 PRODUCTION_ORIGINS = [
-    "https://soulhaven.app",
-    "https://www.soulhaven.app",
-    "https://app.soulhaven.app",
+    "https://aisyster.com",
+    "https://www.aisyster.com",
+    "https://app.aisyster.com",
 ]
 
 # ============================================
 # EMAIL SETTINGS (Resend)
 # ============================================
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
-EMAIL_FROM = "SoulHaven <noreply@soulhavenapp.com>"
-EMAIL_REPLY_TO = "contato@soulhavenapp.com"
-APP_URL = os.getenv("APP_URL", "https://www.soulhavenapp.com")
+EMAIL_FROM = "AiSYSTER <noreply@aisyster.com>"
+EMAIL_REPLY_TO = "contato@aisyster.com"
+APP_URL = os.getenv("APP_URL", "https://www.aisyster.com")
 
 # ============================================
 # ADMIN SETTINGS
@@ -139,4 +139,4 @@ VAPID_PRIVATE_KEY = os.getenv(
     "VAPID_PRIVATE_KEY",
     "7rIhcelXxHlm7taPNzC7gmMu6VHvIPQxt3gU5QKi8aE"
 )
-VAPID_CLAIMS_EMAIL = os.getenv("VAPID_CLAIMS_EMAIL", "contato@soulhavenapp.com")
+VAPID_CLAIMS_EMAIL = os.getenv("VAPID_CLAIMS_EMAIL", "contato@aisyster.com")

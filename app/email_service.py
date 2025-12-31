@@ -1,5 +1,5 @@
 """
-SoulHaven - Servico de Email
+AiSYSTER - Servico de Email
 Usa Resend para envio de emails transacionais
 """
 
@@ -82,7 +82,7 @@ class EmailService:
                             <!-- Header -->
                             <tr>
                                 <td style="background-color: #15182d; padding: 20px 30px; text-align: center;">
-                                    <img src="{logo_url}" alt="SoulHaven" style="width: 280px; height: auto; margin-bottom: 4px;">
+                                    <img src="{logo_url}" alt="AiSYSTER" style="width: 280px; height: auto; margin-bottom: 4px;">
                                     <p style="margin: 0; color: #d4af37; font-size: 14px; font-style: italic;">Seu companheiro de IA para apoio emocional e espiritual</p>
                                 </td>
                             </tr>
@@ -99,7 +99,7 @@ class EmailService:
                                         Este email foi enviado por {APP_NAME}
                                     </p>
                                     <p style="margin: 0; color: #6c757d; font-size: 12px;">
-                                        <a href="{APP_URL}" style="color: #d4af37; text-decoration: none;">soulhavenapp.com</a>
+                                        <a href="{APP_URL}" style="color: #d4af37; text-decoration: none;">aisyster.com</a>
                                     </p>
                                 </td>
                             </tr>
@@ -114,10 +114,10 @@ class EmailService:
     async def send_welcome_email(self, to: str, nome: str) -> bool:
         """Email de boas-vindas ao se registrar"""
         content = f"""
-        <h2 style="margin: 0 0 20px 0; color: #1a1a2e; font-size: 24px;">Bem-vindo(a) ao SoulHaven, {nome}!</h2>
+        <h2 style="margin: 0 0 20px 0; color: #1a1a2e; font-size: 24px;">Bem-vindo(a) ao AiSYSTER, {nome}!</h2>
 
         <p style="margin: 0 0 16px 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
-            Que alegria ter você conosco! O SoulHaven foi criado para ser seu companheiro
+            Que alegria ter você conosco! O AiSYSTER foi criado para ser seu companheiro
             diário, um lugar seguro para conversar, refletir e crescer na fé.
         </p>
 
@@ -192,7 +192,7 @@ class EmailService:
         </p>
 
         <p style="margin: 0 0 16px 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
-            Obrigado por assinar o SoulHaven Premium! Sua assinatura foi confirmada
+            Obrigado por assinar o AiSYSTER Premium! Sua assinatura foi confirmada
             e voce agora tem acesso ilimitado ao seu companheiro espiritual.
         </p>
 
@@ -231,13 +231,13 @@ class EmailService:
         </p>
 
         <p style="margin: 0 0 16px 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
-            Sua assinatura do SoulHaven Premium foi renovada com sucesso.
+            Sua assinatura do AiSYSTER Premium foi renovada com sucesso.
             Continue aproveitando seu companheiro espiritual sem limites!
         </p>
 
         <div style="text-align: center; margin: 32px 0;">
             <a href="{APP_URL}" style="display: inline-block; background: linear-gradient(135deg, #d4af37 0%, #c9a227 100%); color: #1a1a2e; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                Ir para o SoulHaven
+                Ir para o AiSYSTER
             </a>
         </div>
 
@@ -262,7 +262,7 @@ class EmailService:
         </p>
 
         <p style="margin: 0 0 16px 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
-            Sua assinatura do SoulHaven Premium vence em <strong>{days_left} dias</strong>.
+            Sua assinatura do AiSYSTER Premium vence em <strong>{days_left} dias</strong>.
             Para continuar tendo acesso ilimitado ao seu companheiro espiritual,
             certifique-se de que seu metodo de pagamento esta atualizado.
         </p>
@@ -295,8 +295,8 @@ class EmailService:
         </p>
 
         <p style="margin: 0 0 16px 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
-            Sua assinatura do SoulHaven Premium foi cancelada. Voce ainda pode usar
-            o SoulHaven ate o final do periodo ja pago.
+            Sua assinatura do AiSYSTER Premium foi cancelada. Voce ainda pode usar
+            o AiSYSTER ate o final do periodo ja pago.
         </p>
 
         <p style="margin: 0 0 24px 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
@@ -323,7 +323,7 @@ class EmailService:
         )
 
     async def send_notification_email(self, to: str, nome: str, title: str, message: str) -> bool:
-        """Email de notificação/comunicado do SoulHaven"""
+        """Email de notificação/comunicado do AiSYSTER"""
         content = f"""
         <h2 style="margin: 0 0 20px 0; color: #1a1a2e; font-size: 24px;">{title}</h2>
 
@@ -337,7 +337,7 @@ class EmailService:
 
         <div style="text-align: center; margin: 32px 0;">
             <a href="{APP_URL}" style="display: inline-block; background: linear-gradient(135deg, #d4af37 0%, #c9a227 100%); color: #1a1a2e; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                Abrir SoulHaven
+                Abrir AiSYSTER
             </a>
         </div>
 

@@ -1,5 +1,5 @@
 """
-SoulHaven - Backend Principal
+AiSYSTER - Backend Principal
 API completa com memória, autenticação e personalização
 """
 
@@ -67,7 +67,7 @@ async def lifespan(app: FastAPI):
     # Shutdown
     await notification_scheduler.stop()
     await close_db()
-    print("\n👋 SoulHaven encerrado\n")
+    print("\n👋 AiSYSTER encerrado\n")
 
 
 # ============================================
@@ -77,7 +77,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=APP_NAME,
     description="""
-    **SoulHaven** - Seu companheiro de IA para apoio emocional e espiritual
+    **AiSYSTER** - Seu companheiro de IA para apoio emocional e espiritual
 
     Ajudando pessoas a atravessarem as lutas da vida com clareza, fé e continuidade.
     """,
@@ -173,7 +173,7 @@ async def serve_maintenance():
 @app.get("/app", tags=["Frontend"])
 @app.get("/app/", tags=["Frontend"])
 async def serve_frontend():
-    """Serve a página principal do SoulHaven"""
+    """Serve a página principal do AiSYSTER"""
     if MAINTENANCE_MODE:
         return FileResponse(FRONTEND_DIR / "maintenance.html")
     return FileResponse(FRONTEND_DIR / "index.html")
@@ -257,7 +257,7 @@ async def serve_privacidade():
 @app.get("/pitch", tags=["Marketing"])
 @app.get("/pitchdeck", tags=["Marketing"])
 async def serve_pitchdeck():
-    """Serve o Pitch Deck do SoulHaven"""
+    """Serve o Pitch Deck do AiSYSTER"""
     return FileResponse(FRONTEND_DIR / "pitch.html")
 
 
