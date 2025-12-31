@@ -5,10 +5,10 @@ API completa com memória, autenticação e personalização
 
 from contextlib import asynccontextmanager
 from pathlib import Path
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 
 from app.config import (
     APP_NAME, APP_VERSION, DEBUG, MAINTENANCE_MODE,
@@ -121,6 +121,30 @@ app.add_middleware(
     allow_headers=CORS_ALLOW_HEADERS,
     expose_headers=["X-Request-ID", "X-RateLimit-Remaining"],
 )
+
+
+# ============================================
+# REDIRECT SOULHAVENAPP.COM -> AISYSTER.COM
+# ============================================
+
+OLD_DOMAINS = ["soulhavenapp.com", "www.soulhavenapp.com"]
+NEW_DOMAIN = "www.aisyster.com"
+
+
+@app.middleware("http")
+async def redirect_old_domain(request: Request, call_next):
+    """Redireciona soulhavenapp.com para aisyster.com"""
+    host = request.headers.get("host", "").lower()
+
+    # Verifica se e dominio antigo
+    if any(old in host for old in OLD_DOMAINS):
+        # Monta nova URL
+        new_url = f"https://{NEW_DOMAIN}{request.url.path}"
+        if request.url.query:
+            new_url += f"?{request.url.query}"
+        return RedirectResponse(url=new_url, status_code=301)
+
+    return await call_next(request)
 
 
 # ============================================
