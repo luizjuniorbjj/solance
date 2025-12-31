@@ -328,7 +328,7 @@ async def send_test_notification(
 
         success = await send_push_notification(
             subscription_info=subscription_info,
-            title="SoulHaven - Teste",
+            title="AiSyster - Teste",
             body="Suas notificacoes estao funcionando! Deus abencoe seu dia.",
             db=db,
             user_id=str(user_id),

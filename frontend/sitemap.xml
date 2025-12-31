@@ -6,7 +6,7 @@
 
   <!-- Homepage / App -->
   <url>
-    <loc>https://soulhavenapp.com/</loc>
+    <loc>https://www.aisyster.com/</loc>
     <lastmod>2024-12-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
@@ -14,7 +14,7 @@
 
   <!-- Main App -->
   <url>
-    <loc>https://soulhavenapp.com/app</loc>
+    <loc>https://www.aisyster.com/app</loc>
     <lastmod>2024-12-29</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
@@ -22,7 +22,7 @@
 
   <!-- Terms of Service -->
   <url>
-    <loc>https://soulhavenapp.com/termos</loc>
+    <loc>https://www.aisyster.com/termos</loc>
     <lastmod>2024-12-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -30,7 +30,7 @@
 
   <!-- Privacy Policy -->
   <url>
-    <loc>https://soulhavenapp.com/privacidade</loc>
+    <loc>https://www.aisyster.com/privacidade</loc>
     <lastmod>2024-12-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>

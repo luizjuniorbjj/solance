@@ -90,7 +90,7 @@ self.addEventListener('push', (event) => {
   console.log('[SW] Push received');
 
   let data = {
-    title: 'SoulHaven',
+    title: 'AiSyster',
     body: 'Voce tem uma nova mensagem',
     icon: '/static/icons/icon-192x192.png',
     url: '/app'
@@ -110,7 +110,7 @@ self.addEventListener('push', (event) => {
     icon: data.icon || '/static/icons/icon-192x192.png',
     badge: '/static/icons/icon-72x72.png',
     vibrate: [100, 50, 100],
-    tag: data.tag || 'soulhaven-notification',
+    tag: data.tag || 'aisyster-notification',
     renotify: true,
     requireInteraction: false,
     data: {

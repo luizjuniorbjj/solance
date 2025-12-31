@@ -1,5 +1,5 @@
-# robots.txt for SoulHaven
-# https://soulhavenapp.com
+# robots.txt for AiSyster
+# https://www.aisyster.com
 
 User-agent: *
 Allow: /
@@ -15,7 +15,7 @@ Disallow: /docs
 Disallow: /redoc
 
 # Sitemap location
-Sitemap: https://soulhavenapp.com/sitemap.xml
+Sitemap: https://www.aisyster.com/sitemap.xml
 
 # Crawl-delay for politeness (optional)
 Crawl-delay: 1

@@ -1353,7 +1353,7 @@ async def download_full_backup(
     json_data = json.dumps(backup_data, ensure_ascii=False, indent=2)
 
     # Retornar como download
-    filename = f"soulhaven_backup_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+    filename = f"aisyster_backup_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
 
     return Response(
         content=json_data,
