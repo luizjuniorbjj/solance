@@ -22,7 +22,7 @@ router = APIRouter(prefix="/payment", tags=["Payment"])
 # MODO BETA - Ativar premium sem pagamento
 # Mudar para False quando for para produção
 # ============================================
-BETA_MODE = True
+BETA_MODE = False
 
 # Configurar Stripe
 stripe.api_key = STRIPE_SECRET_KEY
