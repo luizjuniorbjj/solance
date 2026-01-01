@@ -59,7 +59,7 @@ class OnboardingStep2(BaseModel):
 
 
 class OnboardingStep3(BaseModel):
-    """O que trouxe ao SoulHaven"""
+    """O que trouxe ao AiSyster"""
     motivo_principal: str  # "ansiedade", "relacionamento", "fé", "estudo", "apoio", "outro"
     expectativa: Optional[str] = None
 

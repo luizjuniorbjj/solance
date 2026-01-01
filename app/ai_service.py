@@ -1,5 +1,5 @@
 """
-SoulHaven - Serviço de IA
+AiSyster - Serviço de IA
 Integração com Claude + Sistema de Memória + Aprendizado Contínuo
 """
 
@@ -399,7 +399,7 @@ class AIService:
 
         # Formatar conversa para resumo
         conversation_text = "\n".join([
-            f"{'Usuário' if m['role'] == 'user' else 'SoulHaven'}: {m['content']}"
+            f"{'Usuário' if m['role'] == 'user' else 'AiSyster'}: {m['content']}"
             for m in messages
         ])
 
@@ -429,7 +429,7 @@ class AIService:
             return
 
         conversation_text = "\n".join([
-            f"{'Usuário' if m['role'] == 'user' else 'SoulHaven'}: {m['content']}"
+            f"{'Usuário' if m['role'] == 'user' else 'AiSyster'}: {m['content']}"
             for m in messages
         ])
 
