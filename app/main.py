@@ -286,6 +286,19 @@ async def serve_pitchdeck():
 
 
 # ============================================
+# DIGITAL ASSET LINKS (TWA/Google Play)
+# ============================================
+
+@app.get("/.well-known/assetlinks.json", tags=["TWA"])
+async def serve_assetlinks():
+    """Serve Digital Asset Links para TWA/Google Play"""
+    return FileResponse(
+        FRONTEND_DIR / ".well-known" / "assetlinks.json",
+        media_type="application/json"
+    )
+
+
+# ============================================
 # SEO FILES
 # ============================================
 
