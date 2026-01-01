@@ -279,13 +279,10 @@ async def get_conversation_messages(
     """
     Busca mensagens de uma conversa específica
     """
-    # Verificar se a conversa pertence ao usuário
-    conversation = await db.get_conversation(conversation_id)
+    # Verificacao segura: valida propriedade no SQL
+    conversation = await db.get_conversation(conversation_id, current_user["user_id"])
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversa não encontrada")
-
-    if str(conversation["user_id"]) != current_user["user_id"]:
-        raise HTTPException(status_code=403, detail="Acesso negado")
 
     messages = await db.get_conversation_messages(
         conversation_id=conversation_id,
@@ -313,17 +310,15 @@ async def archive_conversation(
     """
     Arquiva uma conversa
     """
-    conversation = await db.get_conversation(conversation_id)
+    # Verificacao segura: valida propriedade no SQL
+    conversation = await db.get_conversation(conversation_id, current_user["user_id"])
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversa não encontrada")
 
-    if str(conversation["user_id"]) != current_user["user_id"]:
-        raise HTTPException(status_code=403, detail="Acesso negado")
-
     async with db.pool.acquire() as conn:
         await conn.execute(
-            "UPDATE conversations SET is_archived = TRUE WHERE id = $1",
-            conversation_id
+            "UPDATE conversations SET is_archived = TRUE WHERE id = $1 AND user_id = $2",
+            conversation_id, current_user["user_id"]
         )
 
     return {"message": "Conversa arquivada"}
@@ -343,18 +338,15 @@ async def rename_conversation(
     """
     Renomeia uma conversa (atualiza o resumo)
     """
-    conversation = await db.get_conversation(conversation_id)
+    # Verificacao segura: valida propriedade no SQL
+    conversation = await db.get_conversation(conversation_id, current_user["user_id"])
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversa não encontrada")
 
-    if str(conversation["user_id"]) != current_user["user_id"]:
-        raise HTTPException(status_code=403, detail="Acesso negado")
-
     async with db.pool.acquire() as conn:
         await conn.execute(
-            "UPDATE conversations SET resumo = $1 WHERE id = $2",
-            request.resumo,
-            conversation_id
+            "UPDATE conversations SET resumo = $1 WHERE id = $2 AND user_id = $3",
+            request.resumo, conversation_id, current_user["user_id"]
         )
 
     return {"message": "Conversa renomeada"}
@@ -369,12 +361,10 @@ async def delete_conversation(
     """
     Exclui uma conversa e suas mensagens
     """
-    conversation = await db.get_conversation(conversation_id)
+    # Verificacao segura: valida propriedade no SQL
+    conversation = await db.get_conversation(conversation_id, current_user["user_id"])
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversa não encontrada")
-
-    if str(conversation["user_id"]) != current_user["user_id"]:
-        raise HTTPException(status_code=403, detail="Acesso negado")
 
     async with db.pool.acquire() as conn:
         # Limpar referência em user_memories (não excluir as memórias, só a referência)

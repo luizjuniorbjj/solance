@@ -193,14 +193,23 @@ class Database:
             )
             return dict(row)
 
-    async def get_conversation(self, conversation_id: str) -> Optional[dict]:
-        """Busca conversa por ID"""
+    async def get_conversation(self, conversation_id: str, user_id: str = None) -> Optional[dict]:
+        """Busca conversa por ID. Se user_id fornecido, valida propriedade."""
         conv_uuid = UUID(conversation_id) if isinstance(conversation_id, str) else conversation_id
         async with self.pool.acquire() as conn:
-            row = await conn.fetchrow(
-                "SELECT * FROM conversations WHERE id = $1",
-                conv_uuid
-            )
+            if user_id:
+                # Busca segura: valida que conversa pertence ao usuario
+                user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+                row = await conn.fetchrow(
+                    "SELECT * FROM conversations WHERE id = $1 AND user_id = $2",
+                    conv_uuid, user_uuid
+                )
+            else:
+                # Busca sem validacao (para uso interno/admin)
+                row = await conn.fetchrow(
+                    "SELECT * FROM conversations WHERE id = $1",
+                    conv_uuid
+                )
             return dict(row) if row else None
 
     async def get_recent_conversations(self, user_id: str, limit: int = 10) -> List[dict]:
@@ -292,15 +301,17 @@ class Database:
     ) -> List[dict]:
         """Busca mensagens de uma conversa (descriptografadas)"""
         conv_uuid = UUID(conversation_id) if isinstance(conversation_id, str) else conversation_id
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         async with self.pool.acquire() as conn:
+            # Dupla verificacao: filtra por conversation_id E user_id
             rows = await conn.fetch(
                 """
                 SELECT * FROM messages
-                WHERE conversation_id = $1
+                WHERE conversation_id = $1 AND user_id = $2
                 ORDER BY created_at ASC
-                LIMIT $2
+                LIMIT $3
                 """,
-                conv_uuid, limit
+                conv_uuid, user_uuid, limit
             )
 
             messages = []
