@@ -3793,11 +3793,20 @@
             </div>
           </div>
           <div class="dropdown-menu">
-            <button class="dropdown-item upgrade" onclick="showUpgradeModal()">
+            <button class="dropdown-item upgrade" id="dropdownUpgradeBtn" onclick="showUpgradeModal()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
               </svg>
               Fazer upgrade do plano
+            </button>
+            <button class="dropdown-item manage-subscription" id="dropdownManageBtn" onclick="openManageSubscription()" style="display: none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              Gerenciar Assinatura
             </button>
             <button class="dropdown-item" onclick="showProfileSettings()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -4115,23 +4124,29 @@
         const userPlan = document.getElementById('userPlan');
         const headerUpgradeBtn = document.getElementById('headerUpgradeBtn');
         const sidebarUpgradeBtn = document.getElementById('sidebarUpgradeBtn');
+        const dropdownUpgradeBtn = document.getElementById('dropdownUpgradeBtn');
+        const dropdownManageBtn = document.getElementById('dropdownManageBtn');
 
         if (state.user.is_premium) {
-          // Premium: show "Premium" text, hide upgrade buttons
+          // Premium: show "Premium" text, hide upgrade buttons, show manage button
           if (userPlan) {
             userPlan.style.display = 'block';
             userPlan.textContent = 'Premium';
           }
           if (headerUpgradeBtn) headerUpgradeBtn.style.display = 'none';
           if (sidebarUpgradeBtn) sidebarUpgradeBtn.style.display = 'none';
+          if (dropdownUpgradeBtn) dropdownUpgradeBtn.style.display = 'none';
+          if (dropdownManageBtn) dropdownManageBtn.style.display = 'flex';
         } else {
-          // Free: show "Gratuito" text and upgrade buttons
+          // Free: show "Gratuito" text and upgrade buttons, hide manage button
           if (userPlan) {
             userPlan.style.display = 'block';
             userPlan.textContent = 'Gratuito';
           }
           if (headerUpgradeBtn) headerUpgradeBtn.style.display = 'flex';
           if (sidebarUpgradeBtn) sidebarUpgradeBtn.style.display = 'block';
+          if (dropdownUpgradeBtn) dropdownUpgradeBtn.style.display = 'flex';
+          if (dropdownManageBtn) dropdownManageBtn.style.display = 'none';
         }
 
         // Update dropdown
@@ -4273,6 +4288,45 @@
         } else {
           alert('Erro ao processar: ' + error.message);
         }
+      }
+    }
+
+    // Funcao para abrir o Portal de Gerenciamento do Stripe
+    async function openManageSubscription() {
+      try {
+        showToast('Abrindo gerenciamento...', 'info', 2000);
+
+        const response = await fetch(`${API_URL}/payment/portal`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${state.token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || 'Erro ao abrir portal');
+        }
+
+        const data = await response.json();
+
+        if (data.portal_url) {
+          // Se TWA, abrir no navegador externo
+          if (isRunningAsTWA()) {
+            window.open(data.portal_url, '_blank');
+            showToast('Portal aberto no navegador.', 'info', 3000);
+          } else {
+            // Web: redirecionar
+            window.location.href = data.portal_url;
+          }
+        } else {
+          throw new Error('URL do portal nao recebida');
+        }
+
+      } catch (error) {
+        console.error('Erro ao abrir portal:', error);
+        showToast('Erro: ' + error.message, 'error', 4000);
       }
     }
 

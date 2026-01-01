@@ -37,6 +37,10 @@ class CheckoutResponse(BaseModel):
     session_id: str
 
 
+class PortalResponse(BaseModel):
+    portal_url: str
+
+
 class SubscriptionStatus(BaseModel):
     is_premium: bool
     subscription_id: Optional[str] = None
@@ -157,6 +161,43 @@ async def get_subscription_status(
         current_period_end=user.get("subscription_end_date"),
         cancel_at_period_end=user.get("cancel_at_period_end", False)
     )
+
+
+@router.post("/portal", response_model=PortalResponse)
+async def create_portal_session(
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """
+    Cria sessao do Customer Portal do Stripe para gerenciar assinatura
+    """
+    user_id = current_user["user_id"]
+    user = await db.get_user_by_id(user_id)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario nao encontrado")
+
+    # Verificar se tem customer_id do Stripe
+    customer_id = user.get("stripe_customer_id")
+    if not customer_id:
+        raise HTTPException(status_code=400, detail="Nenhuma assinatura encontrada")
+
+    # URL de retorno
+    from app.config import APP_URL
+    return_url = f"{APP_URL}/app"
+
+    try:
+        # Criar sessao do portal
+        portal_session = stripe.billing_portal.Session.create(
+            customer=customer_id,
+            return_url=return_url
+        )
+
+        return PortalResponse(portal_url=portal_session.url)
+
+    except stripe.error.StripeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post("/cancel")
