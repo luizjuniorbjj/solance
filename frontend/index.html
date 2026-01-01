@@ -4226,26 +4226,25 @@
       btn.disabled = true;
 
       try {
-        // Se esta rodando como TWA (app Android), usar fluxo com token
-        // para abrir checkout no navegador externo
-        if (isRunningAsTWA()) {
-          const response = await fetch(`${API_URL}/auth/checkout-token`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${state.token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.detail || 'Erro ao criar link de pagamento');
+        // Usar fluxo com token para mostrar pagina de dados de teste
+        const response = await fetch(`${API_URL}/auth/checkout-token`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${state.token}`,
+            'Content-Type': 'application/json'
           }
+        });
 
-          const data = await response.json();
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.detail || 'Erro ao criar link de pagamento');
+        }
 
-          if (data.checkout_url) {
-            // Abrir no navegador externo (sai do TWA)
+        const data = await response.json();
+
+        if (data.checkout_url) {
+          if (isRunningAsTWA()) {
+            // TWA: Abrir no navegador externo (sai do TWA)
             window.open(data.checkout_url, '_blank');
             // Fechar modal e restaurar botao
             hideUpgradeModal();
@@ -4254,31 +4253,11 @@
             // Mostrar instrucao
             showToast('Link aberto no navegador. Complete o pagamento e volte ao app.', 'info', 5000);
           } else {
-            throw new Error('URL de checkout nao recebida');
+            // Web: Redirecionar na mesma janela
+            window.location.href = data.checkout_url;
           }
         } else {
-          // Fluxo normal para web: redirecionar direto
-          const response = await fetch(`${API_URL}/payment/create-checkout`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${state.token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.detail || 'Erro ao criar sessao de pagamento');
-          }
-
-          const data = await response.json();
-
-          // Redirecionar para o checkout do Stripe
-          if (data.checkout_url) {
-            window.location.href = data.checkout_url;
-          } else {
-            throw new Error('URL de checkout nao recebida');
-          }
+          throw new Error('URL de checkout nao recebida');
         }
 
       } catch (error) {
