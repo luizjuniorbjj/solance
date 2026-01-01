@@ -128,10 +128,11 @@ async def send_message(
             detail=f"Erro ao processar mensagem: {str(e)}"
         )
 
-    # Incrementar contador para usuários free
+    # Contador já é incrementado no ai_service.chat()
+    # Aqui só calculamos o aviso de limite para usuários free
     if not is_premium:
+        # Mensagem já foi contada pelo ai_service, então +1 no valor lido
         messages_used += 1
-        await db.increment_trial_messages(user_id)
 
         # Definir aviso de limite
         if messages_used >= FREE_MESSAGE_LIMIT:
