@@ -18,7 +18,7 @@ from app.config import (
     MONTHLY_MESSAGE_LIMIT
 )
 from app.prompts import (
-    SOULHAVEN_PERSONA,
+    AISYSTER_PERSONA,
     ONBOARDING_PROMPT,
     SUMMARY_PROMPT,
     INSIGHT_EXTRACTION_PROMPT,
@@ -328,7 +328,7 @@ class AIService:
 
         date_context = f"DATA DE HOJE: {data_formatada}\n\n"
 
-        prompt = date_context + SOULHAVEN_PERSONA
+        prompt = date_context + AISYSTER_PERSONA
 
         # Se é primeira conversa, adicionar prompt de onboarding
         if is_first_conversation:
@@ -750,7 +750,7 @@ class AIService:
         Chat simplificado para usuários em modo trial (sem conta)
         Usa modelo econômico e sem persistência
         """
-        from app.prompts import SOULHAVEN_PERSONA
+        from app.prompts import AISYSTER_PERSONA
 
         # Injetar data atual (Claude não sabe automaticamente!)
         now = datetime.now()
@@ -768,9 +768,9 @@ class AIService:
         data_formatada = f"{dia_semana}, {now.day} de {mes} de {now.year}"
 
         # System prompt simplificado para trial
-        system_prompt = f"DATA DE HOJE: {data_formatada}\n\n" + SOULHAVEN_PERSONA + """
+        system_prompt = f"DATA DE HOJE: {data_formatada}\n\n" + AISYSTER_PERSONA + """
 
-NOTA: Este é um usuário visitante experimentando o SoulHaven.
+NOTA: Este é um usuário visitante experimentando o AiSyster.
 Seja acolhedor e mostre o valor do app, mas mantenha respostas concisas.
 Convide-o a criar uma conta para uma experiência mais personalizada."""
 
