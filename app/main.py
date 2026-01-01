@@ -574,16 +574,30 @@ def _checkout_test_page(stripe_url: str) -> str:
                 color: #666;
                 margin-top: 20px;
             }}
+            .info-box {{
+                background: rgba(212, 175, 55, 0.15);
+                border: 1px solid rgba(212, 175, 55, 0.3);
+                border-radius: 8px;
+                padding: 12px 16px;
+                margin-top: 20px;
+                text-align: left;
+            }}
+            .info-box p {{
+                font-size: 13px;
+                color: #d4af37;
+                margin: 0;
+                line-height: 1.5;
+            }}
         </style>
     </head>
     <body>
         <div class="container">
             <div class="badge">Ambiente de Teste</div>
             <h1>Dados do Cartao de Teste</h1>
-            <p>Use os dados abaixo para simular o pagamento. Nenhuma cobranca real sera feita.</p>
+            <p>Voce esta testando o sistema de pagamento. Nenhuma cobranca real sera feita.</p>
 
             <div class="card-box">
-                <h3>Cartao de Credito</h3>
+                <h3>Cartao de Credito para Teste</h3>
                 <div class="card-item">
                     <span class="card-label">Numero</span>
                     <span class="card-value">4242 4242 4242 4242</span>
@@ -598,13 +612,17 @@ def _checkout_test_page(stripe_url: str) -> str:
                 </div>
                 <div class="card-item">
                     <span class="card-label">Nome</span>
-                    <span class="card-value">TESTE AISYSTER</span>
+                    <span class="card-value">Seu nome</span>
                 </div>
+            </div>
+
+            <div class="info-box">
+                <p>Na proxima tela, digite os dados acima nos campos do cartao. Esses dados tambem aparecem na descricao do produto no Stripe.</p>
             </div>
 
             <a href="{stripe_url}" class="btn">Continuar para Pagamento</a>
 
-            <p class="note">Ao continuar, voce sera redirecionado para a pagina segura do Stripe.</p>
+            <p class="note">Voce sera redirecionado para a pagina segura do Stripe.</p>
         </div>
     </body>
     </html>
