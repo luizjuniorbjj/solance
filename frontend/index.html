@@ -4341,6 +4341,7 @@
     // LIMITE FREE - AVISOS
     // ============================================
     function showLimitWarning(type, used, limit) {
+      console.log('[LIMIT] showLimitWarning called:', { type, used, limit });
       const remaining = limit - used;
 
       // Remover aviso anterior se existir
@@ -4356,6 +4357,9 @@
       } else if (type === 'urgent') {
         message = `Apenas ${remaining} mensagens restantes! Assine para continuar`;
         bgColor = '#ef4444'; // vermelho
+      } else if (type === 'reached') {
+        message = `Limite atingido! Assine para continuar`;
+        bgColor = '#dc2626'; // vermelho escuro
       }
 
       if (!message) return;
@@ -4379,8 +4383,8 @@
         align-items: center;
         gap: 12px;
         font-size: 14px;
-        z-index: 1000;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         animation: slideUp 0.3s ease;
       `;
 
