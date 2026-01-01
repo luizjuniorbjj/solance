@@ -48,7 +48,7 @@ APP_VERSION = "2.0.0"
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 # Modo manutencao - ativa pagina de manutencao para todos usuarios
-MAINTENANCE_MODE = os.getenv("MAINTENANCE_MODE", "True").lower() == "true"
+MAINTENANCE_MODE = os.getenv("MAINTENANCE_MODE", "False").lower() == "true"
 
 # ============================================
 # AI SETTINGS
