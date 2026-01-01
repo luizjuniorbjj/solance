@@ -4129,7 +4129,7 @@
         const dropdownManageBtn = document.getElementById('dropdownManageBtn');
 
         if (state.user.is_premium) {
-          // Premium: show "Premium" text, hide upgrade buttons, show manage button
+          // Premium: show "Premium" text, hide upgrade buttons
           if (userPlan) {
             userPlan.style.display = 'block';
             userPlan.textContent = 'Premium';
@@ -4137,7 +4137,10 @@
           if (headerUpgradeBtn) headerUpgradeBtn.style.display = 'none';
           if (sidebarUpgradeBtn) sidebarUpgradeBtn.style.display = 'none';
           if (dropdownUpgradeBtn) dropdownUpgradeBtn.style.display = 'none';
-          if (dropdownManageBtn) dropdownManageBtn.style.display = 'flex';
+          // Only show manage button if user has a real Stripe subscription
+          if (dropdownManageBtn) {
+            dropdownManageBtn.style.display = state.user.has_stripe_subscription ? 'flex' : 'none';
+          }
         } else {
           // Free: show "Gratuito" text and upgrade buttons, hide manage button
           if (userPlan) {

@@ -81,6 +81,7 @@ class UserResponse(BaseModel):
     email: str
     nome: Optional[str]
     is_premium: bool
+    has_stripe_subscription: bool = False
     created_at: datetime
 
 
@@ -255,6 +256,7 @@ async def get_me(current_user: dict = Depends(get_current_user), db: Database = 
         email=user["email"],
         nome=profile.get("nome") if profile else None,
         is_premium=user.get("is_premium", False),
+        has_stripe_subscription=bool(user.get("stripe_subscription_id")),
         created_at=user["created_at"]
     )
 
