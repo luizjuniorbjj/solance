@@ -5,10 +5,10 @@ API completa com memória, autenticação e personalização
 
 from contextlib import asynccontextmanager
 from pathlib import Path
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse, HTMLResponse
 
 from app.config import (
     APP_NAME, APP_VERSION, DEBUG, MAINTENANCE_MODE,
@@ -283,6 +283,210 @@ async def serve_privacidade():
 async def serve_pitchdeck():
     """Serve o Pitch Deck do AiSyster"""
     return FileResponse(FRONTEND_DIR / "pitch.html")
+
+
+# ============================================
+# CHECKOUT (Auto-login para pagamento)
+# ============================================
+
+@app.get("/checkout", tags=["Payment"])
+async def checkout_with_token(token: str = Query(None)):
+    """
+    Processa token de checkout e redireciona para Stripe.
+    Este endpoint e acessado quando o usuario clica em 'Assinar Premium' no app.
+
+    Fluxo:
+    1. App gera token via POST /auth/checkout-token
+    2. App abre navegador com URL: /checkout?token=xxx
+    3. Este endpoint valida token, cria sessao Stripe e redireciona
+    """
+    import stripe
+    from app.database import get_db_instance
+    from app.config import (
+        STRIPE_SECRET_KEY, STRIPE_PRICE_ID, APP_URL,
+        STRIPE_PUBLISHABLE_KEY
+    )
+
+    # Token obrigatorio
+    if not token:
+        return HTMLResponse(
+            content=_checkout_error_page("Link invalido", "O link de checkout esta incompleto. Por favor, tente novamente pelo aplicativo."),
+            status_code=400
+        )
+
+    # Verificar se Stripe esta configurado
+    if not STRIPE_SECRET_KEY or not STRIPE_PRICE_ID:
+        return HTMLResponse(
+            content=_checkout_error_page("Pagamento indisponivel", "O sistema de pagamentos esta temporariamente indisponivel. Tente novamente mais tarde."),
+            status_code=503
+        )
+
+    # Obter conexao do banco
+    db = await get_db_instance()
+    if not db:
+        return HTMLResponse(
+            content=_checkout_error_page("Erro de sistema", "Nao foi possivel conectar ao banco de dados. Tente novamente."),
+            status_code=500
+        )
+
+    # Validar token
+    token_data = await db.verify_checkout_token(token)
+    if not token_data:
+        return HTMLResponse(
+            content=_checkout_error_page("Link expirado", "Este link de checkout expirou ou ja foi utilizado. Por favor, gere um novo link pelo aplicativo."),
+            status_code=400
+        )
+
+    # Verificar se usuario ja e premium
+    if token_data.get("is_premium"):
+        # Marcar token como usado
+        await db.use_checkout_token(token)
+        return HTMLResponse(
+            content=_checkout_success_page("Voce ja e Premium!", "Sua conta ja possui assinatura premium ativa. Volte ao aplicativo para aproveitar todos os beneficios."),
+            status_code=200
+        )
+
+    # Marcar token como usado (uso unico)
+    await db.use_checkout_token(token)
+
+    # Configurar Stripe
+    stripe.api_key = STRIPE_SECRET_KEY
+
+    try:
+        # Criar sessao de checkout do Stripe
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            mode="subscription",
+            customer_email=token_data["email"],
+            line_items=[{
+                "price": STRIPE_PRICE_ID,
+                "quantity": 1,
+            }],
+            success_url=f"{APP_URL}/app?payment=success",
+            cancel_url=f"{APP_URL}/app?payment=cancelled",
+            metadata={
+                "user_id": str(token_data["user_id"]),
+                "email": token_data["email"],
+                "source": "checkout_token"
+            },
+            subscription_data={
+                "metadata": {
+                    "user_id": str(token_data["user_id"])
+                }
+            }
+        )
+
+        # Log de auditoria
+        await db.log_audit(
+            user_id=str(token_data["user_id"]),
+            action="checkout_stripe_redirect",
+            details={"session_id": checkout_session.id}
+        )
+
+        # Redirecionar para o Stripe Checkout
+        return RedirectResponse(url=checkout_session.url, status_code=303)
+
+    except stripe.error.StripeError as e:
+        return HTMLResponse(
+            content=_checkout_error_page("Erro no pagamento", f"Ocorreu um erro ao processar o pagamento: {str(e)}"),
+            status_code=500
+        )
+
+
+def _checkout_error_page(title: str, message: str) -> str:
+    """Gera pagina HTML de erro no checkout"""
+    return f"""
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{title} - AiSyster</title>
+        <style>
+            * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+            body {{
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                color: #ffffff;
+                padding: 20px;
+            }}
+            .container {{ text-align: center; max-width: 400px; }}
+            .icon {{ font-size: 60px; margin-bottom: 20px; }}
+            h1 {{ font-size: 1.5rem; margin-bottom: 15px; color: #e74c3c; }}
+            p {{ color: #b0b0b0; line-height: 1.6; margin-bottom: 30px; }}
+            .btn {{
+                display: inline-block;
+                background: linear-gradient(135deg, #d4af37 0%, #c9a227 100%);
+                color: #1a1a2e;
+                text-decoration: none;
+                padding: 14px 28px;
+                border-radius: 8px;
+                font-weight: 600;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="icon">⚠️</div>
+            <h1>{title}</h1>
+            <p>{message}</p>
+            <a href="/app" class="btn">Voltar ao App</a>
+        </div>
+    </body>
+    </html>
+    """
+
+
+def _checkout_success_page(title: str, message: str) -> str:
+    """Gera pagina HTML de sucesso"""
+    return f"""
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{title} - AiSyster</title>
+        <style>
+            * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+            body {{
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                color: #ffffff;
+                padding: 20px;
+            }}
+            .container {{ text-align: center; max-width: 400px; }}
+            .icon {{ font-size: 60px; margin-bottom: 20px; }}
+            h1 {{ font-size: 1.5rem; margin-bottom: 15px; color: #d4af37; }}
+            p {{ color: #b0b0b0; line-height: 1.6; margin-bottom: 30px; }}
+            .btn {{
+                display: inline-block;
+                background: linear-gradient(135deg, #d4af37 0%, #c9a227 100%);
+                color: #1a1a2e;
+                text-decoration: none;
+                padding: 14px 28px;
+                border-radius: 8px;
+                font-weight: 600;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="icon">✨</div>
+            <h1>{title}</h1>
+            <p>{message}</p>
+            <a href="/app" class="btn">Voltar ao App</a>
+        </div>
+    </body>
+    </html>
+    """
 
 
 # ============================================

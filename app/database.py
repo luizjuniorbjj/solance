@@ -1274,6 +1274,65 @@ class Database:
             )
 
     # ============================================
+    # CHECKOUT TOKENS (Auto-login para pagamento)
+    # ============================================
+
+    async def save_checkout_token(self, user_id: str, token: str, expires_minutes: int = 15):
+        """Salva token temporario para auto-login no checkout"""
+        user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
+        async with self.pool.acquire() as conn:
+            # Criar tabela se nao existir
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS checkout_tokens (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    token VARCHAR(100) NOT NULL UNIQUE,
+                    expires_at TIMESTAMP NOT NULL,
+                    used BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+            """)
+
+            # Invalidar tokens anteriores do usuario
+            await conn.execute(
+                "UPDATE checkout_tokens SET used = TRUE WHERE user_id = $1 AND used = FALSE",
+                user_uuid
+            )
+
+            # Criar novo token
+            await conn.execute(
+                """
+                INSERT INTO checkout_tokens (user_id, token, expires_at)
+                VALUES ($1, $2, NOW() + INTERVAL '%s minutes')
+                """ % expires_minutes,
+                user_uuid, token
+            )
+
+    async def verify_checkout_token(self, token: str) -> Optional[dict]:
+        """Verifica se token de checkout e valido e retorna user_id"""
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT ct.user_id, u.email, u.id, u.is_premium
+                FROM checkout_tokens ct
+                JOIN users u ON u.id = ct.user_id
+                WHERE ct.token = $1
+                AND ct.used = FALSE
+                AND ct.expires_at > NOW()
+                """,
+                token
+            )
+            return dict(row) if row else None
+
+    async def use_checkout_token(self, token: str):
+        """Marca token de checkout como usado"""
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                "UPDATE checkout_tokens SET used = TRUE WHERE token = $1",
+                token
+            )
+
+    # ============================================
     # EMOTIONAL TIMELINE (Layer 2)
     # Tracking interno de estados emocionais
     # ============================================
@@ -2137,3 +2196,11 @@ async def get_db_pool():
     if not _pool:
         await init_db()
     return _pool
+
+
+async def get_db_instance() -> Database:
+    """Retorna instancia do Database diretamente (para uso fora de dependencias FastAPI)"""
+    global _pool
+    if not _pool:
+        await init_db()
+    return Database(_pool) if _pool else None

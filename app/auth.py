@@ -611,3 +611,49 @@ async def get_oauth_providers():
         "google": bool(GOOGLE_CLIENT_ID),
         "apple": bool(APPLE_CLIENT_ID)
     }
+
+
+# ============================================
+# CHECKOUT TOKEN (Auto-login para pagamento)
+# ============================================
+
+class CheckoutTokenResponse(BaseModel):
+    checkout_url: str
+    expires_in: int = 900  # 15 minutos em segundos
+
+
+@router.post("/checkout-token", response_model=CheckoutTokenResponse)
+async def create_checkout_token(
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """
+    Gera token temporario para auto-login no checkout via navegador.
+    Usado quando o usuario clica em 'Assinar Premium' no app.
+    O token expira em 15 minutos e so pode ser usado uma vez.
+    """
+    user_id = current_user["user_id"]
+
+    # Verificar se usuario ja e premium
+    user = await db.get_user_by_id(user_id)
+    if user and user.get("is_premium"):
+        raise HTTPException(status_code=400, detail="Voce ja e assinante premium!")
+
+    # Gerar token seguro
+    token = generate_secure_token(32)
+
+    # Salvar no banco (expira em 15 minutos)
+    await db.save_checkout_token(user_id, token, expires_minutes=15)
+
+    # Montar URL de checkout
+    from app.config import APP_URL
+    checkout_url = f"{APP_URL}/checkout?token={token}"
+
+    # Log de auditoria
+    await db.log_audit(
+        user_id=user_id,
+        action="checkout_token_created",
+        details={"token_prefix": token[:8]}
+    )
+
+    return CheckoutTokenResponse(checkout_url=checkout_url)
