@@ -368,6 +368,59 @@ async def toggle_premium(
     return {"message": f"Premium {'ativado' if is_premium else 'desativado'} com sucesso"}
 
 
+@router.post("/revoke-beta-premium")
+async def revoke_beta_premium(
+    except_email: Optional[str] = None,
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Revoga premium de todos os usuarios BETA (sem stripe_subscription_id).
+    Usuarios com assinatura Stripe real nao sao afetados.
+    """
+    async with db.pool.acquire() as conn:
+        # Contar quantos serao afetados
+        if except_email:
+            count = await conn.fetchval("""
+                SELECT COUNT(*) FROM users
+                WHERE is_premium = TRUE
+                AND (stripe_subscription_id IS NULL OR stripe_subscription_id = '')
+                AND email != $1
+            """, except_email)
+
+            # Revogar
+            await conn.execute("""
+                UPDATE users SET
+                    is_premium = FALSE,
+                    subscription_status = 'beta_revoked'
+                WHERE is_premium = TRUE
+                AND (stripe_subscription_id IS NULL OR stripe_subscription_id = '')
+                AND email != $1
+            """, except_email)
+        else:
+            count = await conn.fetchval("""
+                SELECT COUNT(*) FROM users
+                WHERE is_premium = TRUE
+                AND (stripe_subscription_id IS NULL OR stripe_subscription_id = '')
+            """)
+
+            # Revogar
+            await conn.execute("""
+                UPDATE users SET
+                    is_premium = FALSE,
+                    subscription_status = 'beta_revoked'
+                WHERE is_premium = TRUE
+                AND (stripe_subscription_id IS NULL OR stripe_subscription_id = '')
+            """)
+
+    return {
+        "success": True,
+        "revoked_count": count,
+        "except_email": except_email,
+        "message": f"Premium revogado de {count} usuarios BETA"
+    }
+
+
 @router.post("/users/{user_id}/deactivate")
 async def deactivate_user(
     user_id: str,
