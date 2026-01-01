@@ -383,8 +383,12 @@ async def checkout_with_token(token: str = Query(None)):
             details={"session_id": checkout_session.id}
         )
 
-        # Redirecionar para o Stripe Checkout
-        return RedirectResponse(url=checkout_session.url, status_code=303)
+        # Mostrar pagina de teste com dados do cartao antes de redirecionar
+        # Em producao, trocar para: return RedirectResponse(url=checkout_session.url, status_code=303)
+        return HTMLResponse(
+            content=_checkout_test_page(checkout_session.url),
+            status_code=200
+        )
 
     except stripe.error.StripeError as e:
         return HTMLResponse(
@@ -483,6 +487,124 @@ def _checkout_success_page(title: str, message: str) -> str:
             <h1>{title}</h1>
             <p>{message}</p>
             <a href="/app" class="btn">Voltar ao App</a>
+        </div>
+    </body>
+    </html>
+    """
+
+
+def _checkout_test_page(stripe_url: str) -> str:
+    """Gera pagina HTML com dados do cartao de teste"""
+    return f"""
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Ambiente de Teste - AiSyster</title>
+        <style>
+            * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+            body {{
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                color: #ffffff;
+                padding: 20px;
+            }}
+            .container {{ text-align: center; max-width: 420px; }}
+            .badge {{
+                display: inline-block;
+                background: #f39c12;
+                color: #1a1a2e;
+                padding: 6px 16px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 700;
+                text-transform: uppercase;
+                margin-bottom: 20px;
+            }}
+            h1 {{ font-size: 1.5rem; margin-bottom: 15px; color: #d4af37; }}
+            p {{ color: #b0b0b0; line-height: 1.6; margin-bottom: 20px; }}
+            .card-box {{
+                background: rgba(255,255,255,0.1);
+                border-radius: 12px;
+                padding: 20px;
+                margin: 20px 0;
+                text-align: left;
+            }}
+            .card-box h3 {{
+                color: #d4af37;
+                font-size: 14px;
+                margin-bottom: 15px;
+                text-transform: uppercase;
+            }}
+            .card-item {{
+                display: flex;
+                justify-content: space-between;
+                padding: 10px 0;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+            }}
+            .card-item:last-child {{ border-bottom: none; }}
+            .card-label {{ color: #888; font-size: 14px; }}
+            .card-value {{
+                color: #fff;
+                font-family: 'Courier New', monospace;
+                font-size: 15px;
+                font-weight: 600;
+                letter-spacing: 1px;
+            }}
+            .btn {{
+                display: inline-block;
+                background: linear-gradient(135deg, #d4af37 0%, #c9a227 100%);
+                color: #1a1a2e;
+                text-decoration: none;
+                padding: 16px 32px;
+                border-radius: 8px;
+                font-weight: 600;
+                font-size: 16px;
+                margin-top: 10px;
+                transition: transform 0.2s;
+            }}
+            .btn:hover {{ transform: scale(1.02); }}
+            .note {{
+                font-size: 12px;
+                color: #666;
+                margin-top: 20px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="badge">Ambiente de Teste</div>
+            <h1>Dados do Cartao de Teste</h1>
+            <p>Use os dados abaixo para simular o pagamento. Nenhuma cobranca real sera feita.</p>
+
+            <div class="card-box">
+                <h3>Cartao de Credito</h3>
+                <div class="card-item">
+                    <span class="card-label">Numero</span>
+                    <span class="card-value">4242 4242 4242 4242</span>
+                </div>
+                <div class="card-item">
+                    <span class="card-label">Validade</span>
+                    <span class="card-value">12/30</span>
+                </div>
+                <div class="card-item">
+                    <span class="card-label">CVC</span>
+                    <span class="card-value">123</span>
+                </div>
+                <div class="card-item">
+                    <span class="card-label">Nome</span>
+                    <span class="card-value">TESTE AISYSTER</span>
+                </div>
+            </div>
+
+            <a href="{stripe_url}" class="btn">Continuar para Pagamento</a>
+
+            <p class="note">Ao continuar, voce sera redirecionado para a pagina segura do Stripe.</p>
         </div>
     </body>
     </html>
