@@ -6776,9 +6776,11 @@
         console.error('[VOICE] Voice chat error:', error);
         console.error('[VOICE] Error name:', error.name);
         console.error('[VOICE] Error message:', error.message);
-        voiceStatus.textContent = 'Erro de conexao';
-        voiceTranscription.textContent = error.message || 'Verifique sua internet e tente novamente';
-        setTimeout(() => hideVoiceOverlay(), 3000);
+        console.error('[VOICE] Error stack:', error.stack);
+        voiceOverlay.classList.remove('processing');
+        voiceStatus.textContent = 'Erro';
+        voiceTranscription.textContent = `${error.name || 'Erro'}: ${error.message || 'Conexao falhou'}`;
+        // Não fecha automaticamente - usuário fecha com botão Cancelar
       }
     }
 
