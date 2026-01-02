@@ -114,11 +114,11 @@ class EmailService:
     async def send_welcome_email(self, to: str, nome: str) -> bool:
         """Email de boas-vindas ao se registrar"""
         content = f"""
-        <h2 style="margin: 0 0 20px 0; color: #1a1a2e; font-size: 24px;">Bem-vindo(a) ao AiSyster, {nome}!</h2>
+        <h2 style="margin: 0 0 20px 0; color: #1a1a2e; font-size: 24px;">Bem-vindo(a) à AiSyster, {nome}!</h2>
 
         <p style="margin: 0 0 16px 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
-            Que alegria ter você conosco! O AiSyster foi criado para ser seu companheiro
-            diário, um lugar seguro para conversar, refletir e crescer na fé.
+            Que alegria ter você conosco! A AiSyster foi criada para ser sua companheira
+            diária, um lugar seguro para conversar, refletir e crescer na fé.
         </p>
 
         <p style="margin: 0 0 24px 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
@@ -192,15 +192,15 @@ class EmailService:
         </p>
 
         <p style="margin: 0 0 16px 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
-            Obrigado por assinar o AiSyster Premium! Sua assinatura foi confirmada
-            e voce agora tem acesso ilimitado ao seu companheiro espiritual.
+            Obrigado por assinar a AiSyster Premium! Sua assinatura foi confirmada
+            e você agora tem acesso ilimitado à sua companheira espiritual.
         </p>
 
         <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin: 24px 0;">
             <h3 style="margin: 0 0 12px 0; color: #1a1a2e; font-size: 16px;">O que voce ganhou:</h3>
             <ul style="margin: 0; padding-left: 20px; color: #4a4a4a; font-size: 14px; line-height: 1.8;">
                 <li>Mensagens ilimitadas</li>
-                <li>Companheiro sempre disponivel</li>
+                <li>Companheira sempre disponível</li>
             </ul>
         </div>
 
@@ -231,13 +231,13 @@ class EmailService:
         </p>
 
         <p style="margin: 0 0 16px 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
-            Sua assinatura do AiSyster Premium foi renovada com sucesso.
-            Continue aproveitando seu companheiro espiritual sem limites!
+            Sua assinatura da AiSyster Premium foi renovada com sucesso.
+            Continue aproveitando sua companheira espiritual sem limites!
         </p>
 
         <div style="text-align: center; margin: 32px 0;">
             <a href="{APP_URL}" style="display: inline-block; background: linear-gradient(135deg, #d4af37 0%, #c9a227 100%); color: #1a1a2e; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-                Ir para o AiSyster
+                Ir para a AiSyster
             </a>
         </div>
 
@@ -295,8 +295,8 @@ class EmailService:
         </p>
 
         <p style="margin: 0 0 16px 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
-            Sua assinatura do AiSyster Premium foi cancelada. Voce ainda pode usar
-            o AiSyster ate o final do periodo ja pago.
+            Sua assinatura da AiSyster Premium foi cancelada. Você ainda pode usar
+            a AiSyster até o final do período já pago.
         </p>
 
         <p style="margin: 0 0 24px 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">

@@ -853,7 +853,7 @@ class AIService:
         # System prompt simplificado para trial
         system_prompt = f"DATA DE HOJE: {data_formatada}\n\n" + AISYSTER_PERSONA + """
 
-NOTA: Este é um usuário visitante experimentando o AiSyster.
+NOTA: Este é um usuário visitante experimentando a AiSyster.
 Seja acolhedor e mostre o valor do app, mas mantenha respostas concisas.
 Convide-o a criar uma conta para uma experiência mais personalizada."""
 
