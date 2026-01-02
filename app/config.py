@@ -59,6 +59,20 @@ AI_MODEL_FALLBACK = "claude-3-5-haiku-20241022"  # Trial/Free - economia, boa qu
 MAX_TOKENS_RESPONSE = 150  # Respostas CURTAS - força brevidade
 MAX_CONTEXT_TOKENS = 4000
 
+# Web Search - Pesquisa na internet quando necessário
+WEB_SEARCH_ENABLED = os.getenv("WEB_SEARCH_ENABLED", "True").lower() == "true"
+WEB_SEARCH_MAX_RESULTS = 5  # Máximo de resultados por pesquisa
+
+# Voice Settings - STT (Speech-to-Text) e TTS (Text-to-Speech)
+VOICE_ENABLED = os.getenv("VOICE_ENABLED", "True").lower() == "true"
+# STT - Whisper (OpenAI)
+STT_MODEL = "whisper-1"  # Modelo de transcrição
+STT_MAX_FILE_SIZE = 25 * 1024 * 1024  # 25MB (limite do Whisper)
+# TTS - OpenAI
+TTS_MODEL = "tts-1"  # tts-1 (rápido) ou tts-1-hd (qualidade)
+TTS_VOICE = "nova"  # alloy, echo, fable, onyx, nova, shimmer (nova = feminina suave)
+TTS_SPEED = 1.0  # 0.25 a 4.0
+
 # ============================================
 # LIMITS
 # ============================================

@@ -15,7 +15,8 @@ from app.config import (
     AI_MODEL_PRIMARY,
     AI_MODEL_FALLBACK,
     MAX_TOKENS_RESPONSE,
-    MONTHLY_MESSAGE_LIMIT
+    MONTHLY_MESSAGE_LIMIT,
+    WEB_SEARCH_ENABLED
 )
 from app.prompts import (
     AISYSTER_PERSONA,
@@ -34,6 +35,7 @@ from app.learning.continuous_learning import (
     ResponseStrategy,
     FeedbackType
 )
+from app.web_search_service import web_search_service
 
 
 class AIService:
@@ -165,6 +167,31 @@ class AIService:
             learning_context=learning_context
         )
 
+        # 6.5 PESQUISA WEB: Buscar informações atuais se necessário
+        # Não pesquisar se tiver imagens/PDFs (foco no arquivo)
+        has_attachments = image_data or images
+        web_search_context = None
+        if WEB_SEARCH_ENABLED and not has_attachments:
+            try:
+                # Detectar localização do usuário das memórias
+                user_location = None
+                if profile:
+                    # Tentar extrair localização do perfil ou memórias
+                    user_location = profile.get("localizacao") or profile.get("cidade")
+
+                # Pesquisar se necessário
+                web_search_context = await web_search_service.search_and_summarize(
+                    message=message,
+                    user_context=f"Usuário: {profile.get('nome', 'Desconhecido')}" if profile else "",
+                    user_location=user_location
+                )
+
+                if web_search_context:
+                    print(f"[WEB_SEARCH] Resultado incluído no contexto para user {user_id}")
+            except Exception as e:
+                print(f"[WEB_SEARCH] Erro ao pesquisar: {e}")
+                web_search_context = None
+
         # 7. Preparar mensagens para a API
         api_messages = []
 
@@ -177,6 +204,17 @@ class AIService:
             api_messages.append({
                 "role": "assistant",
                 "content": "Entendido, vou usar essas informações na conversa."
+            })
+
+        # Adicionar resultado da pesquisa web (se houver)
+        if web_search_context:
+            api_messages.append({
+                "role": "user",
+                "content": web_search_context
+            })
+            api_messages.append({
+                "role": "assistant",
+                "content": "Entendi, vou usar essas informações atuais na minha resposta."
             })
 
         # Adicionar histórico da conversa atual

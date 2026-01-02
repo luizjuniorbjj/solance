@@ -1,8 +1,9 @@
 """
-AiSyster - Rotas de Voz
-Speech-to-Text e Text-to-Speech
+SoulHaven - Rotas de Voz
+STT (Speech-to-Text) e TTS (Text-to-Speech)
 """
 
+import base64
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi.responses import Response
@@ -11,9 +12,9 @@ from pydantic import BaseModel
 from app.auth import get_current_user
 from app.database import get_db, Database
 from app.ai_service import AIService
-from app.openai_service import get_openai_service
+from app.voice_service import voice_service
 from app.security import rate_limiter
-from app.config import FREE_MESSAGE_LIMIT, FREE_WARNING_AT, FREE_URGENT_AT
+from app.config import VOICE_ENABLED, FREE_MESSAGE_LIMIT
 
 router = APIRouter(prefix="/voice", tags=["Voice"])
 
@@ -22,142 +23,92 @@ router = APIRouter(prefix="/voice", tags=["Voice"])
 # MODELOS
 # ============================================
 
-class VoiceChatResponse(BaseModel):
-    text_response: str  # Resposta em texto da AiSyster
-    conversation_id: str
-    model_used: str
-    tokens_used: int
-    transcribed_text: str  # O que o usuario disse
-    messages_used: Optional[int] = None
-    messages_limit: Optional[int] = None
-    limit_warning: Optional[str] = None
-
-
 class TTSRequest(BaseModel):
+    """Requisição para Text-to-Speech"""
     text: str
-    voice: str = "nova"  # nova = feminina natural
-    speed: float = 1.0
+    voice: Optional[str] = None  # alloy, echo, fable, onyx, nova, shimmer
+    speed: Optional[float] = None  # 0.25 a 4.0
+
+
+class STTResponse(BaseModel):
+    """Resposta de Speech-to-Text"""
+    success: bool
+    text: str
+    error: Optional[str] = None
+
+
+class VoiceChatResponse(BaseModel):
+    """Resposta de chat por voz"""
+    success: bool
+    user_text: str
+    response_text: str
+    response_audio_base64: Optional[str] = None
+    conversation_id: str
+    error: Optional[str] = None
+
+
+class VoicesResponse(BaseModel):
+    """Lista de vozes disponíveis"""
+    voices: list
 
 
 # ============================================
 # ROTAS
 # ============================================
 
-@router.post("/chat", response_model=VoiceChatResponse)
-async def voice_chat(
+@router.get("/status")
+async def voice_status():
+    """
+    Verifica se o serviço de voz está disponível
+    """
+    return {
+        "enabled": VOICE_ENABLED and voice_service.enabled,
+        "stt_available": voice_service.enabled,
+        "tts_available": voice_service.enabled
+    }
+
+
+@router.get("/voices", response_model=VoicesResponse)
+async def get_voices():
+    """
+    Lista as vozes disponíveis para TTS
+    """
+    return VoicesResponse(voices=voice_service.get_available_voices())
+
+
+@router.post("/stt", response_model=STTResponse)
+async def speech_to_text(
     audio: UploadFile = File(...),
-    conversation_id: Optional[str] = Form(None),
-    current_user: dict = Depends(get_current_user),
-    db: Database = Depends(get_db)
+    current_user: dict = Depends(get_current_user)
 ):
     """
-    Chat por voz: recebe audio, transcreve, processa com IA e retorna resposta.
-    O frontend pode chamar /voice/tts para converter a resposta em audio.
+    Converte áudio em texto (Speech-to-Text)
+
+    Formatos suportados: mp3, mp4, mpeg, mpga, m4a, wav, webm
+    Tamanho máximo: 25MB
     """
     user_id = current_user["user_id"]
 
+    if not voice_service.enabled:
+        raise HTTPException(status_code=503, detail="Serviço de voz indisponível")
+
     # Rate limiting
     if not rate_limiter.is_allowed(user_id, max_requests=20, window_seconds=60):
-        raise HTTPException(
-            status_code=429,
-            detail="Muitas mensagens de voz. Aguarde um momento."
-        )
+        raise HTTPException(status_code=429, detail="Muitas requisições. Aguarde um momento.")
 
-    # Validar tipo de audio
-    allowed_types = [
-        "audio/webm", "audio/mp3", "audio/mpeg", "audio/wav",
-        "audio/ogg", "audio/m4a", "audio/mp4", "audio/x-m4a"
-    ]
-    if audio.content_type not in allowed_types:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Formato de audio nao suportado: {audio.content_type}"
-        )
-
-    # Ler audio
+    # Ler arquivo
     audio_bytes = await audio.read()
 
-    # Limite de tamanho (25MB - limite do Whisper)
-    if len(audio_bytes) > 25 * 1024 * 1024:
-        raise HTTPException(
-            status_code=400,
-            detail="Audio muito grande. Maximo 25MB."
-        )
-
-    # Transcrever audio
-    try:
-        openai_service = get_openai_service()
-        transcription = await openai_service.speech_to_text(
-            audio_bytes,
-            filename=audio.filename or "audio.webm"
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Erro ao transcrever audio: {str(e)}"
-        )
-
-    if not transcription.strip():
-        raise HTTPException(
-            status_code=400,
-            detail="Nao foi possivel entender o audio. Tente falar mais claramente."
-        )
-
-    # Buscar usuario e verificar limites
-    user = await db.get_user_by_id(user_id)
-    is_premium = user.get("is_premium", False)
-    messages_used = user.get("trial_messages_used", 0)
-
-    # Verificar limite para usuarios free
-    limit_warning = None
-    if not is_premium:
-        if messages_used >= FREE_MESSAGE_LIMIT:
-            raise HTTPException(
-                status_code=402,
-                detail="Voce atingiu o limite gratuito. Assine para continuar!"
-            )
-
-    # Processar com IA (usando texto transcrito)
-    ai_service = AIService(db)
-    try:
-        result = await ai_service.chat(
-            user_id=user_id,
-            message=transcription,
-            conversation_id=conversation_id
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Erro ao processar mensagem: {str(e)}"
-        )
-
-    # Calcular aviso de limite
-    if not is_premium:
-        messages_used += 1
-        if messages_used >= FREE_MESSAGE_LIMIT:
-            limit_warning = "reached"
-        elif messages_used >= FREE_URGENT_AT:
-            limit_warning = "urgent"
-        elif messages_used >= FREE_WARNING_AT:
-            limit_warning = "soft"
-
-    # Log de auditoria
-    await db.log_audit(
-        user_id=user_id,
-        action="voice_chat_sent",
-        details={"conversation_id": result["conversation_id"]}
+    # Transcrever
+    success, result = await voice_service.speech_to_text(
+        audio_bytes=audio_bytes,
+        filename=audio.filename or "audio.webm"
     )
 
-    return VoiceChatResponse(
-        text_response=result["response"],
-        conversation_id=result["conversation_id"],
-        model_used=result["model_used"],
-        tokens_used=result["tokens_used"],
-        transcribed_text=transcription,
-        messages_used=messages_used if not is_premium else None,
-        messages_limit=FREE_MESSAGE_LIMIT if not is_premium else None,
-        limit_warning=limit_warning
-    )
+    if success:
+        return STTResponse(success=True, text=result)
+    else:
+        return STTResponse(success=False, text="", error=result)
 
 
 @router.post("/tts")
@@ -166,80 +117,185 @@ async def text_to_speech(
     current_user: dict = Depends(get_current_user)
 ):
     """
-    Converte texto em audio (TTS).
-    Retorna arquivo MP3.
+    Converte texto em áudio (Text-to-Speech)
+
+    Retorna arquivo MP3
     """
     user_id = current_user["user_id"]
 
-    # Rate limiting (TTS e mais leve)
-    if not rate_limiter.is_allowed(f"tts_{user_id}", max_requests=30, window_seconds=60):
-        raise HTTPException(
-            status_code=429,
-            detail="Muitas requisicoes de audio. Aguarde um momento."
-        )
+    if not voice_service.enabled:
+        raise HTTPException(status_code=503, detail="Serviço de voz indisponível")
 
-    # Validar texto
-    if not request.text.strip():
-        raise HTTPException(status_code=400, detail="Texto vazio")
+    # Rate limiting
+    if not rate_limiter.is_allowed(user_id, max_requests=20, window_seconds=60):
+        raise HTTPException(status_code=429, detail="Muitas requisições. Aguarde um momento.")
 
-    if len(request.text) > 4096:
-        raise HTTPException(
-            status_code=400,
-            detail="Texto muito longo. Maximo 4096 caracteres."
-        )
+    # Gerar áudio
+    success, audio_bytes, error = await voice_service.text_to_speech(
+        text=request.text,
+        voice=request.voice,
+        speed=request.speed
+    )
 
-    # Gerar audio
-    try:
-        openai_service = get_openai_service()
-        audio_bytes = await openai_service.text_to_speech(
-            text=request.text,
-            voice=request.voice,
-            speed=request.speed
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Erro ao gerar audio: {str(e)}"
-        )
+    if not success:
+        raise HTTPException(status_code=500, detail=error)
 
-    # Retornar MP3
     return Response(
         content=audio_bytes,
         media_type="audio/mpeg",
         headers={
-            "Content-Disposition": "inline; filename=response.mp3"
+            "Content-Disposition": "attachment; filename=aisyster_response.mp3"
         }
     )
 
 
-@router.post("/transcribe")
-async def transcribe_audio(
+@router.post("/chat", response_model=VoiceChatResponse)
+async def voice_chat(
     audio: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user)
+    conversation_id: Optional[str] = Form(None),
+    return_audio: bool = Form(True),
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
 ):
     """
-    Apenas transcreve audio para texto (sem processar com IA).
-    Util para previsualizar o que foi dito.
+    Chat completo por voz:
+    1. Recebe áudio do usuário
+    2. Transcreve para texto
+    3. Processa no chat da AiSyster
+    4. Converte resposta em áudio
+    5. Retorna texto + áudio
+
+    Formatos de áudio suportados: mp3, mp4, mpeg, mpga, m4a, wav, webm
     """
     user_id = current_user["user_id"]
 
-    # Rate limiting
-    if not rate_limiter.is_allowed(f"transcribe_{user_id}", max_requests=30, window_seconds=60):
+    if not voice_service.enabled:
+        raise HTTPException(status_code=503, detail="Serviço de voz indisponível")
+
+    # Rate limiting (mais restritivo para voice chat)
+    if not rate_limiter.is_allowed(user_id, max_requests=15, window_seconds=60):
+        raise HTTPException(status_code=429, detail="Muitas mensagens. Aguarde um momento.")
+
+    # Verificar limite de mensagens para usuários free
+    user = await db.get_user_by_id(user_id)
+    is_premium = user.get("is_premium", False)
+    messages_used = user.get("trial_messages_used", 0)
+
+    if not is_premium and messages_used >= FREE_MESSAGE_LIMIT:
         raise HTTPException(
-            status_code=429,
-            detail="Muitas transcricoes. Aguarde um momento."
+            status_code=402,
+            detail="Você atingiu o limite gratuito. Assine para continuar conversando!"
         )
 
-    # Ler audio
+    # Ler áudio
     audio_bytes = await audio.read()
 
-    # Transcrever
-    try:
-        openai_service = get_openai_service()
-        text = await openai_service.speech_to_text(
-            audio_bytes,
-            filename=audio.filename or "audio.webm"
+    # Criar AI service
+    ai_service = AIService(db)
+
+    # Processar voz completo
+    result = await voice_service.chat_with_voice(
+        audio_bytes=audio_bytes,
+        filename=audio.filename or "audio.webm",
+        chat_callback=ai_service.chat,
+        user_id=user_id,
+        conversation_id=conversation_id,
+        return_audio=return_audio
+    )
+
+    if not result["success"]:
+        return VoiceChatResponse(
+            success=False,
+            user_text=result.get("user_text", ""),
+            response_text="",
+            conversation_id=conversation_id or "",
+            error=result.get("error", "Erro desconhecido")
         )
-        return {"text": text, "success": True}
-    except Exception as e:
-        return {"text": "", "success": False, "error": str(e)}
+
+    # Converter áudio para base64 se disponível
+    audio_base64 = None
+    if result.get("response_audio"):
+        audio_base64 = base64.b64encode(result["response_audio"]).decode("utf-8")
+
+    # Log de auditoria
+    await db.log_audit(
+        user_id=user_id,
+        action="voice_chat",
+        details={
+            "conversation_id": result["conversation_id"],
+            "user_text_length": len(result["user_text"]),
+            "response_text_length": len(result["response_text"]),
+            "audio_returned": audio_base64 is not None
+        }
+    )
+
+    return VoiceChatResponse(
+        success=True,
+        user_text=result["user_text"],
+        response_text=result["response_text"],
+        response_audio_base64=audio_base64,
+        conversation_id=result["conversation_id"]
+    )
+
+
+@router.post("/chat-audio-response")
+async def voice_chat_audio_response(
+    audio: UploadFile = File(...),
+    conversation_id: Optional[str] = Form(None),
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """
+    Chat por voz que retorna o áudio diretamente (sem base64)
+
+    Útil para players de áudio nativos
+    """
+    user_id = current_user["user_id"]
+
+    if not voice_service.enabled:
+        raise HTTPException(status_code=503, detail="Serviço de voz indisponível")
+
+    # Rate limiting
+    if not rate_limiter.is_allowed(user_id, max_requests=15, window_seconds=60):
+        raise HTTPException(status_code=429, detail="Muitas mensagens. Aguarde um momento.")
+
+    # Verificar limite
+    user = await db.get_user_by_id(user_id)
+    is_premium = user.get("is_premium", False)
+    messages_used = user.get("trial_messages_used", 0)
+
+    if not is_premium and messages_used >= FREE_MESSAGE_LIMIT:
+        raise HTTPException(status_code=402, detail="Limite gratuito atingido")
+
+    # Ler áudio
+    audio_bytes = await audio.read()
+
+    # Criar AI service
+    ai_service = AIService(db)
+
+    # Processar
+    result = await voice_service.chat_with_voice(
+        audio_bytes=audio_bytes,
+        filename=audio.filename or "audio.webm",
+        chat_callback=ai_service.chat,
+        user_id=user_id,
+        conversation_id=conversation_id,
+        return_audio=True
+    )
+
+    if not result["success"] or not result.get("response_audio"):
+        raise HTTPException(
+            status_code=500,
+            detail=result.get("error", "Erro ao processar áudio")
+        )
+
+    # Retornar áudio direto
+    return Response(
+        content=result["response_audio"],
+        media_type="audio/mpeg",
+        headers={
+            "X-User-Text": result["user_text"][:200],  # Primeiros 200 chars
+            "X-Conversation-Id": result["conversation_id"],
+            "Content-Disposition": "inline; filename=aisyster_response.mp3"
+        }
+    )
