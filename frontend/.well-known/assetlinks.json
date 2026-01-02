@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "com.aisyster.www.twa",
-        "sha256_cert_fingerprints": ["8B:DA:16:7F:27:3F:0F:7D:CC:17:A1:46:62:10:37:72:C9:46:47:B5:BD:08:52:E9:85:5E:3A:42:21:5F:C8:13"]
+        "sha256_cert_fingerprints": ["4B:3E:4B:03:80:C0:A5:EA:16:66:C1:36:3D:82:03:50:F2:ED:5F:B5:00:06:8C:9F:8D:D5:40:D1:E4:A1:69:A5"]
       }
     }]
