@@ -5826,90 +5826,162 @@
     const voiceIndicator = document.getElementById('voiceIndicator');
 
     // ============================================
-    // VOICE INPUT (Web Speech API)
+    // VOICE INPUT - Gravação de áudio + Whisper (funciona em iOS/Android/Desktop)
     // ============================================
-    let recognition = null;
+    let mediaRecorder = null;
+    let audioChunks = [];
     let isRecording = false;
-    let finalTranscriptAccumulated = ''; // Acumula texto final entre resultados
+    let audioStream = null;
 
-    // Check if browser supports speech recognition
-    function initVoiceInput() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-      if (!SpeechRecognition) {
-        // Hide mic button if not supported
+    // Inicializa gravação de voz
+    async function initVoiceInput() {
+      // Verifica se o navegador suporta MediaRecorder
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         if (micBtn) micBtn.classList.add('hidden');
-        console.log('Speech recognition not supported');
+        console.log('MediaRecorder not supported');
+        return;
+      }
+    }
+
+    async function startRecording() {
+      try {
+        // Solicita permissão do microfone
+        audioStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            sampleRate: 44100
+          }
+        });
+
+        // Detecta o melhor formato suportado
+        let mimeType = 'audio/webm';
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+          mimeType = 'audio/webm;codecs=opus';
+        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+          mimeType = 'audio/mp4';
+        } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+          mimeType = 'audio/ogg';
+        }
+
+        mediaRecorder = new MediaRecorder(audioStream, { mimeType });
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunks.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = async () => {
+          // Para o stream do microfone
+          if (audioStream) {
+            audioStream.getTracks().forEach(track => track.stop());
+          }
+
+          if (audioChunks.length === 0) {
+            micBtn.classList.remove('recording');
+            voiceIndicator.style.display = 'none';
+            messageInput.placeholder = 'Mensagem para AiSyster...';
+            return;
+          }
+
+          // Cria blob do áudio
+          const audioBlob = new Blob(audioChunks, { type: mimeType });
+
+          // Mostra indicador de processamento
+          messageInput.placeholder = 'Transcrevendo...';
+
+          // Envia para Whisper transcrever
+          await transcribeAudio(audioBlob);
+        };
+
+        // Inicia gravação
+        mediaRecorder.start(100); // Coleta dados a cada 100ms
+        isRecording = true;
+        micBtn.classList.add('recording');
+        voiceIndicator.style.display = 'flex';
+        messageInput.placeholder = 'Gravando... clique para parar';
+
+      } catch (error) {
+        console.error('Error starting recording:', error);
+
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+          alert('Permissao de microfone negada. Habilite nas configuracoes do seu dispositivo.');
+        } else if (error.name === 'NotFoundError') {
+          alert('Nenhum microfone encontrado no dispositivo.');
+        } else {
+          alert('Erro ao acessar o microfone: ' + error.message);
+        }
+
+        isRecording = false;
+        micBtn.classList.remove('recording');
+        voiceIndicator.style.display = 'none';
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+      isRecording = false;
+    }
+
+    async function transcribeAudio(audioBlob) {
+      // Verifica se está logado
+      if (!state.token) {
+        alert('Faca login para usar o recurso de voz.');
+        micBtn.classList.remove('recording');
+        voiceIndicator.style.display = 'none';
+        messageInput.placeholder = 'Mensagem para AiSyster...';
         return;
       }
 
-      recognition = new SpeechRecognition();
-      recognition.lang = 'pt-BR';
-      recognition.continuous = false; // Uma frase por vez
-      recognition.interimResults = true; // Mostra enquanto fala
+      try {
+        // Prepara FormData com o áudio
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'audio.webm');
 
-      // Guarda o texto que já estava no input antes de começar
-      let textBeforeRecording = '';
+        // Chama endpoint de transcrição
+        const response = await fetch(`${API_URL}/voice/transcribe`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${state.token}`
+          },
+          body: formData
+        });
 
-      recognition.onstart = function() {
-        isRecording = true;
-        textBeforeRecording = messageInput.value.trim();
-        micBtn.classList.add('recording');
-        voiceIndicator.style.display = 'flex';
-        messageInput.placeholder = 'Fale sua mensagem...';
-      };
+        const data = await response.json();
 
-      recognition.onend = function() {
-        isRecording = false;
+        if (data.success && data.text) {
+          // Adiciona texto transcrito ao input
+          const textBefore = messageInput.value.trim();
+          if (textBefore) {
+            messageInput.value = textBefore + ' ' + data.text;
+          } else {
+            messageInput.value = data.text;
+          }
+          autoResize(messageInput);
+        } else if (data.error) {
+          console.error('Transcription error:', data.error);
+          alert('Nao foi possivel entender o audio. Tente novamente.');
+        }
+
+      } catch (error) {
+        console.error('Error transcribing audio:', error);
+        alert('Erro ao transcrever audio. Verifique sua conexao.');
+      } finally {
         micBtn.classList.remove('recording');
         voiceIndicator.style.display = 'none';
         messageInput.placeholder = 'Mensagem para AiSyster...';
-      };
-
-      recognition.onresult = function(event) {
-        // Pega apenas o último resultado (índice 0 pois continuous=false)
-        const result = event.results[0];
-        const transcript = result[0].transcript.trim();
-
-        // Sempre substitui: texto anterior + nova transcrição
-        if (textBeforeRecording) {
-          messageInput.value = textBeforeRecording + ' ' + transcript;
-        } else {
-          messageInput.value = transcript;
-        }
-        autoResize(messageInput);
-      };
-
-      recognition.onerror = function(event) {
-        console.error('Speech recognition error:', event.error);
-        isRecording = false;
-        micBtn.classList.remove('recording');
-        voiceIndicator.style.display = 'none';
-        messageInput.placeholder = 'Mensagem para AiSyster...';
-
-        if (event.error === 'not-allowed') {
-          alert('Permissao de microfone negada. Habilite nas configuracoes do navegador.');
-        } else if (event.error === 'no-speech') {
-          // Silently restart if no speech detected
-        }
-      };
+      }
     }
 
     function toggleVoiceInput() {
-      if (!recognition) {
-        alert('Seu navegador nao suporta reconhecimento de voz. Tente usar Chrome ou Edge.');
-        return;
-      }
-
       if (isRecording) {
-        recognition.stop();
+        stopRecording();
       } else {
-        // Não limpa o input - permite adicionar ao texto existente
-        try {
-          recognition.start();
-        } catch (e) {
-          console.error('Error starting recognition:', e);
-        }
+        startRecording();
       }
     }
 
