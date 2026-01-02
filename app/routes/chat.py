@@ -2,8 +2,9 @@
 SoulHaven - Rotas de Chat
 """
 
+import base64
 from typing import Optional, List, Dict
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File, Form
 from pydantic import BaseModel
 
 from app.auth import get_current_user
@@ -11,6 +12,10 @@ from app.database import get_db, Database
 from app.ai_service import AIService
 from app.security import rate_limiter
 from app.config import FREE_MESSAGE_LIMIT, FREE_WARNING_AT, FREE_URGENT_AT, TRIAL_MESSAGES_LIMIT_ANONYMOUS
+
+# Tipos de imagem aceitos
+ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
@@ -146,6 +151,106 @@ async def send_message(
     await db.log_audit(
         user_id=user_id,
         action="message_sent",
+        details={"conversation_id": result["conversation_id"]}
+    )
+
+    return ChatResponse(
+        response=result["response"],
+        conversation_id=result["conversation_id"],
+        model_used=result["model_used"],
+        tokens_used=result["tokens_used"],
+        messages_used=messages_used if not is_premium else None,
+        messages_limit=FREE_MESSAGE_LIMIT if not is_premium else None,
+        limit_warning=limit_warning
+    )
+
+
+@router.post("/with-image", response_model=ChatResponse)
+async def send_message_with_image(
+    message: str = Form(""),
+    conversation_id: Optional[str] = Form(None),
+    image: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """
+    Envia mensagem com imagem para análise pela IA
+    """
+    user_id = current_user["user_id"]
+
+    # Rate limiting
+    if not rate_limiter.is_allowed(user_id, max_requests=30, window_seconds=60):
+        raise HTTPException(
+            status_code=429,
+            detail="Muitas mensagens. Aguarde um momento."
+        )
+
+    # Validar tipo de imagem
+    if image.content_type not in ALLOWED_IMAGE_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Tipo de imagem não suportado. Use: JPEG, PNG, GIF ou WebP"
+        )
+
+    # Ler e validar tamanho
+    image_bytes = await image.read()
+    if len(image_bytes) > MAX_IMAGE_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail="Imagem muito grande. Máximo 5MB."
+        )
+
+    # Converter para base64
+    image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+
+    # Buscar usuário e verificar limites
+    user = await db.get_user_by_id(user_id)
+    is_premium = user.get("is_premium", False)
+    messages_used = user.get("trial_messages_used", 0)
+
+    # Verificar limite para usuários free
+    limit_warning = None
+    if not is_premium:
+        if messages_used >= FREE_MESSAGE_LIMIT:
+            raise HTTPException(
+                status_code=402,
+                detail="Você atingiu o limite gratuito. Assine para continuar conversando!"
+            )
+
+    # Processar mensagem com imagem
+    ai_service = AIService(db)
+    try:
+        result = await ai_service.chat(
+            user_id=user_id,
+            message=message or "O que você vê nesta imagem?",
+            conversation_id=conversation_id,
+            image_data=image_base64,
+            image_media_type=image.content_type
+        )
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"[CHAT IMAGE ERROR] User {user_id}: {str(e)}")
+        print(f"[CHAT IMAGE ERROR] Traceback: {error_details}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao processar imagem: {str(e)}"
+        )
+
+    # Calcular aviso de limite
+    if not is_premium:
+        messages_used += 1
+        if messages_used >= FREE_MESSAGE_LIMIT:
+            limit_warning = "reached"
+        elif messages_used >= FREE_URGENT_AT:
+            limit_warning = "urgent"
+        elif messages_used >= FREE_WARNING_AT:
+            limit_warning = "soft"
+
+    # Log de auditoria
+    await db.log_audit(
+        user_id=user_id,
+        action="message_with_image_sent",
         details={"conversation_id": result["conversation_id"]}
     )
 

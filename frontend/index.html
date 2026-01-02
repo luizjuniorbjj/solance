@@ -1844,6 +1844,83 @@
       flex-shrink: 0;
     }
 
+    /* Attach image button */
+    .attach-btn {
+      width: 36px;
+      height: 36px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+
+    .attach-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(184, 134, 11, 0.05);
+    }
+
+    .attach-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .attach-btn.has-image {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: white;
+    }
+
+    /* Image preview */
+    .image-preview {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 8px;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      max-width: 150px;
+    }
+
+    .image-preview img {
+      max-width: 150px;
+      max-height: 100px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      display: block;
+    }
+
+    .image-preview-remove {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 24px;
+      height: 24px;
+      background: rgba(0, 0, 0, 0.7);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+    }
+
+    .image-preview-remove:hover {
+      background: #dc3545;
+    }
+
+    .image-preview-remove svg {
+      width: 14px;
+      height: 14px;
+    }
+
     /* Microphone button */
     .mic-btn {
       width: 36px;
@@ -3933,6 +4010,15 @@
               oninput="autoResize(this)"
             ></textarea>
             <div class="input-actions">
+              <!-- Botão de anexar imagem -->
+              <input type="file" id="imageInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none" onchange="handleImageSelect(event)">
+              <button class="attach-btn" id="attachBtn" onclick="document.getElementById('imageInput').click()" title="Anexar imagem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+              </button>
               <button class="mic-btn" id="micBtn" onclick="toggleVoiceInput()" title="Falar mensagem">
                 <svg class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
@@ -3950,6 +4036,16 @@
                 </svg>
               </button>
             </div>
+          </div>
+          <!-- Preview de imagem selecionada -->
+          <div class="image-preview" id="imagePreview" style="display:none">
+            <img id="imagePreviewImg" src="" alt="Preview">
+            <button class="image-preview-remove" onclick="removeImagePreview()" title="Remover imagem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
           </div>
           <div class="voice-indicator" id="voiceIndicator" style="display:none">
             <div class="voice-pulse"></div>
@@ -4001,6 +4097,7 @@
       conversationId: null,
       isLoading: false,
       token: localStorage.getItem('aisyster_token'),
+      selectedImage: null,  // File object quando uma imagem é selecionada
       user: JSON.parse(localStorage.getItem('aisyster_user') || 'null')
     };
 
@@ -5796,7 +5893,8 @@
     function autoResize(textarea) {
       textarea.style.height = 'auto';
       textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
-      sendBtn.disabled = !textarea.value.trim();
+      // Habilitar send se tiver texto OU imagem
+      sendBtn.disabled = !textarea.value.trim() && !state.selectedImage;
     }
 
     function handleKeyDown(event) {
@@ -5876,9 +5974,59 @@
       if (typing) typing.remove();
     }
 
+    // ============================================
+    // IMAGE HANDLING
+    // ============================================
+    function handleImageSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Validar tipo
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Tipo de imagem não suportado. Use JPEG, PNG, GIF ou WebP.');
+        return;
+      }
+
+      // Validar tamanho (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Imagem muito grande. Máximo 5MB.');
+        return;
+      }
+
+      state.selectedImage = file;
+
+      // Mostrar preview
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('imagePreviewImg').src = e.target.result;
+        document.getElementById('imagePreview').style.display = 'inline-block';
+        document.getElementById('attachBtn').classList.add('has-image');
+        sendBtn.disabled = false;  // Habilitar envio mesmo sem texto
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeImagePreview() {
+      state.selectedImage = null;
+      document.getElementById('imagePreview').style.display = 'none';
+      document.getElementById('imagePreviewImg').src = '';
+      document.getElementById('imageInput').value = '';
+      document.getElementById('attachBtn').classList.remove('has-image');
+
+      // Desabilitar envio se não tiver texto
+      if (!messageInput.value.trim()) {
+        sendBtn.disabled = true;
+      }
+    }
+
     async function sendMessage() {
       const message = messageInput.value.trim();
-      if (!message || state.isLoading) return;
+      const hasImage = state.selectedImage !== null;
+
+      // Precisa ter mensagem OU imagem
+      if (!message && !hasImage) return;
+      if (state.isLoading) return;
 
       if (!state.token) {
         showAuthModal();
@@ -5888,28 +6036,59 @@
       welcomeScreen.style.display = 'none';
       chatMessages.style.display = 'block';
 
+      // Guardar imagem antes de limpar
+      const imageToSend = state.selectedImage;
+
       messageInput.value = '';
       messageInput.style.height = 'auto';
       sendBtn.disabled = true;
 
-      state.messages.push({ role: 'user', content: message });
-      renderMessage('user', message);
+      // Limpar preview de imagem
+      if (imageToSend) {
+        removeImagePreview();
+      }
+
+      // Mostrar mensagem do usuário (com indicador de imagem se houver)
+      const displayMessage = imageToSend ? `📷 ${message || 'Imagem enviada'}` : message;
+      state.messages.push({ role: 'user', content: displayMessage });
+      renderMessage('user', displayMessage);
 
       state.isLoading = true;
       showTypingIndicator();
 
       try {
-        const response = await fetch(`${API_URL}/chat/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${state.token}`
-          },
-          body: JSON.stringify({
-            message: message,
-            conversation_id: state.conversationId
-          })
-        });
+        let response;
+
+        if (imageToSend) {
+          // Enviar com imagem usando FormData
+          const formData = new FormData();
+          formData.append('message', message);
+          formData.append('image', imageToSend);
+          if (state.conversationId) {
+            formData.append('conversation_id', state.conversationId);
+          }
+
+          response = await fetch(`${API_URL}/chat/with-image`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${state.token}`
+            },
+            body: formData
+          });
+        } else {
+          // Enviar apenas texto
+          response = await fetch(`${API_URL}/chat/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${state.token}`
+            },
+            body: JSON.stringify({
+              message: message,
+              conversation_id: state.conversationId
+            })
+          });
+        }
 
         if (response.status === 401) {
           logout();

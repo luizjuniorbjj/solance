@@ -52,7 +52,9 @@ class AIService:
         self,
         user_id: str,
         message: str,
-        conversation_id: Optional[str] = None
+        conversation_id: Optional[str] = None,
+        image_data: Optional[str] = None,  # Base64 encoded image
+        image_media_type: Optional[str] = None  # image/jpeg, image/png, etc.
     ) -> Dict:
         """
         Processa mensagem do usuário com contexto completo
@@ -180,13 +182,33 @@ class AIService:
         for msg in messages:
             api_messages.append({"role": msg["role"], "content": msg["content"]})
 
-        # Adicionar mensagem atual
-        api_messages.append({"role": "user", "content": message})
+        # Adicionar mensagem atual (com suporte a imagem)
+        if image_data and image_media_type:
+            # Mensagem multimodal: imagem + texto
+            user_content = [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": image_media_type,
+                        "data": image_data
+                    }
+                },
+                {
+                    "type": "text",
+                    "text": message if message else "O que você vê nesta imagem?"
+                }
+            ]
+            api_messages.append({"role": "user", "content": user_content})
+        else:
+            # Mensagem apenas texto
+            api_messages.append({"role": "user", "content": message})
 
-        # 8. Chamar Claude
+        # 8. Chamar Claude (tokens maiores para imagens)
+        max_tokens = MAX_TOKENS_RESPONSE * 2 if image_data else MAX_TOKENS_RESPONSE
         response = self.client.messages.create(
             model=model,
-            max_tokens=MAX_TOKENS_RESPONSE,
+            max_tokens=max_tokens,
             system=system_prompt,
             messages=api_messages
         )
@@ -194,12 +216,13 @@ class AIService:
         reply = response.content[0].text
         tokens_used = response.usage.input_tokens + response.usage.output_tokens
 
-        # 9. Salvar mensagens no banco
+        # 9. Salvar mensagens no banco (indicar se tinha imagem)
+        saved_content = f"[📷 Imagem enviada]\n{message}" if image_data else message
         await self.db.save_message(
             conversation_id=conversation_id,
             user_id=user_id,
             role="user",
-            content=message
+            content=saved_content
         )
 
         await self.db.save_message(
