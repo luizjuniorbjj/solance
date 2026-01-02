@@ -6568,6 +6568,7 @@
     let voiceRecordingSeconds = 0;
     let currentVoiceAudioBlob = null;
     let voiceResponseAudio = null;
+    let voiceRecordingResolve = null; // Para resolver a Promise quando a gravação terminar
 
     async function startVoiceMode() {
       if (!state.token) {
@@ -6594,16 +6595,19 @@
           if (event.data.size > 0) audioChunks.push(event.data);
         };
 
-        mediaRecorder.onstop = async () => {
+        mediaRecorder.onstop = () => {
           if (audioStream) audioStream.getTracks().forEach(track => track.stop());
           stopVoiceTimer();
 
-          if (audioChunks.length === 0) {
-            hideVoiceOverlay();
-            return;
+          if (audioChunks.length > 0) {
+            currentVoiceAudioBlob = new Blob(audioChunks, { type: currentMimeType });
           }
 
-          currentVoiceAudioBlob = new Blob(audioChunks, { type: currentMimeType });
+          // Resolver a Promise se estiver aguardando
+          if (voiceRecordingResolve) {
+            voiceRecordingResolve();
+            voiceRecordingResolve = null;
+          }
         };
 
         mediaRecorder.start(100);
@@ -6669,11 +6673,15 @@
     }
 
     async function sendVoiceOverlay() {
-      // Se ainda está gravando, para a gravação primeiro
+      // Se ainda está gravando, para a gravação e aguarda o blob ser criado
       if (mediaRecorder && mediaRecorder.state === 'recording') {
+        // Criar Promise que será resolvida quando onstop terminar
+        const waitForStop = new Promise(resolve => {
+          voiceRecordingResolve = resolve;
+        });
         mediaRecorder.stop();
-        // Aguarda o blob ser criado
-        await new Promise(resolve => setTimeout(resolve, 200));
+        // Aguarda o onstop completar
+        await waitForStop;
       }
 
       if (!currentVoiceAudioBlob) {
