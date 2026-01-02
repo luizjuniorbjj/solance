@@ -26,6 +26,7 @@ from app.routes.payment import router as payment_router
 from app.routes.memories import router as memories_router
 from app.routes.push import router as push_router
 from app.routes.notifications import router as notifications_router
+from app.routes.voice import router as voice_router
 from app.notification_scheduler import notification_scheduler
 
 
@@ -178,6 +179,7 @@ app.include_router(payment_router)
 app.include_router(memories_router)
 app.include_router(push_router)
 app.include_router(notifications_router)
+app.include_router(voice_router)
 
 
 # ============================================

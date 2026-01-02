@@ -1557,6 +1557,52 @@
       height: 14px;
     }
 
+    /* Listen button (TTS) */
+    .listen-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .listen-btn:hover {
+      color: var(--gold-dark);
+      border-color: var(--gold);
+      background: var(--bg-secondary);
+    }
+
+    .listen-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .listen-btn.playing {
+      color: var(--gold);
+      border-color: var(--gold);
+      background: rgba(184, 134, 11, 0.1);
+    }
+
+    .listen-btn.loading .listen-icon {
+      display: none;
+    }
+
+    .listen-btn.loading .loading-icon {
+      display: block !important;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
     /* Feedback Modal */
     .feedback-modal-overlay {
       display: none;
@@ -5922,9 +5968,21 @@
         .map(p => `<p>${p}</p>`)
         .join('');
 
-      // Botão de feedback apenas para mensagens da IA
-      const feedbackButton = role === 'assistant' ? `
+      // Botões de ação para mensagens da IA (ouvir + feedback)
+      const messageActions = role === 'assistant' ? `
         <div class="message-actions">
+          <button class="listen-btn" onclick="speakMessage(this)" data-text="${encodeURIComponent(content)}" title="Ouvir resposta">
+            <svg class="listen-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+            </svg>
+            <svg class="loading-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+            Ouvir
+          </button>
           <button class="feedback-btn" onclick="openFeedbackModal(this)" data-content="${encodeURIComponent(content)}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"/>
@@ -5940,7 +5998,7 @@
         <div class="message-content">
           <div class="message-role">${roleName}</div>
           <div class="message-text">${formattedContent}</div>
-          ${feedbackButton}
+          ${messageActions}
         </div>
       `;
 
@@ -6951,6 +7009,93 @@
       // Após 2 mensagens, mostrar banner novamente (se não instalou ainda)
       if (messagesSentCount === 2) {
         setTimeout(showInstallBanner, 1000);
+      }
+    }
+
+    // ============================================
+    // TEXT-TO-SPEECH (TTS)
+    // ============================================
+    let currentAudio = null;
+    let currentPlayingBtn = null;
+
+    async function speakMessage(button) {
+      const text = decodeURIComponent(button.dataset.text);
+
+      // Se já está tocando este audio, parar
+      if (currentPlayingBtn === button && currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+        button.classList.remove('playing');
+        currentPlayingBtn = null;
+        return;
+      }
+
+      // Parar audio anterior se existir
+      if (currentAudio) {
+        currentAudio.pause();
+        if (currentPlayingBtn) {
+          currentPlayingBtn.classList.remove('playing', 'loading');
+        }
+      }
+
+      // Verificar se está logado
+      if (!state.token) {
+        alert('Faça login para usar o recurso de voz.');
+        return;
+      }
+
+      // Mostrar loading
+      button.classList.add('loading');
+      currentPlayingBtn = button;
+
+      try {
+        const response = await fetch(`${API_URL}/voice/tts`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${state.token}`
+          },
+          body: JSON.stringify({
+            text: text,
+            voice: 'nova',
+            speed: 1.0
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao gerar audio');
+        }
+
+        // Criar blob de audio
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        // Criar e tocar audio
+        currentAudio = new Audio(audioUrl);
+        button.classList.remove('loading');
+        button.classList.add('playing');
+
+        currentAudio.onended = () => {
+          button.classList.remove('playing');
+          currentAudio = null;
+          currentPlayingBtn = null;
+          URL.revokeObjectURL(audioUrl);
+        };
+
+        currentAudio.onerror = () => {
+          button.classList.remove('playing', 'loading');
+          currentAudio = null;
+          currentPlayingBtn = null;
+          alert('Erro ao reproduzir audio');
+        };
+
+        currentAudio.play();
+
+      } catch (error) {
+        console.error('TTS Error:', error);
+        button.classList.remove('loading', 'playing');
+        currentPlayingBtn = null;
+        alert('Erro ao gerar audio. Tente novamente.');
       }
     }
 
