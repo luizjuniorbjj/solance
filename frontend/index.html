@@ -6771,7 +6771,11 @@
           if (data.user_text) {
             voiceTranscription.textContent = `"${data.user_text}"`;
             voiceTranscription.className = 'voice-transcription user-text';
-            addMessage('user', data.user_text);
+            // Adiciona mensagem no chat
+            welcomeScreen.style.display = 'none';
+            chatMessages.style.display = 'flex';
+            renderMessage('user', data.user_text);
+            state.messages.push({ role: 'user', content: data.user_text });
           }
 
           // Espera um momento para mostrar a transcrição
@@ -6782,7 +6786,9 @@
             voiceStatus.textContent = 'AiSyster';
             voiceTranscription.textContent = data.response_text;
             voiceTranscription.className = 'voice-transcription ai-text';
-            addMessage('assistant', data.response_text);
+            // Adiciona resposta no chat
+            renderMessage('assistant', data.response_text);
+            state.messages.push({ role: 'assistant', content: data.response_text });
           }
 
           // Toca o áudio da resposta
