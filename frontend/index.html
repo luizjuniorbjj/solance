@@ -6706,6 +6706,13 @@
       voiceStatus.textContent = 'Processando...';
 
       try {
+        // Verificar se tem token válido
+        if (!state.token) {
+          voiceStatus.textContent = 'Erro';
+          voiceTranscription.textContent = 'Voce precisa estar logado para usar o modo voz';
+          return;
+        }
+
         console.log('[VOICE] Preparing FormData...');
         const formData = new FormData();
         // Usar extensão correta baseada no mimeType
@@ -6717,16 +6724,40 @@
         formData.append('return_audio', 'true');
 
         console.log('[VOICE] Sending to API...', API_URL + '/voice/chat');
-        console.log('[VOICE] Token exists:', !!state.token);
+        console.log('[VOICE] Token:', state.token ? state.token.substring(0, 20) + '...' : 'null');
         console.log('[VOICE] MimeType:', currentMimeType);
+        console.log('[VOICE] Blob size:', currentVoiceAudioBlob.size);
 
-        const response = await fetch(`${API_URL}/voice/chat`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${state.token}` },
-          body: formData
-        });
+        let response;
+        try {
+          response = await fetch(`${API_URL}/voice/chat`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${state.token}` },
+            body: formData
+          });
+        } catch (fetchError) {
+          console.error('[VOICE] Fetch failed:', fetchError);
+          voiceOverlay.classList.remove('processing');
+          voiceStatus.textContent = 'Erro de rede';
+          voiceTranscription.textContent = 'Nao foi possivel conectar ao servidor. Verifique sua internet.';
+          return;
+        }
 
         console.log('[VOICE] Response status:', response.status);
+
+        // Se token expirou, tenta renovar
+        if (response.status === 401) {
+          voiceOverlay.classList.remove('processing');
+          voiceStatus.textContent = 'Sessao expirada';
+          voiceTranscription.textContent = 'Por favor, faca login novamente.';
+          // Logout automatico
+          setTimeout(() => {
+            hideVoiceOverlay();
+            logout();
+          }, 2000);
+          return;
+        }
+
         const data = await response.json();
         console.log('[VOICE] Response data:', data);
 
