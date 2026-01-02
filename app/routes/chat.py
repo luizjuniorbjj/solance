@@ -15,7 +15,7 @@ from app.config import FREE_MESSAGE_LIMIT, FREE_WARNING_AT, FREE_URGENT_AT, TRIA
 
 # Tipos de imagem aceitos
 ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"]
-MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
+MAX_IMAGE_SIZE = 20 * 1024 * 1024  # 20MB (fotos de celular podem ser grandes)
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
@@ -197,7 +197,7 @@ async def send_message_with_image(
     if len(image_bytes) > MAX_IMAGE_SIZE:
         raise HTTPException(
             status_code=400,
-            detail="Imagem muito grande. Máximo 5MB."
+            detail="Imagem muito grande. Máximo 20MB."
         )
 
     # Converter para base64
