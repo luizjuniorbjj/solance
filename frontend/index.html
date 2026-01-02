@@ -4075,13 +4075,11 @@
               oninput="autoResize(this)"
             ></textarea>
             <div class="input-actions">
-              <!-- Botão de anexar imagem -->
-              <input type="file" id="imageInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none" onchange="handleImageSelect(event)">
-              <button class="attach-btn" id="attachBtn" onclick="document.getElementById('imageInput').click()" title="Anexar imagem">
+              <!-- Botão de anexar arquivo (imagem ou PDF) -->
+              <input type="file" id="imageInput" accept="image/jpeg,image/png,image/gif,image/webp,application/pdf" style="display:none" onchange="handleImageSelect(event)">
+              <button class="attach-btn" id="attachBtn" onclick="document.getElementById('imageInput').click()" title="Anexar imagem ou PDF">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                  <circle cx="8.5" cy="8.5" r="1.5"/>
-                  <polyline points="21 15 16 10 5 21"/>
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
                 </svg>
               </button>
               <button class="mic-btn" id="micBtn" onclick="toggleVoiceInput()" title="Falar mensagem">
@@ -6139,34 +6137,59 @@
       const file = event.target.files[0];
       if (!file) return;
 
-      // Validar tipo
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-      if (!allowedTypes.includes(file.type)) {
-        alert('Tipo de imagem não suportado. Use JPEG, PNG, GIF ou WebP.');
+      // Validar tipo (imagens e PDF)
+      const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      const allowedPdfTypes = ['application/pdf'];
+      const isImage = allowedImageTypes.includes(file.type);
+      const isPdf = allowedPdfTypes.includes(file.type);
+
+      if (!isImage && !isPdf) {
+        alert('Tipo de arquivo não suportado. Use JPEG, PNG, GIF, WebP ou PDF.');
         return;
       }
 
-      // Validar tamanho (20MB - fotos de celular podem ser grandes)
-      if (file.size > 20 * 1024 * 1024) {
-        alert('Imagem muito grande. Máximo 20MB.');
+      // Validar tamanho
+      const maxSize = isPdf ? 10 * 1024 * 1024 : 20 * 1024 * 1024;  // PDF: 10MB, Imagem: 20MB
+      if (file.size > maxSize) {
+        alert(isPdf ? 'PDF muito grande. Máximo 10MB.' : 'Imagem muito grande. Máximo 20MB.');
         return;
       }
 
       state.selectedImage = file;
+      state.selectedFileType = isPdf ? 'pdf' : 'image';
 
       // Mostrar preview
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        document.getElementById('imagePreviewImg').src = e.target.result;
-        document.getElementById('imagePreview').style.display = 'inline-block';
-        document.getElementById('attachBtn').classList.add('has-image');
-        sendBtn.disabled = false;  // Habilitar envio mesmo sem texto
-      };
-      reader.readAsDataURL(file);
+      const previewImg = document.getElementById('imagePreviewImg');
+      const previewContainer = document.getElementById('imagePreview');
+
+      if (isPdf) {
+        // Para PDF, mostrar ícone
+        previewImg.src = 'data:image/svg+xml,' + encodeURIComponent(`
+          <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="%23B8860B" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <text x="7" y="17" font-size="6" fill="%23B8860B" font-family="sans-serif">PDF</text>
+          </svg>
+        `);
+        previewContainer.title = file.name;
+      } else {
+        // Para imagem, mostrar preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          previewImg.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        previewContainer.title = '';
+      }
+
+      previewContainer.style.display = 'inline-block';
+      document.getElementById('attachBtn').classList.add('has-image');
+      sendBtn.disabled = false;  // Habilitar envio mesmo sem texto
     }
 
     function removeImagePreview() {
       state.selectedImage = null;
+      state.selectedFileType = null;
       document.getElementById('imagePreview').style.display = 'none';
       document.getElementById('imagePreviewImg').src = '';
       document.getElementById('imageInput').value = '';
@@ -6180,10 +6203,10 @@
 
     async function sendMessage() {
       const message = messageInput.value.trim();
-      const hasImage = state.selectedImage !== null;
+      const hasFile = state.selectedImage !== null;
 
-      // Precisa ter mensagem OU imagem
-      if (!message && !hasImage) return;
+      // Precisa ter mensagem OU arquivo
+      if (!message && !hasFile) return;
       if (state.isLoading) return;
 
       if (!state.token) {
@@ -6194,20 +6217,26 @@
       welcomeScreen.style.display = 'none';
       chatMessages.style.display = 'block';
 
-      // Guardar imagem antes de limpar
-      const imageToSend = state.selectedImage;
+      // Guardar arquivo antes de limpar
+      const fileToSend = state.selectedImage;
+      const fileType = state.selectedFileType;
 
       messageInput.value = '';
       messageInput.style.height = 'auto';
       sendBtn.disabled = true;
 
-      // Limpar preview de imagem
-      if (imageToSend) {
+      // Limpar preview de arquivo
+      if (fileToSend) {
         removeImagePreview();
       }
 
-      // Mostrar mensagem do usuário (com indicador de imagem se houver)
-      const displayMessage = imageToSend ? `📷 ${message || 'Imagem enviada'}` : message;
+      // Mostrar mensagem do usuário (com indicador se houver arquivo)
+      let displayMessage = message;
+      if (fileToSend) {
+        const icon = fileType === 'pdf' ? '📄' : '📷';
+        const label = fileType === 'pdf' ? 'PDF enviado' : 'Imagem enviada';
+        displayMessage = `${icon} ${message || label}`;
+      }
       state.messages.push({ role: 'user', content: displayMessage });
       renderMessage('user', displayMessage);
 
@@ -6217,16 +6246,16 @@
       try {
         let response;
 
-        if (imageToSend) {
-          // Enviar com imagem usando FormData
+        if (fileToSend) {
+          // Enviar com arquivo usando FormData
           const formData = new FormData();
           formData.append('message', message);
-          formData.append('image', imageToSend);
+          formData.append('file', fileToSend);
           if (state.conversationId) {
             formData.append('conversation_id', state.conversationId);
           }
 
-          response = await fetch(`${API_URL}/chat/with-image`, {
+          response = await fetch(`${API_URL}/chat/with-file`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${state.token}`

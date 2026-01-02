@@ -12,9 +12,12 @@ from app.database import get_db, Database
 from app.ai_service import AIService
 from app.security import rate_limiter
 from app.config import FREE_MESSAGE_LIMIT, FREE_WARNING_AT, FREE_URGENT_AT, TRIAL_MESSAGES_LIMIT_ANONYMOUS
+from app.pdf_service import pdf_to_images, MAX_PDF_SIZE
 
-# Tipos de imagem aceitos
+# Tipos de arquivo aceitos
 ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+ALLOWED_PDF_TYPES = ["application/pdf"]
+ALLOWED_FILE_TYPES = ALLOWED_IMAGE_TYPES + ALLOWED_PDF_TYPES
 MAX_IMAGE_SIZE = 20 * 1024 * 1024  # 20MB (fotos de celular podem ser grandes)
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
@@ -165,16 +168,16 @@ async def send_message(
     )
 
 
-@router.post("/with-image", response_model=ChatResponse)
-async def send_message_with_image(
+@router.post("/with-file", response_model=ChatResponse)
+async def send_message_with_file(
     message: str = Form(""),
     conversation_id: Optional[str] = Form(None),
-    image: UploadFile = File(...),
+    file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user),
     db: Database = Depends(get_db)
 ):
     """
-    Envia mensagem com imagem para análise pela IA
+    Envia mensagem com arquivo (imagem ou PDF) para análise pela IA
     """
     user_id = current_user["user_id"]
 
@@ -185,23 +188,50 @@ async def send_message_with_image(
             detail="Muitas mensagens. Aguarde um momento."
         )
 
-    # Validar tipo de imagem
-    if image.content_type not in ALLOWED_IMAGE_TYPES:
+    # Validar tipo de arquivo
+    is_pdf = file.content_type in ALLOWED_PDF_TYPES
+    is_image = file.content_type in ALLOWED_IMAGE_TYPES
+
+    if not is_pdf and not is_image:
         raise HTTPException(
             status_code=400,
-            detail=f"Tipo de imagem não suportado. Use: JPEG, PNG, GIF ou WebP"
+            detail="Tipo de arquivo não suportado. Use: JPEG, PNG, GIF, WebP ou PDF"
         )
 
-    # Ler e validar tamanho
-    image_bytes = await image.read()
-    if len(image_bytes) > MAX_IMAGE_SIZE:
+    # Ler arquivo
+    file_bytes = await file.read()
+
+    # Validar tamanho
+    if is_pdf and len(file_bytes) > MAX_PDF_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"PDF muito grande. Máximo {MAX_PDF_SIZE // (1024*1024)}MB."
+        )
+    elif is_image and len(file_bytes) > MAX_IMAGE_SIZE:
         raise HTTPException(
             status_code=400,
             detail="Imagem muito grande. Máximo 20MB."
         )
 
-    # Converter para base64
-    image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+    # Processar arquivo
+    image_data = None
+    image_media_type = None
+    images = None
+
+    if is_pdf:
+        try:
+            images = pdf_to_images(file_bytes)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Erro ao processar PDF: {str(e)}"
+            )
+    else:
+        # Imagem normal
+        image_data = base64.b64encode(file_bytes).decode('utf-8')
+        image_media_type = file.content_type
 
     # Buscar usuário e verificar limites
     user = await db.get_user_by_id(user_id)
@@ -217,24 +247,26 @@ async def send_message_with_image(
                 detail="Você atingiu o limite gratuito. Assine para continuar conversando!"
             )
 
-    # Processar mensagem com imagem
+    # Processar mensagem com arquivo
     ai_service = AIService(db)
     try:
+        default_msg = "O que você vê neste PDF?" if is_pdf else "O que você vê nesta imagem?"
         result = await ai_service.chat(
             user_id=user_id,
-            message=message or "O que você vê nesta imagem?",
+            message=message or default_msg,
             conversation_id=conversation_id,
-            image_data=image_base64,
-            image_media_type=image.content_type
+            image_data=image_data,
+            image_media_type=image_media_type,
+            images=images
         )
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
-        print(f"[CHAT IMAGE ERROR] User {user_id}: {str(e)}")
-        print(f"[CHAT IMAGE ERROR] Traceback: {error_details}")
+        print(f"[CHAT FILE ERROR] User {user_id}: {str(e)}")
+        print(f"[CHAT FILE ERROR] Traceback: {error_details}")
         raise HTTPException(
             status_code=500,
-            detail=f"Erro ao processar imagem: {str(e)}"
+            detail=f"Erro ao processar arquivo: {str(e)}"
         )
 
     # Calcular aviso de limite
@@ -248,9 +280,10 @@ async def send_message_with_image(
             limit_warning = "soft"
 
     # Log de auditoria
+    action = "message_with_pdf_sent" if is_pdf else "message_with_image_sent"
     await db.log_audit(
         user_id=user_id,
-        action="message_with_image_sent",
+        action=action,
         details={"conversation_id": result["conversation_id"]}
     )
 
@@ -262,6 +295,29 @@ async def send_message_with_image(
         messages_used=messages_used if not is_premium else None,
         messages_limit=FREE_MESSAGE_LIMIT if not is_premium else None,
         limit_warning=limit_warning
+    )
+
+
+# Manter endpoint antigo para compatibilidade
+@router.post("/with-image", response_model=ChatResponse)
+async def send_message_with_image(
+    message: str = Form(""),
+    conversation_id: Optional[str] = Form(None),
+    image: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """
+    Envia mensagem com imagem (compatibilidade - use /with-file)
+    """
+    # Redirecionar para o novo endpoint
+    image.file.seek(0)  # Reset file position
+    return await send_message_with_file(
+        message=message,
+        conversation_id=conversation_id,
+        file=image,
+        current_user=current_user,
+        db=db
     )
 
 

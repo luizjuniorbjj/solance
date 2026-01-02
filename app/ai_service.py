@@ -53,8 +53,9 @@ class AIService:
         user_id: str,
         message: str,
         conversation_id: Optional[str] = None,
-        image_data: Optional[str] = None,  # Base64 encoded image
-        image_media_type: Optional[str] = None  # image/jpeg, image/png, etc.
+        image_data: Optional[str] = None,  # Base64 encoded image (single)
+        image_media_type: Optional[str] = None,  # image/jpeg, image/png, etc.
+        images: Optional[List[tuple]] = None  # Lista de (base64, media_type) para PDFs
     ) -> Dict:
         """
         Processa mensagem do usuário com contexto completo
@@ -182,30 +183,46 @@ class AIService:
         for msg in messages:
             api_messages.append({"role": msg["role"], "content": msg["content"]})
 
-        # Adicionar mensagem atual (com suporte a imagem)
-        if image_data and image_media_type:
-            # Mensagem multimodal: imagem + texto
-            user_content = [
-                {
+        # Adicionar mensagem atual (com suporte a imagem/PDF)
+        has_images = image_data or images
+        if has_images:
+            user_content = []
+
+            # Múltiplas imagens (PDF)
+            if images:
+                for img_data, img_type in images:
+                    user_content.append({
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": img_type,
+                            "data": img_data
+                        }
+                    })
+            # Imagem única
+            elif image_data and image_media_type:
+                user_content.append({
                     "type": "image",
                     "source": {
                         "type": "base64",
                         "media_type": image_media_type,
                         "data": image_data
                     }
-                },
-                {
-                    "type": "text",
-                    "text": message if message else "O que você vê nesta imagem?"
-                }
-            ]
+                })
+
+            # Adicionar texto
+            user_content.append({
+                "type": "text",
+                "text": message if message else "O que você vê nesta imagem?"
+            })
+
             api_messages.append({"role": "user", "content": user_content})
         else:
             # Mensagem apenas texto
             api_messages.append({"role": "user", "content": message})
 
-        # 8. Chamar Claude (tokens maiores para imagens)
-        max_tokens = MAX_TOKENS_RESPONSE * 2 if image_data else MAX_TOKENS_RESPONSE
+        # 8. Chamar Claude (tokens maiores para imagens/PDFs)
+        max_tokens = MAX_TOKENS_RESPONSE * 2 if has_images else MAX_TOKENS_RESPONSE
         response = self.client.messages.create(
             model=model,
             max_tokens=max_tokens,
@@ -216,8 +233,13 @@ class AIService:
         reply = response.content[0].text
         tokens_used = response.usage.input_tokens + response.usage.output_tokens
 
-        # 9. Salvar mensagens no banco (indicar se tinha imagem)
-        saved_content = f"[📷 Imagem enviada]\n{message}" if image_data else message
+        # 9. Salvar mensagens no banco (indicar se tinha imagem/PDF)
+        if images:
+            saved_content = f"[📄 PDF enviado - {len(images)} páginas]\n{message}"
+        elif image_data:
+            saved_content = f"[📷 Imagem enviada]\n{message}"
+        else:
+            saved_content = message
         await self.db.save_message(
             conversation_id=conversation_id,
             user_id=user_id,
