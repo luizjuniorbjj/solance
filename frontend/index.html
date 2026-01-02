@@ -6673,8 +6673,13 @@
     }
 
     async function sendVoiceOverlay() {
+      console.log('[VOICE] sendVoiceOverlay called');
+      console.log('[VOICE] mediaRecorder state:', mediaRecorder?.state);
+      console.log('[VOICE] audioChunks length:', audioChunks?.length);
+
       // Se ainda está gravando, para a gravação e aguarda o blob ser criado
       if (mediaRecorder && mediaRecorder.state === 'recording') {
+        console.log('[VOICE] Stopping recording...');
         // Criar Promise que será resolvida quando onstop terminar
         const waitForStop = new Promise(resolve => {
           voiceRecordingResolve = resolve;
@@ -6682,10 +6687,15 @@
         mediaRecorder.stop();
         // Aguarda o onstop completar
         await waitForStop;
+        console.log('[VOICE] Recording stopped, blob created');
       }
 
-      if (!currentVoiceAudioBlob) {
+      console.log('[VOICE] currentVoiceAudioBlob:', currentVoiceAudioBlob);
+      console.log('[VOICE] Blob size:', currentVoiceAudioBlob?.size);
+
+      if (!currentVoiceAudioBlob || currentVoiceAudioBlob.size < 100) {
         voiceStatus.textContent = 'Nenhum audio gravado';
+        console.log('[VOICE] No audio blob or too small');
         setTimeout(() => hideVoiceOverlay(), 1500);
         return;
       }
@@ -6696,12 +6706,19 @@
       voiceStatus.textContent = 'Processando...';
 
       try {
+        console.log('[VOICE] Preparing FormData...');
         const formData = new FormData();
-        formData.append('audio', currentVoiceAudioBlob, 'audio.webm');
+        // Usar extensão correta baseada no mimeType
+        const extension = currentMimeType.includes('mp4') ? 'audio.mp4' : 'audio.webm';
+        formData.append('audio', currentVoiceAudioBlob, extension);
         if (state.conversationId) {
           formData.append('conversation_id', state.conversationId);
         }
         formData.append('return_audio', 'true');
+
+        console.log('[VOICE] Sending to API...', API_URL + '/voice/chat');
+        console.log('[VOICE] Token exists:', !!state.token);
+        console.log('[VOICE] MimeType:', currentMimeType);
 
         const response = await fetch(`${API_URL}/voice/chat`, {
           method: 'POST',
@@ -6709,7 +6726,9 @@
           body: formData
         });
 
+        console.log('[VOICE] Response status:', response.status);
         const data = await response.json();
+        console.log('[VOICE] Response data:', data);
 
         if (data.success) {
           // Atualiza conversation_id
@@ -6754,10 +6773,12 @@
         }
 
       } catch (error) {
-        console.error('Voice chat error:', error);
+        console.error('[VOICE] Voice chat error:', error);
+        console.error('[VOICE] Error name:', error.name);
+        console.error('[VOICE] Error message:', error.message);
         voiceStatus.textContent = 'Erro de conexao';
-        voiceTranscription.textContent = 'Verifique sua internet e tente novamente';
-        setTimeout(() => hideVoiceOverlay(), 2000);
+        voiceTranscription.textContent = error.message || 'Verifique sua internet e tente novamente';
+        setTimeout(() => hideVoiceOverlay(), 3000);
       }
     }
 
