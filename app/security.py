@@ -16,7 +16,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import bcrypt
 import jwt
 
-from app.config import SECRET_KEY, ENCRYPTION_KEY, JWT_ALGORITHM, JWT_EXPIRATION_HOURS
+from app.config import SECRET_KEY, ENCRYPTION_KEY, JWT_ALGORITHM, JWT_ACCESS_TOKEN_HOURS, JWT_REFRESH_TOKEN_DAYS
 
 
 # ============================================
@@ -45,13 +45,13 @@ def verify_password(password: str, hashed: str) -> bool:
 
 def create_access_token(user_id: str, email: str) -> str:
     """
-    Cria token JWT para autenticação
+    Cria token JWT para autenticação (curta duração - 1h)
     """
     payload = {
         "sub": str(user_id),
         "email": email,
         "iat": datetime.utcnow(),
-        "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS),
+        "exp": datetime.utcnow() + timedelta(hours=JWT_ACCESS_TOKEN_HOURS),
         "type": "access"
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=JWT_ALGORITHM)
@@ -59,12 +59,12 @@ def create_access_token(user_id: str, email: str) -> str:
 
 def create_refresh_token(user_id: str) -> str:
     """
-    Cria refresh token para renovação
+    Cria refresh token para renovação (longa duração - 30 dias)
     """
     payload = {
         "sub": str(user_id),
         "iat": datetime.utcnow(),
-        "exp": datetime.utcnow() + timedelta(days=30),
+        "exp": datetime.utcnow() + timedelta(days=JWT_REFRESH_TOKEN_DAYS),
         "type": "refresh"
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=JWT_ALGORITHM)

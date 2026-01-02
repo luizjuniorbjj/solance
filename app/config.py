@@ -39,7 +39,8 @@ if not ENCRYPTION_KEY:
     )
 
 JWT_ALGORITHM = "HS256"
-JWT_EXPIRATION_HOURS = 24 * 7  # 7 dias
+JWT_ACCESS_TOKEN_HOURS = 1  # Access token: 1 hora (segurança)
+JWT_REFRESH_TOKEN_DAYS = 30  # Refresh token: 30 dias (conveniência)
 
 # ============================================
 # APP SETTINGS
