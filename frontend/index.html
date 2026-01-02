@@ -5940,8 +5940,8 @@
         const formData = new FormData();
         formData.append('audio', audioBlob, 'audio.webm');
 
-        // Chama endpoint de transcrição
-        const response = await fetch(`${API_URL}/voice/transcribe`, {
+        // Chama endpoint de transcrição (STT - Speech to Text)
+        const response = await fetch(`${API_URL}/voice/stt`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${state.token}`
