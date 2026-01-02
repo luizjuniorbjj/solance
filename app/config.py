@@ -27,16 +27,16 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 SECRET_KEY = os.getenv("SECRET_KEY", "sua-chave-secreta-muito-longa-aqui-32chars")
 
 # ENCRYPTION_KEY - CRÍTICO: Esta chave NUNCA pode mudar ou os dados serão perdidos!
-# A chave de produção é hardcoded como fallback final para garantir que NUNCA seja perdida.
-# Em produção, sempre defina via variável de ambiente para segurança adicional.
-_PRODUCTION_ENCRYPTION_KEY = "SH_PROD_ENC_2024_v1_NEVER_CHANGE_THIS_KEY!"  # Fallback permanente
-ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY", _PRODUCTION_ENCRYPTION_KEY)
+# OBRIGATÓRIO: Deve ser configurada via variável de ambiente em produção.
+# Se você não tem a chave, entre em contato com o administrador do sistema.
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
 
-# Validação e log de segurança
-if ENCRYPTION_KEY == "sua-chave-de-criptografia-32chars":
-    print("[CRITICAL] ENCRYPTION_KEY está usando valor de desenvolvimento! Configure em produção.")
-elif ENCRYPTION_KEY == _PRODUCTION_ENCRYPTION_KEY:
-    print("[INFO] ENCRYPTION_KEY usando fallback de produção (seguro).")
+if not ENCRYPTION_KEY:
+    raise RuntimeError(
+        "[CRITICAL] ENCRYPTION_KEY não configurada! "
+        "Esta variável é OBRIGATÓRIA para criptografia de dados. "
+        "Configure no Railway ou arquivo .env antes de iniciar."
+    )
 
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = 24 * 7  # 7 dias

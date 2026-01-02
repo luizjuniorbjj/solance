@@ -1,10 +1,21 @@
 """
 Script para adicionar tabelas faltantes no Railway PostgreSQL
+
+IMPORTANTE: Configure DATABASE_URL como variável de ambiente antes de executar.
+Nunca commite credenciais de banco de dados no código!
 """
 import asyncio
 import asyncpg
+import os
 
-RAILWAY_DATABASE_URL = "postgresql://postgres:xHvevFIkoLZjOhnVIpgNfCBohVwZkOqi@switchback.proxy.rlwy.net:42816/railway"
+# SEGURANÇA: Usar variável de ambiente - nunca hardcode credenciais!
+RAILWAY_DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not RAILWAY_DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL não configurada! "
+        "Configure a variável de ambiente antes de executar este script."
+    )
 
 MISSING_TABLES_SQL = """
 -- ============================================

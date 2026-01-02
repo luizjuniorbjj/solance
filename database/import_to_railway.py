@@ -1,13 +1,22 @@
 """
 Script para importar schema.sql no Railway PostgreSQL
+
+IMPORTANTE: Configure DATABASE_URL como variável de ambiente antes de executar.
+Nunca commite credenciais de banco de dados no código!
 """
 import asyncio
 import asyncpg
 import sys
+import os
 
-# Cole aqui a URL de conexão do Railway (Public Network)
-# Exemplo: postgresql://postgres:SENHA@switchback.proxy.rlwy.net:42816/railway
-RAILWAY_DATABASE_URL = "postgresql://postgres:xHvevFIkoLZjOhnVIpgNfCBohVwZkOqi@switchback.proxy.rlwy.net:42816/railway"
+# SEGURANÇA: Usar variável de ambiente - nunca hardcode credenciais!
+RAILWAY_DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not RAILWAY_DATABASE_URL:
+    print("❌ ERRO: DATABASE_URL não configurada!")
+    print("Configure a variável de ambiente antes de executar:")
+    print("  export DATABASE_URL='postgresql://user:pass@host:port/db'")
+    sys.exit(1)
 
 async def import_schema():
     print("🔌 Conectando ao Railway PostgreSQL...")
