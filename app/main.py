@@ -639,6 +639,16 @@ async def serve_assetlinks():
     )
 
 
+@app.get("/static/AiSyster.apk", tags=["TWA"])
+async def serve_apk():
+    """Serve APK para download direto com MIME type correto"""
+    return FileResponse(
+        FRONTEND_DIR / "static" / "AiSyster.apk",
+        media_type="application/vnd.android.package-archive",
+        filename="AiSyster.apk"
+    )
+
+
 # ============================================
 # SEO FILES
 # ============================================
