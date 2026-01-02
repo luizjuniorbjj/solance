@@ -1,11 +1,11 @@
 {
   "name": "AiSyster",
-  "short_name": "AiSyster",
+  "short_name": "AiS",
   "description": "Sua companheira AI para apoio no dia a dia",
   "start_url": "/app",
   "display": "standalone",
-  "background_color": "#15182d",
-  "theme_color": "#15182d",
+  "background_color": "#0A1B4D",
+  "theme_color": "#0A1B4D",
   "orientation": "portrait",
   "scope": "/",
   "id": "/app",
@@ -13,14 +13,24 @@
     {
       "src": "/static/icons/icon-192x192.png",
       "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/icons/icon-192x192-maskable.png",
+      "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     },
     {
       "src": "/static/icons/icon-512x512.png",
       "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/icons/icon-512x512-maskable.png",
+      "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     }
   ]
 }
