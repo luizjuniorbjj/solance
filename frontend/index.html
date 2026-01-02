@@ -1524,12 +1524,31 @@
       display: flex;
       gap: 8px;
       margin-top: 8px;
-      opacity: 0;
       transition: opacity 0.2s ease;
     }
 
-    .message:hover .message-actions {
+    /* Botão Ouvir visível por padrão */
+    .message-actions .listen-btn {
       opacity: 1;
+    }
+
+    /* Botão Ouvir esconde após ser usado */
+    .message-actions .listen-btn.listened {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Botão Reportar escondido por padrão */
+    .message-actions .feedback-btn {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Ao clicar na mensagem, mostra todos os botões */
+    .message.show-actions .message-actions .listen-btn.listened,
+    .message.show-actions .message-actions .feedback-btn {
+      opacity: 1;
+      pointer-events: auto;
     }
 
     .feedback-btn {
@@ -6002,6 +6021,15 @@
         </div>
       `;
 
+      // Clique na mensagem da IA mostra/esconde botões
+      if (role === 'assistant') {
+        messageDiv.addEventListener('click', (e) => {
+          // Não toggle se clicou em um botão
+          if (e.target.closest('button')) return;
+          messageDiv.classList.toggle('show-actions');
+        });
+      }
+
       chatMessages.appendChild(messageDiv);
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }
@@ -7077,6 +7105,7 @@
 
         currentAudio.onended = () => {
           button.classList.remove('playing');
+          button.classList.add('listened'); // Esconde o botão após ouvir
           currentAudio = null;
           currentPlayingBtn = null;
           URL.revokeObjectURL(audioUrl);
