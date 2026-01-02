@@ -2,7 +2,7 @@
       "relation": ["delegate_permission/common.handle_all_urls"],
       "target": {
         "namespace": "android_app",
-        "package_name": "com.aisyster.app",
-        "sha256_cert_fingerprints": ["8D:CD:8E:B8:44:60:E7:3C:09:C2:8C:87:31:AB:A5:B3:0B:D9:EF:4C:A3:8E:26:12:CC:34:2B:42:36:41:FF:09"]
+        "package_name": "com.aisyster.www.twa",
+        "sha256_cert_fingerprints": ["DD:F3:48:04:95:65:08:24:31:C7:D9:A7:E6:05:1E:AA:61:12:33:61:A5:58:4E:7C:4F:93:39:7A:5C:8A:A0:50"]
       }
     }]
