@@ -2223,6 +2223,344 @@
       to { transform: rotate(360deg); }
     }
 
+    /* ============================================ */
+    /* IMMERSIVE VOICE MODE OVERLAY                 */
+    /* ============================================ */
+    .voice-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .voice-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .voice-overlay-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .voice-overlay-cancel {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .voice-overlay-cancel:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .voice-overlay-cancel svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .voice-overlay-timer {
+      font-size: 18px;
+      color: rgba(255,255,255,0.8);
+      font-weight: 500;
+      font-family: monospace;
+    }
+
+    .voice-overlay-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      flex: 1;
+      width: 100%;
+      padding: 20px;
+    }
+
+    .voice-overlay-status {
+      font-size: 20px;
+      color: white;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    /* Waveform Animation */
+    .voice-waveform {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 120px;
+    }
+
+    .voice-waveform-bar {
+      width: 6px;
+      background: linear-gradient(to top, #667eea, #764ba2);
+      border-radius: 3px;
+      animation: waveform-idle 1.5s ease-in-out infinite;
+    }
+
+    .voice-waveform-bar:nth-child(1) { height: 30px; animation-delay: 0s; }
+    .voice-waveform-bar:nth-child(2) { height: 50px; animation-delay: 0.1s; }
+    .voice-waveform-bar:nth-child(3) { height: 70px; animation-delay: 0.2s; }
+    .voice-waveform-bar:nth-child(4) { height: 90px; animation-delay: 0.3s; }
+    .voice-waveform-bar:nth-child(5) { height: 100px; animation-delay: 0.4s; }
+    .voice-waveform-bar:nth-child(6) { height: 90px; animation-delay: 0.5s; }
+    .voice-waveform-bar:nth-child(7) { height: 70px; animation-delay: 0.6s; }
+    .voice-waveform-bar:nth-child(8) { height: 50px; animation-delay: 0.7s; }
+    .voice-waveform-bar:nth-child(9) { height: 30px; animation-delay: 0.8s; }
+
+    .voice-overlay.recording .voice-waveform-bar {
+      animation: waveform-active 0.5s ease-in-out infinite alternate;
+    }
+
+    .voice-overlay.processing .voice-waveform-bar {
+      animation: waveform-processing 0.8s ease-in-out infinite;
+    }
+
+    .voice-overlay.playing .voice-waveform-bar {
+      animation: waveform-playing 0.4s ease-in-out infinite alternate;
+    }
+
+    @keyframes waveform-idle {
+      0%, 100% { transform: scaleY(0.4); opacity: 0.5; }
+      50% { transform: scaleY(0.6); opacity: 0.7; }
+    }
+
+    @keyframes waveform-active {
+      0% { transform: scaleY(0.3); }
+      100% { transform: scaleY(1); }
+    }
+
+    @keyframes waveform-processing {
+      0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
+      50% { transform: scaleY(0.8); opacity: 1; }
+    }
+
+    @keyframes waveform-playing {
+      0% { transform: scaleY(0.4); background: linear-gradient(to top, #28a745, #20c997); }
+      100% { transform: scaleY(1); background: linear-gradient(to top, #20c997, #28a745); }
+    }
+
+    /* Pulse Circle (alternative to waveform) */
+    .voice-pulse-container {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      display: none;
+    }
+
+    .voice-overlay.recording .voice-pulse-container {
+      display: flex;
+    }
+
+    .voice-overlay.recording .voice-waveform {
+      display: flex;
+    }
+
+    .voice-pulse {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      animation: voice-pulse 2s ease-in-out infinite;
+    }
+
+    .voice-pulse::before,
+    .voice-pulse::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 2px solid rgba(102, 126, 234, 0.5);
+    }
+
+    .voice-pulse::before {
+      width: 130px;
+      height: 130px;
+      animation: pulse-ring 2s ease-out infinite;
+    }
+
+    .voice-pulse::after {
+      width: 160px;
+      height: 160px;
+      animation: pulse-ring 2s ease-out infinite 0.5s;
+    }
+
+    @keyframes voice-pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.1); }
+    }
+
+    @keyframes pulse-ring {
+      0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+    }
+
+    /* Transcription Display */
+    .voice-transcription {
+      max-width: 80%;
+      text-align: center;
+      color: rgba(255,255,255,0.9);
+      font-size: 18px;
+      line-height: 1.6;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .voice-transcription.user-text {
+      font-style: italic;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .voice-transcription.ai-text {
+      color: white;
+      font-weight: 500;
+    }
+
+    /* Voice Action Buttons */
+    .voice-overlay-actions {
+      position: absolute;
+      bottom: 40px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      padding: 20px;
+    }
+
+    .voice-action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .voice-action-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .voice-action-btn:active {
+      transform: scale(0.95);
+    }
+
+    .voice-action-btn .btn-circle {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .voice-action-btn .btn-circle svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    .voice-action-btn .btn-label {
+      font-size: 14px;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .voice-action-btn.cancel .btn-circle {
+      background: rgba(255,255,255,0.15);
+      color: white;
+    }
+
+    .voice-action-btn.cancel:hover .btn-circle {
+      background: rgba(255,255,255,0.25);
+    }
+
+    .voice-action-btn.send .btn-circle {
+      background: #dc3545;
+      color: white;
+    }
+
+    .voice-action-btn.send:hover .btn-circle {
+      background: #c82333;
+    }
+
+    .voice-action-btn.send.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    /* Processing State */
+    .voice-overlay.processing .voice-action-btn.send .btn-circle {
+      background: var(--gold);
+      animation: pulse-btn 1s infinite;
+    }
+
+    @keyframes pulse-btn {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    /* Mobile Adjustments */
+    @media (max-width: 480px) {
+      .voice-overlay-status {
+        font-size: 18px;
+      }
+
+      .voice-waveform-bar {
+        width: 5px;
+        gap: 4px;
+      }
+
+      .voice-transcription {
+        font-size: 16px;
+        max-width: 90%;
+      }
+
+      .voice-action-btn .btn-circle {
+        width: 56px;
+        height: 56px;
+      }
+
+      .voice-action-btn .btn-circle svg {
+        width: 24px;
+        height: 24px;
+      }
+    }
+
     .input-hint {
       text-align: center;
       margin-top: 12px;
@@ -4045,6 +4383,58 @@
         <button class="confirm-btn primary" onclick="confirmLogout()">Sair</button>
         <button class="confirm-btn secondary" onclick="hideLogoutModal()">Cancelar</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Immersive Voice Mode Overlay -->
+  <div id="voiceOverlay" class="voice-overlay">
+    <div class="voice-overlay-header">
+      <button class="voice-overlay-cancel" onclick="cancelVoiceOverlay()" title="Cancelar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+      <div class="voice-overlay-timer" id="voiceTimer">00:00</div>
+    </div>
+
+    <div class="voice-overlay-content">
+      <div class="voice-overlay-status" id="voiceStatus">Ouvindo...</div>
+
+      <!-- Waveform Animation -->
+      <div class="voice-waveform" id="voiceWaveform">
+        <div class="voice-waveform-bar"></div>
+        <div class="voice-waveform-bar"></div>
+        <div class="voice-waveform-bar"></div>
+        <div class="voice-waveform-bar"></div>
+        <div class="voice-waveform-bar"></div>
+        <div class="voice-waveform-bar"></div>
+        <div class="voice-waveform-bar"></div>
+        <div class="voice-waveform-bar"></div>
+        <div class="voice-waveform-bar"></div>
+      </div>
+
+      <!-- Transcription Display -->
+      <div class="voice-transcription" id="voiceTranscription"></div>
+    </div>
+
+    <div class="voice-overlay-actions">
+      <button class="voice-action-btn cancel" onclick="cancelVoiceOverlay()">
+        <div class="btn-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </div>
+        <span class="btn-label">Cancelar</span>
+      </button>
+
+      <button class="voice-action-btn send" id="voiceSendBtn" onclick="sendVoiceOverlay()">
+        <div class="btn-circle">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="6" width="12" height="12" rx="2"/>
+          </svg>
+        </div>
+        <span class="btn-label">Enviar</span>
+      </button>
     </div>
   </div>
 
@@ -6173,8 +6563,18 @@
     }
 
     // ============================================
-    // MODO VOZ - Conversa completa por voz
+    // MODO VOZ IMERSIVO - Interface estilo ChatGPT
     // ============================================
+    const voiceOverlay = document.getElementById('voiceOverlay');
+    const voiceTimer = document.getElementById('voiceTimer');
+    const voiceStatus = document.getElementById('voiceStatus');
+    const voiceTranscription = document.getElementById('voiceTranscription');
+    const voiceSendBtn = document.getElementById('voiceSendBtn');
+    let voiceTimerInterval = null;
+    let voiceRecordingSeconds = 0;
+    let currentVoiceAudioBlob = null;
+    let voiceResponseAudio = null;
+
     async function startVoiceMode() {
       if (!state.token) {
         alert('Faca login para usar o modo voz.');
@@ -6202,46 +6602,100 @@
 
         mediaRecorder.onstop = async () => {
           if (audioStream) audioStream.getTracks().forEach(track => track.stop());
+          stopVoiceTimer();
 
           if (audioChunks.length === 0) {
-            resetVoiceModeUI();
+            hideVoiceOverlay();
             return;
           }
 
-          const audioBlob = new Blob(audioChunks, { type: currentMimeType });
-          showVoiceToast('processing', 'Processando...', 'Transcrevendo e enviando');
-          await sendVoiceChat(audioBlob);
+          currentVoiceAudioBlob = new Blob(audioChunks, { type: currentMimeType });
         };
 
         mediaRecorder.start(100);
         isVoiceMode = true;
         voiceModeBtn.classList.add('active');
-        showVoiceToast('recording', 'Modo voz ativo', 'Fale sua mensagem e clique para enviar');
+        showVoiceOverlay();
+        startVoiceTimer();
 
       } catch (error) {
         console.error('Error starting voice mode:', error);
         handleMicError(error);
-        resetVoiceModeUI();
+        hideVoiceOverlay();
       }
     }
 
-    function stopVoiceMode() {
+    function showVoiceOverlay() {
+      voiceOverlay.classList.add('active', 'recording');
+      voiceOverlay.classList.remove('processing', 'playing');
+      voiceStatus.textContent = 'Ouvindo...';
+      voiceTranscription.textContent = '';
+      voiceTranscription.className = 'voice-transcription';
+      voiceTimer.textContent = '00:00';
+      voiceRecordingSeconds = 0;
+      currentVoiceAudioBlob = null;
+    }
+
+    function hideVoiceOverlay() {
+      voiceOverlay.classList.remove('active', 'recording', 'processing', 'playing');
+      stopVoiceTimer();
+      isVoiceMode = false;
+      voiceModeBtn.classList.remove('active');
+      if (voiceResponseAudio) {
+        voiceResponseAudio.pause();
+        voiceResponseAudio = null;
+      }
+    }
+
+    function startVoiceTimer() {
+      voiceRecordingSeconds = 0;
+      voiceTimerInterval = setInterval(() => {
+        voiceRecordingSeconds++;
+        const mins = Math.floor(voiceRecordingSeconds / 60).toString().padStart(2, '0');
+        const secs = (voiceRecordingSeconds % 60).toString().padStart(2, '0');
+        voiceTimer.textContent = `${mins}:${secs}`;
+      }, 1000);
+    }
+
+    function stopVoiceTimer() {
+      if (voiceTimerInterval) {
+        clearInterval(voiceTimerInterval);
+        voiceTimerInterval = null;
+      }
+    }
+
+    function cancelVoiceOverlay() {
       if (mediaRecorder && mediaRecorder.state !== 'inactive') {
         mediaRecorder.stop();
       }
-      isVoiceMode = false;
+      if (audioStream) {
+        audioStream.getTracks().forEach(track => track.stop());
+      }
+      hideVoiceOverlay();
     }
 
-    function resetVoiceModeUI() {
-      isVoiceMode = false;
-      voiceModeBtn.classList.remove('active');
-      hideVoiceToast();
-    }
+    async function sendVoiceOverlay() {
+      // Se ainda está gravando, para a gravação primeiro
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        // Aguarda o blob ser criado
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
 
-    async function sendVoiceChat(audioBlob) {
+      if (!currentVoiceAudioBlob) {
+        voiceStatus.textContent = 'Nenhum audio gravado';
+        setTimeout(() => hideVoiceOverlay(), 1500);
+        return;
+      }
+
+      // Muda para estado de processamento
+      voiceOverlay.classList.remove('recording');
+      voiceOverlay.classList.add('processing');
+      voiceStatus.textContent = 'Processando...';
+
       try {
         const formData = new FormData();
-        formData.append('audio', audioBlob, 'audio.webm');
+        formData.append('audio', currentVoiceAudioBlob, 'audio.webm');
         if (state.conversationId) {
           formData.append('conversation_id', state.conversationId);
         }
@@ -6261,37 +6715,97 @@
             state.conversationId = data.conversation_id;
           }
 
-          // Mostra a mensagem do usuário
+          // Mostra a transcrição do usuário
           if (data.user_text) {
+            voiceTranscription.textContent = `"${data.user_text}"`;
+            voiceTranscription.className = 'voice-transcription user-text';
             addMessage('user', data.user_text);
           }
 
-          // Mostra a resposta da AiSyster
+          // Espera um momento para mostrar a transcrição
+          await new Promise(resolve => setTimeout(resolve, 800));
+
+          // Mostra resposta da IA e toca áudio
           if (data.response_text) {
+            voiceStatus.textContent = 'AiSyster';
+            voiceTranscription.textContent = data.response_text;
+            voiceTranscription.className = 'voice-transcription ai-text';
             addMessage('assistant', data.response_text);
           }
 
-          // Toca o áudio da resposta se disponível
+          // Toca o áudio da resposta
           if (data.response_audio_base64) {
-            playResponseAudio(data.response_audio_base64);
+            voiceOverlay.classList.remove('processing');
+            voiceOverlay.classList.add('playing');
+            await playVoiceResponseInOverlay(data.response_audio_base64);
           }
 
-          showVoiceToast('success', 'Mensagem enviada', '');
-
-          // Scroll para a última mensagem
           scrollToBottom();
 
+          // Fecha o overlay após o áudio terminar ou após delay
+          setTimeout(() => hideVoiceOverlay(), 1500);
+
         } else {
-          showVoiceToast('success', 'Erro', data.error || 'Nao foi possivel processar');
+          voiceStatus.textContent = 'Erro';
+          voiceTranscription.textContent = data.error || 'Nao foi possivel processar';
+          setTimeout(() => hideVoiceOverlay(), 2000);
         }
 
       } catch (error) {
         console.error('Voice chat error:', error);
-        hideVoiceToast();
-        alert('Erro no modo voz. Verifique sua conexao.');
-      } finally {
-        resetVoiceModeUI();
+        voiceStatus.textContent = 'Erro de conexao';
+        voiceTranscription.textContent = 'Verifique sua internet e tente novamente';
+        setTimeout(() => hideVoiceOverlay(), 2000);
       }
+    }
+
+    function playVoiceResponseInOverlay(base64Audio) {
+      return new Promise((resolve) => {
+        try {
+          const audioData = atob(base64Audio);
+          const arrayBuffer = new ArrayBuffer(audioData.length);
+          const uint8Array = new Uint8Array(arrayBuffer);
+          for (let i = 0; i < audioData.length; i++) {
+            uint8Array[i] = audioData.charCodeAt(i);
+          }
+          const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+          const url = URL.createObjectURL(blob);
+          voiceResponseAudio = new Audio(url);
+          voiceResponseAudio.play();
+          voiceResponseAudio.onended = () => {
+            URL.revokeObjectURL(url);
+            voiceResponseAudio = null;
+            resolve();
+          };
+          voiceResponseAudio.onerror = () => {
+            URL.revokeObjectURL(url);
+            voiceResponseAudio = null;
+            resolve();
+          };
+        } catch (e) {
+          console.error('Error playing voice response:', e);
+          resolve();
+        }
+      });
+    }
+
+    function stopVoiceMode() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+      isVoiceMode = false;
+    }
+
+    function resetVoiceModeUI() {
+      isVoiceMode = false;
+      voiceModeBtn.classList.remove('active');
+      hideVoiceOverlay();
+    }
+
+    async function sendVoiceChat(audioBlob) {
+      // Mantido para compatibilidade, mas agora usa o overlay
+      currentVoiceAudioBlob = audioBlob;
+      await sendVoiceOverlay();
     }
 
     function playResponseAudio(base64Audio) {
