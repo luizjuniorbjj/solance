@@ -6643,6 +6643,72 @@
         voiceResponseAudio.pause();
         voiceResponseAudio = null;
       }
+      // Para o stream de áudio se estiver ativo
+      if (audioStream) {
+        audioStream.getTracks().forEach(track => track.stop());
+        audioStream = null;
+      }
+    }
+
+    async function restartVoiceRecording() {
+      // Reinicia a gravação para conversa contínua
+      try {
+        // Para qualquer stream anterior
+        if (audioStream) {
+          audioStream.getTracks().forEach(track => track.stop());
+        }
+
+        audioStream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 }
+        });
+
+        currentMimeType = 'audio/webm';
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+          currentMimeType = 'audio/webm;codecs=opus';
+        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+          currentMimeType = 'audio/mp4';
+        }
+
+        mediaRecorder = new MediaRecorder(audioStream, { mimeType: currentMimeType });
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          if (audioStream) audioStream.getTracks().forEach(track => track.stop());
+          stopVoiceTimer();
+
+          if (audioChunks.length > 0) {
+            currentVoiceAudioBlob = new Blob(audioChunks, { type: currentMimeType });
+          }
+
+          if (voiceRecordingResolve) {
+            voiceRecordingResolve();
+            voiceRecordingResolve = null;
+          }
+        };
+
+        mediaRecorder.start(100);
+        isVoiceMode = true;
+
+        // Atualiza o overlay para estado de gravação
+        voiceOverlay.classList.remove('processing', 'playing');
+        voiceOverlay.classList.add('recording');
+        voiceStatus.textContent = 'Ouvindo...';
+        voiceTranscription.textContent = '';
+        voiceTranscription.className = 'voice-transcription';
+        voiceTimer.textContent = '00:00';
+        voiceRecordingSeconds = 0;
+        currentVoiceAudioBlob = null;
+        startVoiceTimer();
+
+      } catch (error) {
+        console.error('Error restarting voice recording:', error);
+        // Se falhar ao reiniciar, fecha o overlay
+        hideVoiceOverlay();
+      }
     }
 
     function startVoiceTimer() {
@@ -6800,13 +6866,15 @@
 
           scrollToBottom();
 
-          // Fecha o overlay após o áudio terminar ou após delay
-          setTimeout(() => hideVoiceOverlay(), 1500);
+          // Reinicia gravação para conversa contínua (não fecha o overlay)
+          await restartVoiceRecording();
 
         } else {
           voiceStatus.textContent = 'Erro';
           voiceTranscription.textContent = data.error || 'Nao foi possivel processar';
-          setTimeout(() => hideVoiceOverlay(), 2000);
+          // Aguarda 2 segundos e reinicia para tentar novamente
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          await restartVoiceRecording();
         }
 
       } catch (error) {
@@ -6817,7 +6885,9 @@
         voiceOverlay.classList.remove('processing');
         voiceStatus.textContent = 'Erro';
         voiceTranscription.textContent = `${error.name || 'Erro'}: ${error.message || 'Conexao falhou'}`;
-        // Não fecha automaticamente - usuário fecha com botão Cancelar
+        // Aguarda e reinicia para tentar novamente
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        await restartVoiceRecording();
       }
     }
 
