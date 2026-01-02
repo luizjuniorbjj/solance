@@ -2065,8 +2065,162 @@
     }
 
     /* Hide mic button if not supported */
-    .mic-btn.hidden {
+    .mic-btn.hidden,
+    .voice-mode-btn.hidden {
       display: none;
+    }
+
+    /* Voice Mode Button - diferente do ditar */
+    .voice-mode-btn {
+      width: 36px;
+      height: 36px;
+      background: var(--gold);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+
+    .voice-mode-btn:hover {
+      background: var(--gold-dark);
+      transform: scale(1.05);
+    }
+
+    .voice-mode-btn.active {
+      background: #dc3545;
+      animation: pulse-recording 1.5s infinite;
+    }
+
+    .voice-mode-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .voice-mode-btn.active .voice-icon {
+      display: none;
+    }
+
+    .voice-mode-btn.active .voice-stop-icon {
+      display: block !important;
+    }
+
+    /* Voice Status Toast */
+    .voice-toast {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: var(--shadow-lg);
+      z-index: 9999;
+      animation: toast-in 0.3s ease;
+      max-width: 90%;
+    }
+
+    .voice-toast.hiding {
+      animation: toast-out 0.3s ease forwards;
+    }
+
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    @keyframes toast-out {
+      from { opacity: 1; transform: translateX(-50%) translateY(0); }
+      to { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+    }
+
+    .voice-toast-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .voice-toast-icon.recording {
+      background: #dc3545;
+      animation: pulse-recording 1.5s infinite;
+    }
+
+    .voice-toast-icon.recording::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+    }
+
+    .voice-toast-icon.processing {
+      background: var(--gold);
+    }
+
+    .voice-toast-icon.processing::after {
+      content: '';
+      width: 16px;
+      height: 16px;
+      border: 2px solid white;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .voice-toast-icon.success {
+      background: #28a745;
+      color: white;
+    }
+
+    .voice-toast-icon.success svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .voice-toast-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .voice-toast-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .voice-toast-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .voice-toast-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+      margin-left: auto;
+    }
+
+    .voice-toast-close:hover {
+      color: var(--text);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     .input-hint {
@@ -4082,7 +4236,8 @@
                   <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
                 </svg>
               </button>
-              <button class="mic-btn" id="micBtn" onclick="toggleVoiceInput()" title="Falar mensagem">
+              <!-- Botão Ditar: transcreve e coloca no campo de texto -->
+              <button class="mic-btn" id="dictateBtn" onclick="toggleDictation()" title="Ditar mensagem">
                 <svg class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
                   <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
@@ -4090,6 +4245,21 @@
                   <line x1="8" y1="23" x2="16" y2="23"/>
                 </svg>
                 <svg class="mic-stop-icon" viewBox="0 0 24 24" fill="currentColor" style="display:none">
+                  <rect x="6" y="6" width="12" height="12" rx="2"/>
+                </svg>
+              </button>
+              <!-- Botão Modo Voz: conversa por voz completa -->
+              <button class="voice-mode-btn" id="voiceModeBtn" onclick="toggleVoiceMode()" title="Modo voz">
+                <svg class="voice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                  <line x1="12" y1="19" x2="12" y2="23"/>
+                  <line x1="8" y1="23" x2="16" y2="23"/>
+                  <!-- Ondas de som -->
+                  <path d="M5.5 9a9.5 9.5 0 0 0 0 6" stroke-linecap="round"/>
+                  <path d="M18.5 9a9.5 9.5 0 0 1 0 6" stroke-linecap="round"/>
+                </svg>
+                <svg class="voice-stop-icon" viewBox="0 0 24 24" fill="currentColor" style="display:none">
                   <rect x="6" y="6" width="12" height="12" rx="2"/>
                 </svg>
               </button>
@@ -5820,166 +5990,352 @@
     const chatContainer = document.getElementById('chatContainer');
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
-    const micBtn = document.getElementById('micBtn');
+    const dictateBtn = document.getElementById('dictateBtn');
+    const voiceModeBtn = document.getElementById('voiceModeBtn');
     const voiceIndicator = document.getElementById('voiceIndicator');
 
     // ============================================
-    // VOICE INPUT - Gravação de áudio + Whisper (funciona em iOS/Android/Desktop)
+    // VOICE INPUT - Sistema de voz com dois modos
+    // 1. Ditar: transcreve e coloca no campo de texto
+    // 2. Modo Voz: grava, transcreve, envia e recebe resposta em áudio
     // ============================================
     let mediaRecorder = null;
     let audioChunks = [];
-    let isRecording = false;
+    let isDictating = false;
+    let isVoiceMode = false;
     let audioStream = null;
+    let currentMimeType = 'audio/webm';
+    let activeToast = null;
 
     // Inicializa gravação de voz
     async function initVoiceInput() {
-      // Verifica se o navegador suporta MediaRecorder
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        if (micBtn) micBtn.classList.add('hidden');
+        if (dictateBtn) dictateBtn.classList.add('hidden');
+        if (voiceModeBtn) voiceModeBtn.classList.add('hidden');
         console.log('MediaRecorder not supported');
         return;
       }
     }
 
-    async function startRecording() {
-      try {
-        // Solicita permissão do microfone
-        audioStream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            sampleRate: 44100
-          }
-        });
+    // ============================================
+    // TOAST NOTIFICATIONS
+    // ============================================
+    function showVoiceToast(type, title, subtitle) {
+      hideVoiceToast();
 
-        // Detecta o melhor formato suportado
-        let mimeType = 'audio/webm';
-        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-          mimeType = 'audio/webm;codecs=opus';
-        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
-          mimeType = 'audio/mp4';
-        } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
-          mimeType = 'audio/ogg';
-        }
+      const toast = document.createElement('div');
+      toast.className = 'voice-toast';
+      toast.id = 'voiceToast';
 
-        mediaRecorder = new MediaRecorder(audioStream, { mimeType });
-        audioChunks = [];
+      let iconContent = '';
+      if (type === 'recording') {
+        iconContent = '<div class="voice-toast-icon recording"></div>';
+      } else if (type === 'processing') {
+        iconContent = '<div class="voice-toast-icon processing"></div>';
+      } else if (type === 'success') {
+        iconContent = '<div class="voice-toast-icon success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>';
+      }
 
-        mediaRecorder.ondataavailable = (event) => {
-          if (event.data.size > 0) {
-            audioChunks.push(event.data);
-          }
-        };
+      toast.innerHTML = `
+        ${iconContent}
+        <div class="voice-toast-content">
+          <div class="voice-toast-title">${title}</div>
+          ${subtitle ? `<div class="voice-toast-subtitle">${subtitle}</div>` : ''}
+        </div>
+        <button class="voice-toast-close" onclick="hideVoiceToast()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      `;
 
-        mediaRecorder.onstop = async () => {
-          // Para o stream do microfone
-          if (audioStream) {
-            audioStream.getTracks().forEach(track => track.stop());
-          }
+      document.body.appendChild(toast);
+      activeToast = toast;
 
-          if (audioChunks.length === 0) {
-            micBtn.classList.remove('recording');
-            voiceIndicator.style.display = 'none';
-            messageInput.placeholder = 'Mensagem para AiSyster...';
-            return;
-          }
-
-          // Cria blob do áudio
-          const audioBlob = new Blob(audioChunks, { type: mimeType });
-
-          // Mostra indicador de processamento
-          messageInput.placeholder = 'Transcrevendo...';
-
-          // Envia para Whisper transcrever
-          await transcribeAudio(audioBlob);
-        };
-
-        // Inicia gravação
-        mediaRecorder.start(100); // Coleta dados a cada 100ms
-        isRecording = true;
-        micBtn.classList.add('recording');
-        voiceIndicator.style.display = 'flex';
-        messageInput.placeholder = 'Gravando... clique para parar';
-
-      } catch (error) {
-        console.error('Error starting recording:', error);
-
-        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-          alert('Permissao de microfone negada. Habilite nas configuracoes do seu dispositivo.');
-        } else if (error.name === 'NotFoundError') {
-          alert('Nenhum microfone encontrado no dispositivo.');
-        } else {
-          alert('Erro ao acessar o microfone: ' + error.message);
-        }
-
-        isRecording = false;
-        micBtn.classList.remove('recording');
-        voiceIndicator.style.display = 'none';
+      // Auto-hide success toasts
+      if (type === 'success') {
+        setTimeout(() => hideVoiceToast(), 3000);
       }
     }
 
-    function stopRecording() {
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
+    function hideVoiceToast() {
+      const toast = document.getElementById('voiceToast');
+      if (toast) {
+        toast.classList.add('hiding');
+        setTimeout(() => toast.remove(), 300);
       }
-      isRecording = false;
+      activeToast = null;
     }
 
-    async function transcribeAudio(audioBlob) {
-      // Verifica se está logado
+    // ============================================
+    // MODO DITAR - Transcreve para o campo de texto
+    // ============================================
+    async function startDictation() {
       if (!state.token) {
         alert('Faca login para usar o recurso de voz.');
-        micBtn.classList.remove('recording');
-        voiceIndicator.style.display = 'none';
-        messageInput.placeholder = 'Mensagem para AiSyster...';
         return;
       }
 
       try {
-        // Prepara FormData com o áudio
+        audioStream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 }
+        });
+
+        currentMimeType = 'audio/webm';
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+          currentMimeType = 'audio/webm;codecs=opus';
+        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+          currentMimeType = 'audio/mp4';
+        }
+
+        mediaRecorder = new MediaRecorder(audioStream, { mimeType: currentMimeType });
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+          if (audioStream) audioStream.getTracks().forEach(track => track.stop());
+
+          if (audioChunks.length === 0) {
+            resetDictationUI();
+            return;
+          }
+
+          const audioBlob = new Blob(audioChunks, { type: currentMimeType });
+          showVoiceToast('processing', 'Transcrevendo...', 'Aguarde um momento');
+          await transcribeForDictation(audioBlob);
+        };
+
+        mediaRecorder.start(100);
+        isDictating = true;
+        dictateBtn.classList.add('recording');
+        showVoiceToast('recording', 'Ditando...', 'Clique no microfone para parar');
+
+      } catch (error) {
+        console.error('Error starting dictation:', error);
+        handleMicError(error);
+        resetDictationUI();
+      }
+    }
+
+    function stopDictation() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+      isDictating = false;
+    }
+
+    function resetDictationUI() {
+      isDictating = false;
+      dictateBtn.classList.remove('recording');
+      hideVoiceToast();
+    }
+
+    async function transcribeForDictation(audioBlob) {
+      try {
         const formData = new FormData();
         formData.append('audio', audioBlob, 'audio.webm');
 
-        // Chama endpoint de transcrição (STT - Speech to Text)
         const response = await fetch(`${API_URL}/voice/stt`, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${state.token}`
-          },
+          headers: { 'Authorization': `Bearer ${state.token}` },
           body: formData
         });
 
         const data = await response.json();
 
         if (data.success && data.text) {
-          // Adiciona texto transcrito ao input
           const textBefore = messageInput.value.trim();
-          if (textBefore) {
-            messageInput.value = textBefore + ' ' + data.text;
-          } else {
-            messageInput.value = data.text;
-          }
+          messageInput.value = textBefore ? textBefore + ' ' + data.text : data.text;
           autoResize(messageInput);
-        } else if (data.error) {
-          console.error('Transcription error:', data.error);
-          alert('Nao foi possivel entender o audio. Tente novamente.');
+          sendBtn.disabled = false;
+          showVoiceToast('success', 'Texto adicionado', data.text.substring(0, 50) + (data.text.length > 50 ? '...' : ''));
+        } else {
+          showVoiceToast('success', 'Nao entendi', 'Tente falar mais claramente');
         }
-
       } catch (error) {
-        console.error('Error transcribing audio:', error);
-        alert('Erro ao transcrever audio. Verifique sua conexao.');
+        console.error('Dictation error:', error);
+        hideVoiceToast();
+        alert('Erro ao transcrever. Verifique sua conexao.');
       } finally {
-        micBtn.classList.remove('recording');
-        voiceIndicator.style.display = 'none';
-        messageInput.placeholder = 'Mensagem para AiSyster...';
+        resetDictationUI();
       }
     }
 
-    function toggleVoiceInput() {
-      if (isRecording) {
-        stopRecording();
+    function toggleDictation() {
+      if (isDictating) {
+        stopDictation();
       } else {
-        startRecording();
+        startDictation();
+      }
+    }
+
+    // ============================================
+    // MODO VOZ - Conversa completa por voz
+    // ============================================
+    async function startVoiceMode() {
+      if (!state.token) {
+        alert('Faca login para usar o modo voz.');
+        return;
+      }
+
+      try {
+        audioStream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 }
+        });
+
+        currentMimeType = 'audio/webm';
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+          currentMimeType = 'audio/webm;codecs=opus';
+        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+          currentMimeType = 'audio/mp4';
+        }
+
+        mediaRecorder = new MediaRecorder(audioStream, { mimeType: currentMimeType });
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+          if (audioStream) audioStream.getTracks().forEach(track => track.stop());
+
+          if (audioChunks.length === 0) {
+            resetVoiceModeUI();
+            return;
+          }
+
+          const audioBlob = new Blob(audioChunks, { type: currentMimeType });
+          showVoiceToast('processing', 'Processando...', 'Transcrevendo e enviando');
+          await sendVoiceChat(audioBlob);
+        };
+
+        mediaRecorder.start(100);
+        isVoiceMode = true;
+        voiceModeBtn.classList.add('active');
+        showVoiceToast('recording', 'Modo voz ativo', 'Fale sua mensagem e clique para enviar');
+
+      } catch (error) {
+        console.error('Error starting voice mode:', error);
+        handleMicError(error);
+        resetVoiceModeUI();
+      }
+    }
+
+    function stopVoiceMode() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+      isVoiceMode = false;
+    }
+
+    function resetVoiceModeUI() {
+      isVoiceMode = false;
+      voiceModeBtn.classList.remove('active');
+      hideVoiceToast();
+    }
+
+    async function sendVoiceChat(audioBlob) {
+      try {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'audio.webm');
+        if (state.conversationId) {
+          formData.append('conversation_id', state.conversationId);
+        }
+        formData.append('return_audio', 'true');
+
+        const response = await fetch(`${API_URL}/voice/chat`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${state.token}` },
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Atualiza conversation_id
+          if (data.conversation_id) {
+            state.conversationId = data.conversation_id;
+          }
+
+          // Mostra a mensagem do usuário
+          if (data.user_text) {
+            addMessage('user', data.user_text);
+          }
+
+          // Mostra a resposta da AiSyster
+          if (data.response_text) {
+            addMessage('assistant', data.response_text);
+          }
+
+          // Toca o áudio da resposta se disponível
+          if (data.response_audio_base64) {
+            playResponseAudio(data.response_audio_base64);
+          }
+
+          showVoiceToast('success', 'Mensagem enviada', '');
+
+          // Scroll para a última mensagem
+          scrollToBottom();
+
+        } else {
+          showVoiceToast('success', 'Erro', data.error || 'Nao foi possivel processar');
+        }
+
+      } catch (error) {
+        console.error('Voice chat error:', error);
+        hideVoiceToast();
+        alert('Erro no modo voz. Verifique sua conexao.');
+      } finally {
+        resetVoiceModeUI();
+      }
+    }
+
+    function playResponseAudio(base64Audio) {
+      try {
+        const audioData = atob(base64Audio);
+        const arrayBuffer = new ArrayBuffer(audioData.length);
+        const uint8Array = new Uint8Array(arrayBuffer);
+        for (let i = 0; i < audioData.length; i++) {
+          uint8Array[i] = audioData.charCodeAt(i);
+        }
+        const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.play();
+        audio.onended = () => URL.revokeObjectURL(url);
+      } catch (e) {
+        console.error('Error playing audio:', e);
+      }
+    }
+
+    function toggleVoiceMode() {
+      if (isVoiceMode) {
+        stopVoiceMode();
+      } else {
+        startVoiceMode();
+      }
+    }
+
+    // ============================================
+    // HELPERS
+    // ============================================
+    function handleMicError(error) {
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        alert('Permissao de microfone negada. Habilite nas configuracoes.');
+      } else if (error.name === 'NotFoundError') {
+        alert('Nenhum microfone encontrado.');
+      } else {
+        alert('Erro ao acessar o microfone: ' + error.message);
+      }
+    }
+
+    function scrollToBottom() {
+      if (chatMessages) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
       }
     }
 
