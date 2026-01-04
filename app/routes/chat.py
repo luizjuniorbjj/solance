@@ -49,6 +49,8 @@ class ChatResponse(BaseModel):
     messages_used: Optional[int] = None
     messages_limit: Optional[int] = None
     limit_warning: Optional[str] = None  # "soft", "urgent", "reached"
+    # Pesquisa web
+    web_search: Optional[str] = None  # Indicador do que foi pesquisado (ex: "Buscando: preços iPhone...")
 
 
 class TrialChatResponse(BaseModel):
@@ -164,7 +166,8 @@ async def send_message(
         tokens_used=result["tokens_used"],
         messages_used=messages_used if not is_premium else None,
         messages_limit=FREE_MESSAGE_LIMIT if not is_premium else None,
-        limit_warning=limit_warning
+        limit_warning=limit_warning,
+        web_search=result.get("web_search")
     )
 
 
@@ -294,7 +297,8 @@ async def send_message_with_file(
         tokens_used=result["tokens_used"],
         messages_used=messages_used if not is_premium else None,
         messages_limit=FREE_MESSAGE_LIMIT if not is_premium else None,
-        limit_warning=limit_warning
+        limit_warning=limit_warning,
+        web_search=result.get("web_search")
     )
 
 

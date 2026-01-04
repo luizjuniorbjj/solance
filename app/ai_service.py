@@ -167,27 +167,31 @@ class AIService:
             learning_context=learning_context
         )
 
-        # 6.5 PESQUISA WEB: Buscar informações atuais se necessário
+        # 6.5 PESQUISA WEB INTELIGENTE: Claude decide se precisa pesquisar
         # Não pesquisar se tiver imagens/PDFs (foco no arquivo)
         has_attachments = image_data or images
         web_search_context = None
+        web_search_indicator = None  # Para mostrar ao usuário o que está buscando
         if WEB_SEARCH_ENABLED and not has_attachments:
             try:
                 # Detectar localização do usuário das memórias
                 user_location = None
                 if profile:
-                    # Tentar extrair localização do perfil ou memórias
                     user_location = profile.get("localizacao") or profile.get("cidade")
 
-                # Pesquisar se necessário
-                web_search_context = await web_search_service.search_and_summarize(
+                # Pesquisa inteligente: Claude decide se precisa e gera queries otimizadas
+                search_result = await web_search_service.smart_search(
                     message=message,
                     user_context=f"Usuário: {profile.get('nome', 'Desconhecido')}" if profile else "",
                     user_location=user_location
                 )
 
-                if web_search_context:
-                    print(f"[WEB_SEARCH] Resultado incluído no contexto para user {user_id}")
+                if search_result:
+                    # Formatar contexto para incluir no prompt
+                    web_search_context = web_search_service.format_for_context(search_result)
+                    # Indicador para UI (ex: "Buscando: preços de iPhone...")
+                    web_search_indicator = web_search_service.format_search_indicator(search_result)
+                    print(f"[WEB_SEARCH] {web_search_indicator} - tokens: {search_result.get('tokens_used', 0)}")
             except Exception as e:
                 print(f"[WEB_SEARCH] Erro ao pesquisar: {e}")
                 web_search_context = None
@@ -362,12 +366,18 @@ class AIService:
             "strategy": optimal_strategy.value if hasattr(optimal_strategy, 'value') else str(optimal_strategy)
         }
 
-        return {
+        result = {
             "response": reply,
             "conversation_id": str(conversation_id),
             "model_used": model,
             "tokens_used": tokens_used
         }
+
+        # Incluir info de pesquisa se houve
+        if web_search_indicator:
+            result["web_search"] = web_search_indicator
+
+        return result
 
     def _select_model(self, user: dict) -> str:
         """
