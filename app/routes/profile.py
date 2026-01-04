@@ -34,15 +34,18 @@ class ProfileUpdate(BaseModel):
     igreja_local: Optional[str] = None
     cargo_igreja: Optional[str] = None
 
-    # Preferências
+    # Preferencias
     tom_preferido: Optional[str] = None
     profundidade: Optional[str] = None
     usa_emoji: Optional[bool] = None
 
-    # Configurações
+    # Configuracoes
     tema: Optional[str] = None  # "light" ou "dark"
     horario_lembrete: Optional[str] = None  # formato "HH:MM"
     notificacoes_ativas: Optional[bool] = None
+
+    # Idioma (i18n)
+    language: Optional[str] = None  # "en", "pt", "es"
 
 
 class OnboardingStep1(BaseModel):

@@ -1,0 +1,600 @@
+# AiSyster - Translations File
+# All languages side by side for easy maintenance
+# To add a new string: add to ALL 3 columns (en, pt, es)
+
+# ============================================
+# APP INFO
+# ============================================
+app:
+  name:
+    en: "AiSyster"
+    pt: "AiSyster"
+    es: "AiSyster"
+  tagline:
+    en: "Your spiritual companion powered by AI"
+    pt: "Sua companheira espiritual com inteligencia artificial"
+    es: "Tu companera espiritual con inteligencia artificial"
+
+# ============================================
+# NAVIGATION
+# ============================================
+nav:
+  home:
+    en: "Home"
+    pt: "Inicio"
+    es: "Inicio"
+  chat:
+    en: "Chat"
+    pt: "Conversa"
+    es: "Chat"
+  devotional:
+    en: "Devotional"
+    pt: "Devocional"
+    es: "Devocional"
+  settings:
+    en: "Settings"
+    pt: "Configuracoes"
+    es: "Configuracion"
+  profile:
+    en: "Profile"
+    pt: "Perfil"
+    es: "Perfil"
+  logout:
+    en: "Logout"
+    pt: "Sair"
+    es: "Cerrar Sesion"
+
+# ============================================
+# AUTHENTICATION
+# ============================================
+auth:
+  login:
+    en: "Login"
+    pt: "Entrar"
+    es: "Iniciar Sesion"
+  register:
+    en: "Register"
+    pt: "Cadastrar"
+    es: "Registrarse"
+  email:
+    en: "Email"
+    pt: "Email"
+    es: "Correo electronico"
+  password:
+    en: "Password"
+    pt: "Senha"
+    es: "Contrasena"
+  confirmPassword:
+    en: "Confirm Password"
+    pt: "Confirmar Senha"
+    es: "Confirmar Contrasena"
+  forgotPassword:
+    en: "Forgot password?"
+    pt: "Esqueceu a senha?"
+    es: "Olvidaste tu contrasena?"
+  resetPassword:
+    en: "Reset Password"
+    pt: "Redefinir Senha"
+    es: "Restablecer Contrasena"
+  noAccount:
+    en: "Don't have an account?"
+    pt: "Nao tem uma conta?"
+    es: "No tienes una cuenta?"
+  hasAccount:
+    en: "Already have an account?"
+    pt: "Ja tem uma conta?"
+    es: "Ya tienes una cuenta?"
+  signUp:
+    en: "Sign up"
+    pt: "Cadastre-se"
+    es: "Registrate"
+  signIn:
+    en: "Sign in"
+    pt: "Entre"
+    es: "Inicia sesion"
+  termsAgree:
+    en: "I agree to the"
+    pt: "Eu concordo com os"
+    es: "Acepto los"
+  termsOfService:
+    en: "Terms of Service"
+    pt: "Termos de Servico"
+    es: "Terminos de Servicio"
+  and:
+    en: "and"
+    pt: "e"
+    es: "y"
+  privacyPolicy:
+    en: "Privacy Policy"
+    pt: "Politica de Privacidade"
+    es: "Politica de Privacidad"
+  verifyEmail:
+    en: "Please verify your email"
+    pt: "Por favor, verifique seu email"
+    es: "Por favor, verifica tu correo"
+  checkEmail:
+    en: "Check your email for a verification link"
+    pt: "Verifique seu email para o link de confirmacao"
+    es: "Revisa tu correo para el enlace de verificacion"
+  resendEmail:
+    en: "Resend verification email"
+    pt: "Reenviar email de verificacao"
+    es: "Reenviar correo de verificacion"
+  emailSent:
+    en: "Verification email sent!"
+    pt: "Email de verificacao enviado!"
+    es: "Correo de verificacion enviado!"
+  invalidCredentials:
+    en: "Invalid email or password"
+    pt: "Email ou senha invalidos"
+    es: "Correo o contrasena invalidos"
+  emailExists:
+    en: "An account with this email already exists"
+    pt: "Ja existe uma conta com este email"
+    es: "Ya existe una cuenta con este correo"
+  passwordMismatch:
+    en: "Passwords don't match"
+    pt: "As senhas nao coincidem"
+    es: "Las contrasenas no coinciden"
+  passwordTooShort:
+    en: "Password must be at least 8 characters"
+    pt: "A senha deve ter pelo menos 8 caracteres"
+    es: "La contrasena debe tener al menos 8 caracteres"
+
+# ============================================
+# CHAT
+# ============================================
+chat:
+  placeholder:
+    en: "Type your message..."
+    pt: "Digite sua mensagem..."
+    es: "Escribe tu mensaje..."
+  send:
+    en: "Send"
+    pt: "Enviar"
+    es: "Enviar"
+  newChat:
+    en: "New Conversation"
+    pt: "Nova Conversa"
+    es: "Nueva Conversacion"
+  conversations:
+    en: "Conversations"
+    pt: "Conversas"
+    es: "Conversaciones"
+  noConversations:
+    en: "No conversations yet"
+    pt: "Nenhuma conversa ainda"
+    es: "Sin conversaciones aun"
+  startConversation:
+    en: "Start a new conversation"
+    pt: "Inicie uma nova conversa"
+    es: "Inicia una nueva conversacion"
+  typing:
+    en: "AiSyster is typing..."
+    pt: "AiSyster esta digitando..."
+    es: "AiSyster esta escribiendo..."
+  attachImage:
+    en: "Attach image"
+    pt: "Anexar imagem"
+    es: "Adjuntar imagen"
+  attachPdf:
+    en: "Attach PDF"
+    pt: "Anexar PDF"
+    es: "Adjuntar PDF"
+  voiceInput:
+    en: "Voice input"
+    pt: "Entrada de voz"
+    es: "Entrada de voz"
+  listen:
+    en: "Listen"
+    pt: "Ouvir"
+    es: "Escuchar"
+  stop:
+    en: "Stop"
+    pt: "Parar"
+    es: "Detener"
+  copy:
+    en: "Copy"
+    pt: "Copiar"
+    es: "Copiar"
+  copied:
+    en: "Copied!"
+    pt: "Copiado!"
+    es: "Copiado!"
+  regenerate:
+    en: "Regenerate"
+    pt: "Regenerar"
+    es: "Regenerar"
+  deleteConversation:
+    en: "Delete conversation"
+    pt: "Excluir conversa"
+    es: "Eliminar conversacion"
+  confirmDelete:
+    en: "Are you sure you want to delete this conversation?"
+    pt: "Tem certeza que deseja excluir esta conversa?"
+    es: "Estas seguro de que deseas eliminar esta conversacion?"
+  searchingWeb:
+    en: "Searching the web..."
+    pt: "Pesquisando na web..."
+    es: "Buscando en la web..."
+  sources:
+    en: "Sources"
+    pt: "Fontes"
+    es: "Fuentes"
+
+# ============================================
+# DEVOTIONAL
+# ============================================
+devotional:
+  title:
+    en: "Daily Devotional"
+    pt: "Devocional Diario"
+    es: "Devocional Diario"
+  todayVerse:
+    en: "Today's Verse"
+    pt: "Versiculo do Dia"
+    es: "Versiculo del Dia"
+  meditation:
+    en: "Meditation"
+    pt: "Meditacao"
+    es: "Meditacion"
+  prayer:
+    en: "Prayer"
+    pt: "Oracao"
+    es: "Oracion"
+  share:
+    en: "Share"
+    pt: "Compartilhar"
+    es: "Compartir"
+  generate:
+    en: "Generate New Devotional"
+    pt: "Gerar Novo Devocional"
+    es: "Generar Nuevo Devocional"
+  generating:
+    en: "Generating your devotional..."
+    pt: "Gerando seu devocional..."
+    es: "Generando tu devocional..."
+
+# ============================================
+# SETTINGS
+# ============================================
+settings:
+  title:
+    en: "Settings"
+    pt: "Configuracoes"
+    es: "Configuracion"
+  language:
+    en: "Language"
+    pt: "Idioma"
+    es: "Idioma"
+  notifications:
+    en: "Notifications"
+    pt: "Notificacoes"
+    es: "Notificaciones"
+  pushNotifications:
+    en: "Push Notifications"
+    pt: "Notificacoes Push"
+    es: "Notificaciones Push"
+  dailyReminder:
+    en: "Daily Reminder"
+    pt: "Lembrete Diario"
+    es: "Recordatorio Diario"
+  reminderTime:
+    en: "Reminder Time"
+    pt: "Horario do Lembrete"
+    es: "Hora del Recordatorio"
+  theme:
+    en: "Theme"
+    pt: "Tema"
+    es: "Tema"
+  light:
+    en: "Light"
+    pt: "Claro"
+    es: "Claro"
+  dark:
+    en: "Dark"
+    pt: "Escuro"
+    es: "Oscuro"
+  system:
+    en: "System"
+    pt: "Sistema"
+    es: "Sistema"
+  fontSize:
+    en: "Font Size"
+    pt: "Tamanho da Fonte"
+    es: "Tamano de Fuente"
+  small:
+    en: "Small"
+    pt: "Pequeno"
+    es: "Pequeno"
+  medium:
+    en: "Medium"
+    pt: "Medio"
+    es: "Mediano"
+  large:
+    en: "Large"
+    pt: "Grande"
+    es: "Grande"
+  textToSpeech:
+    en: "Text to Speech"
+    pt: "Texto para Fala"
+    es: "Texto a Voz"
+  about:
+    en: "About"
+    pt: "Sobre"
+    es: "Acerca de"
+  version:
+    en: "Version"
+    pt: "Versao"
+    es: "Version"
+
+# ============================================
+# PROFILE
+# ============================================
+profile:
+  title:
+    en: "Profile"
+    pt: "Perfil"
+    es: "Perfil"
+  name:
+    en: "Name"
+    pt: "Nome"
+    es: "Nombre"
+  email:
+    en: "Email"
+    pt: "Email"
+    es: "Correo electronico"
+  location:
+    en: "Location"
+    pt: "Localizacao"
+    es: "Ubicacion"
+  timezone:
+    en: "Timezone"
+    pt: "Fuso Horario"
+    es: "Zona Horaria"
+  subscription:
+    en: "Subscription"
+    pt: "Assinatura"
+    es: "Suscripcion"
+  free:
+    en: "Free"
+    pt: "Gratuito"
+    es: "Gratis"
+  premium:
+    en: "Premium"
+    pt: "Premium"
+    es: "Premium"
+  trial:
+    en: "Trial"
+    pt: "Teste"
+    es: "Prueba"
+  trialDaysLeft:
+    en: "days left in trial"
+    pt: "dias restantes de teste"
+    es: "dias restantes de prueba"
+  upgrade:
+    en: "Upgrade to Premium"
+    pt: "Assinar Premium"
+    es: "Actualizar a Premium"
+  save:
+    en: "Save Changes"
+    pt: "Salvar Alteracoes"
+    es: "Guardar Cambios"
+  saved:
+    en: "Changes saved!"
+    pt: "Alteracoes salvas!"
+    es: "Cambios guardados!"
+
+# ============================================
+# UPGRADE MODAL
+# ============================================
+upgrade:
+  title:
+    en: "Upgrade to Premium"
+    pt: "Assine o Premium"
+    es: "Actualiza a Premium"
+  subtitle:
+    en: "Unlock all features"
+    pt: "Desbloqueie todos os recursos"
+    es: "Desbloquea todas las funciones"
+  unlimited:
+    en: "Unlimited conversations"
+    pt: "Conversas ilimitadas"
+    es: "Conversaciones ilimitadas"
+  priority:
+    en: "Priority support"
+    pt: "Suporte prioritario"
+    es: "Soporte prioritario"
+  advanced:
+    en: "Advanced AI model"
+    pt: "Modelo de IA avancado"
+    es: "Modelo de IA avanzado"
+  history:
+    en: "Full conversation history"
+    pt: "Historico completo de conversas"
+    es: "Historial completo de conversaciones"
+  priceMonthly:
+    en: "$9.99/month"
+    pt: "R$49,90/mes"
+    es: "$9.99/mes"
+  priceYearly:
+    en: "$99.99/year"
+    pt: "R$499,90/ano"
+    es: "$99.99/ano"
+  savings:
+    en: "Save 17%"
+    pt: "Economize 17%"
+    es: "Ahorra 17%"
+  monthly:
+    en: "Monthly"
+    pt: "Mensal"
+    es: "Mensual"
+  yearly:
+    en: "Yearly"
+    pt: "Anual"
+    es: "Anual"
+  subscribe:
+    en: "Subscribe Now"
+    pt: "Assinar Agora"
+    es: "Suscribirse Ahora"
+  cancel:
+    en: "Maybe Later"
+    pt: "Talvez Depois"
+    es: "Quiza Despues"
+
+# ============================================
+# ERRORS
+# ============================================
+errors:
+  generic:
+    en: "Something went wrong. Please try again."
+    pt: "Algo deu errado. Por favor, tente novamente."
+    es: "Algo salio mal. Por favor, intenta de nuevo."
+  network:
+    en: "Network error. Please check your connection."
+    pt: "Erro de rede. Verifique sua conexao."
+    es: "Error de red. Verifica tu conexion."
+  unauthorized:
+    en: "Session expired. Please login again."
+    pt: "Sessao expirada. Por favor, entre novamente."
+    es: "Sesion expirada. Por favor, inicia sesion de nuevo."
+  serverError:
+    en: "Server error. Please try again later."
+    pt: "Erro no servidor. Tente novamente mais tarde."
+    es: "Error del servidor. Intenta mas tarde."
+  fileTooBig:
+    en: "File is too large. Maximum size is 10MB."
+    pt: "Arquivo muito grande. Tamanho maximo: 10MB."
+    es: "Archivo muy grande. Tamano maximo: 10MB."
+
+# ============================================
+# COMMON
+# ============================================
+common:
+  loading:
+    en: "Loading..."
+    pt: "Carregando..."
+    es: "Cargando..."
+  save:
+    en: "Save"
+    pt: "Salvar"
+    es: "Guardar"
+  cancel:
+    en: "Cancel"
+    pt: "Cancelar"
+    es: "Cancelar"
+  delete:
+    en: "Delete"
+    pt: "Excluir"
+    es: "Eliminar"
+  edit:
+    en: "Edit"
+    pt: "Editar"
+    es: "Editar"
+  close:
+    en: "Close"
+    pt: "Fechar"
+    es: "Cerrar"
+  confirm:
+    en: "Confirm"
+    pt: "Confirmar"
+    es: "Confirmar"
+  yes:
+    en: "Yes"
+    pt: "Sim"
+    es: "Si"
+  no:
+    en: "No"
+    pt: "Nao"
+    es: "No"
+  ok:
+    en: "OK"
+    pt: "OK"
+    es: "OK"
+  retry:
+    en: "Retry"
+    pt: "Tentar Novamente"
+    es: "Reintentar"
+  back:
+    en: "Back"
+    pt: "Voltar"
+    es: "Atras"
+  next:
+    en: "Next"
+    pt: "Proximo"
+    es: "Siguiente"
+  done:
+    en: "Done"
+    pt: "Concluido"
+    es: "Hecho"
+  search:
+    en: "Search"
+    pt: "Buscar"
+    es: "Buscar"
+
+# ============================================
+# DAYS
+# ============================================
+days:
+  mon:
+    en: "Mon"
+    pt: "Seg"
+    es: "Lun"
+  tue:
+    en: "Tue"
+    pt: "Ter"
+    es: "Mar"
+  wed:
+    en: "Wed"
+    pt: "Qua"
+    es: "Mie"
+  thu:
+    en: "Thu"
+    pt: "Qui"
+    es: "Jue"
+  fri:
+    en: "Fri"
+    pt: "Sex"
+    es: "Vie"
+  sat:
+    en: "Sat"
+    pt: "Sab"
+    es: "Sab"
+  sun:
+    en: "Sun"
+    pt: "Dom"
+    es: "Dom"
+
+# ============================================
+# OFFLINE
+# ============================================
+offline:
+  title:
+    en: "You're Offline"
+    pt: "Voce esta Offline"
+    es: "Estas Sin Conexion"
+  message:
+    en: "Please check your internet connection and try again."
+    pt: "Verifique sua conexao com a internet e tente novamente."
+    es: "Verifica tu conexion a internet e intenta de nuevo."
+  retry:
+    en: "Try Again"
+    pt: "Tentar Novamente"
+    es: "Reintentar"
+
+# ============================================
+# LANGUAGES (for selector)
+# ============================================
+languages:
+  en:
+    en: "English"
+    pt: "Ingles"
+    es: "Ingles"
+  pt:
+    en: "Portuguese"
+    pt: "Portugues"
+    es: "Portugues"
+  es:
+    en: "Spanish"
+    pt: "Espanhol"
+    es: "Espanol"

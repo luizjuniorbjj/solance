@@ -27,6 +27,7 @@ from app.prompts import (
     PSYCHOLOGICAL_ANALYSIS_PROMPT,
     build_user_context
 )
+from app.prompts_i18n import get_persona_by_language, get_language_instruction
 from app.database import Database
 from app.learning.continuous_learning import (
     LearningEngine,
@@ -154,8 +155,11 @@ class AIService:
         # 6. Construir prompts SEPARADOS (melhor para caching)
         is_first = len(recent_conversations) <= 1 and len(messages) == 0
 
-        # SYSTEM: só persona/regras (estável, cacheable)
-        system_prompt = self._build_system_prompt(is_first_conversation=is_first)
+        # Obter idioma do usuario (default: ingles)
+        user_language = profile.get("language", "en") if profile else "en"
+
+        # SYSTEM: so persona/regras (estavel, cacheable) - no idioma do usuario
+        system_prompt = self._build_system_prompt(is_first_conversation=is_first, language=user_language)
 
         # CONTEXTO: memórias + perfil + psicológico + aprendizado (dinâmico)
         context_message = self._build_context_message(
@@ -450,33 +454,54 @@ class AIService:
 
     def _build_system_prompt(
         self,
-        is_first_conversation: bool = False
+        is_first_conversation: bool = False,
+        language: str = "pt"  # Idioma do usuario (en, pt, es)
     ) -> str:
         """
-        Constrói APENAS o system prompt base (persona/regras).
-        Memórias e contexto vão em mensagens separadas para melhor caching.
+        Constroi o system prompt base (persona/regras) no idioma do usuario.
+        Memorias e contexto vao em mensagens separadas para melhor caching.
         """
-        # Injetar data atual no prompt (Claude não sabe a data automaticamente!)
         now = datetime.now()
-        # Mapeamento de meses para português
-        meses_pt = {
-            1: "janeiro", 2: "fevereiro", 3: "março", 4: "abril",
-            5: "maio", 6: "junho", 7: "julho", 8: "agosto",
-            9: "setembro", 10: "outubro", 11: "novembro", 12: "dezembro"
-        }
-        dias_semana_pt = {
-            0: "segunda-feira", 1: "terça-feira", 2: "quarta-feira",
-            3: "quinta-feira", 4: "sexta-feira", 5: "sábado", 6: "domingo"
-        }
-        dia_semana = dias_semana_pt[now.weekday()]
-        mes = meses_pt[now.month]
-        data_formatada = f"{dia_semana}, {now.day} de {mes} de {now.year}"
 
-        date_context = f"DATA DE HOJE: {data_formatada}\n\n"
+        # Formatar data de acordo com o idioma
+        if language == "en":
+            months_en = ["January", "February", "March", "April", "May", "June",
+                        "July", "August", "September", "October", "November", "December"]
+            days_en = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+            day_name = days_en[now.weekday()]
+            month_name = months_en[now.month - 1]
+            date_formatted = f"{day_name}, {month_name} {now.day}, {now.year}"
+            date_context = f"TODAY'S DATE: {date_formatted}\n\n"
+        elif language == "es":
+            meses_es = ["enero", "febrero", "marzo", "abril", "mayo", "junio",
+                       "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
+            dias_es = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"]
+            dia_semana = dias_es[now.weekday()]
+            mes = meses_es[now.month - 1]
+            date_formatted = f"{dia_semana}, {now.day} de {mes} de {now.year}"
+            date_context = f"FECHA DE HOY: {date_formatted}\n\n"
+        else:  # pt (default)
+            meses_pt = {
+                1: "janeiro", 2: "fevereiro", 3: "marco", 4: "abril",
+                5: "maio", 6: "junho", 7: "julho", 8: "agosto",
+                9: "setembro", 10: "outubro", 11: "novembro", 12: "dezembro"
+            }
+            dias_semana_pt = {
+                0: "segunda-feira", 1: "terca-feira", 2: "quarta-feira",
+                3: "quinta-feira", 4: "sexta-feira", 5: "sabado", 6: "domingo"
+            }
+            dia_semana = dias_semana_pt[now.weekday()]
+            mes = meses_pt[now.month]
+            date_formatted = f"{dia_semana}, {now.day} de {mes} de {now.year}"
+            date_context = f"DATA DE HOJE: {date_formatted}\n\n"
 
-        prompt = date_context + AISYSTER_PERSONA
+        # Carregar persona no idioma correto
+        persona = get_persona_by_language(language)
+        language_instruction = get_language_instruction(language)
 
-        # Se é primeira conversa, adicionar prompt de onboarding
+        prompt = date_context + persona + language_instruction
+
+        # Se e primeira conversa, adicionar prompt de onboarding
         if is_first_conversation:
             prompt += f"\n\n{ONBOARDING_PROMPT}"
 
