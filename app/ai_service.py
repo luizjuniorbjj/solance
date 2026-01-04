@@ -176,33 +176,38 @@ class AIService:
         web_search_sources = None  # Fontes para mostrar ao usuário
         if WEB_SEARCH_ENABLED and not has_attachments:
             try:
-                # Detectar localização: IP > memórias > perfil (ordem de prioridade)
-                user_location = detected_location  # Localização detectada pelo IP (mais precisa)
-                print(f"[WEB_SEARCH] Localização via IP: {detected_location}")
+                # Detectar localização: MEMÓRIAS > perfil > IP
+                # (memórias são mais confiáveis - usuário disse explicitamente onde mora)
+                # (IP pode ser enganado por VPN)
+                user_location = None
+                print(f"[WEB_SEARCH] Localização via IP (ignorada se houver memória): {detected_location}")
 
-                # Se não detectou pelo IP, tentar extrair das memórias PRIMEIRO
-                # (memórias são mais confiáveis que perfil porque são explícitas)
-                if not user_location and permanent_memory:
-                    # Buscar padrões específicos de localização
+                # 1. PRIMEIRO: Tentar extrair das memórias (mais confiável)
+                if permanent_memory:
                     memory_lower = permanent_memory.lower()
-                    if "florida" in memory_lower or "flórida" in memory_lower:
+                    if "florida" in memory_lower or "flórida" in memory_lower or "orlando" in memory_lower:
                         user_location = "Estados Unidos"
-                        print(f"[WEB_SEARCH] Localização via memória: Florida -> Estados Unidos")
-                    elif "eua" in memory_lower or "estados unidos" in memory_lower:
+                        print(f"[WEB_SEARCH] Localização via memória: Florida/Orlando -> Estados Unidos")
+                    elif "eua" in memory_lower or "estados unidos" in memory_lower or "usa" in memory_lower:
                         user_location = "Estados Unidos"
                         print(f"[WEB_SEARCH] Localização via memória: EUA")
-                    elif any(state in memory_lower for state in ["texas", "california", "new york", "orlando"]):
+                    elif any(state in memory_lower for state in ["texas", "california", "new york", "miami", "los angeles"]):
                         user_location = "Estados Unidos"
-                        print(f"[WEB_SEARCH] Localização via memória: Estado americano")
+                        print(f"[WEB_SEARCH] Localização via memória: Estado/cidade americana")
                     elif "brasil" in memory_lower or "são paulo" in memory_lower or "rio de janeiro" in memory_lower:
                         user_location = "Brasil"
                         print(f"[WEB_SEARCH] Localização via memória: Brasil")
 
-                # Se ainda não tem, tentar perfil
+                # 2. Se não encontrou na memória, tentar perfil
                 if not user_location and profile:
                     user_location = profile.get("localizacao") or profile.get("cidade") or profile.get("pais")
                     if user_location:
                         print(f"[WEB_SEARCH] Localização via perfil: {user_location}")
+
+                # 3. Por último, usar IP (pode ser VPN - menos confiável)
+                if not user_location and detected_location:
+                    user_location = detected_location
+                    print(f"[WEB_SEARCH] Localização via IP (fallback): {user_location}")
 
                 if user_location:
                     print(f"[WEB_SEARCH] Localização FINAL: {user_location}")

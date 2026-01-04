@@ -163,7 +163,7 @@ INSTRUCOES:
                 model=AI_MODEL_FALLBACK,  # Haiku com web search
                 max_tokens=1500,
                 tools=[{
-                    "type": "web_search",
+                    "type": "web_search_20250305",  # Novo formato da API (2025)
                     "name": "web_search",
                     "max_uses": WEB_SEARCH_MAX_RESULTS
                 }],
