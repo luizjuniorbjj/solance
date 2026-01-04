@@ -4388,6 +4388,18 @@
     </div>
   </div>
 
+  <!-- Session Expired Modal -->
+  <div id="sessionExpiredModal" class="confirm-modal">
+    <div class="confirm-container">
+      <div style="font-size: 48px; margin-bottom: 16px;">🔐</div>
+      <h2>Sessao expirada</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 20px;">Sua sessao expirou por seguranca. Por favor, faca login novamente para continuar.</p>
+      <div class="confirm-buttons">
+        <button class="confirm-btn primary" onclick="hideSessionExpiredModal()">Fazer login</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Immersive Voice Mode Overlay -->
   <div id="voiceOverlay" class="voice-overlay">
     <div class="voice-overlay-header">
@@ -4722,12 +4734,117 @@
       conversationId: null,
       isLoading: false,
       token: localStorage.getItem('aisyster_token'),
+      refreshToken: localStorage.getItem('aisyster_refresh'),
+      isRefreshing: false,  // Flag para evitar multiplos refresh simultaneos
       selectedImage: null,  // File object quando uma imagem é selecionada
       user: JSON.parse(localStorage.getItem('aisyster_user') || 'null')
     };
 
     // Usar o mesmo host/porta que está servindo a página (funciona em localhost e IP)
     const API_URL = window.location.origin;
+
+    // ============================================
+    // TOKEN REFRESH SYSTEM
+    // ============================================
+
+    // Refresh token automatico
+    async function refreshAccessToken() {
+      if (!state.refreshToken || state.isRefreshing) {
+        return false;
+      }
+
+      state.isRefreshing = true;
+
+      try {
+        const response = await fetch(`${API_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: state.refreshToken })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          state.token = data.access_token;
+          state.refreshToken = data.refresh_token;
+          localStorage.setItem('aisyster_token', data.access_token);
+          localStorage.setItem('aisyster_refresh', data.refresh_token);
+          console.log('[AUTH] Token renovado automaticamente');
+          state.isRefreshing = false;
+          return true;
+        } else {
+          // Refresh token expirou - precisa fazer login novamente
+          console.log('[AUTH] Refresh token expirado');
+          state.isRefreshing = false;
+          return false;
+        }
+      } catch (error) {
+        console.error('[AUTH] Erro ao renovar token:', error);
+        state.isRefreshing = false;
+        return false;
+      }
+    }
+
+    // Fetch com auto-refresh de token
+    async function authFetch(url, options = {}) {
+      // Adicionar token de autorizacao
+      if (state.token) {
+        options.headers = {
+          ...options.headers,
+          'Authorization': `Bearer ${state.token}`
+        };
+      }
+
+      let response = await fetch(url, options);
+
+      // Se receber 401, tentar refresh automatico
+      if (response.status === 401 && state.refreshToken) {
+        const refreshed = await refreshAccessToken();
+
+        if (refreshed) {
+          // Refazer a requisicao com novo token
+          options.headers = {
+            ...options.headers,
+            'Authorization': `Bearer ${state.token}`
+          };
+          response = await fetch(url, options);
+        } else {
+          // Refresh falhou - sessao expirada de verdade
+          showSessionExpiredModal();
+          return response;
+        }
+      }
+
+      return response;
+    }
+
+    // Modal de sessao expirada (mais amigavel que logout direto)
+    function showSessionExpiredModal() {
+      // Limpar estado mas nao mostrar auth modal ainda
+      state.token = null;
+      state.refreshToken = null;
+      state.user = null;
+      localStorage.removeItem('aisyster_token');
+      localStorage.removeItem('aisyster_refresh');
+      localStorage.removeItem('aisyster_user');
+
+      // Mostrar modal informativo
+      const modal = document.getElementById('sessionExpiredModal');
+      if (modal) {
+        modal.classList.add('active');
+      } else {
+        // Fallback se modal nao existir
+        alert('Sua sessao expirou. Por favor, faca login novamente.');
+        showAuthModal();
+      }
+    }
+
+    function hideSessionExpiredModal() {
+      const modal = document.getElementById('sessionExpiredModal');
+      if (modal) {
+        modal.classList.remove('active');
+      }
+      showAuthModal();
+    }
 
     // ============================================
     // AUTH FUNCTIONS
@@ -4747,7 +4864,9 @@
 
         const data = await response.json();
         state.token = data.access_token;
+        state.refreshToken = data.refresh_token;
         localStorage.setItem('aisyster_token', data.access_token);
+        localStorage.setItem('aisyster_refresh', data.refresh_token);
 
         // Mostrar app imediatamente
         hideAuthModal();
@@ -4791,9 +4910,7 @@
 
     async function loadUserProfile() {
       try {
-        const response = await fetch(`${API_URL}/auth/me`, {
-          headers: { 'Authorization': `Bearer ${state.token}` }
-        });
+        const response = await authFetch(`${API_URL}/auth/me`);
 
         if (response.ok) {
           state.user = await response.json();
@@ -4826,10 +4943,12 @@
       hideLogoutModal();
       // Clear state
       state.token = null;
+      state.refreshToken = null;
       state.user = null;
       state.messages = [];
       state.conversationId = null;
       localStorage.removeItem('aisyster_token');
+      localStorage.removeItem('aisyster_refresh');
       localStorage.removeItem('aisyster_user');
       showAuthModal();
     }
@@ -4949,10 +5068,9 @@
 
       try {
         // Usar fluxo com token para mostrar pagina de dados de teste
-        const response = await fetch(`${API_URL}/auth/checkout-token`, {
+        const response = await authFetch(`${API_URL}/auth/checkout-token`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${state.token}`,
             'Content-Type': 'application/json'
           }
         });
@@ -5001,10 +5119,9 @@
       try {
         showToast('Abrindo gerenciamento...', 'info', 2000);
 
-        const response = await fetch(`${API_URL}/payment/portal`, {
+        const response = await authFetch(`${API_URL}/payment/portal`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${state.token}`,
             'Content-Type': 'application/json'
           }
         });
@@ -5271,11 +5388,7 @@
 
     async function loadProfileData() {
       try {
-        const response = await fetch(`${API_URL}/profile/`, {
-          headers: {
-            'Authorization': `Bearer ${state.token}`
-          }
-        });
+        const response = await authFetch(`${API_URL}/profile/`);
 
         if (response.ok) {
           profileData = await response.json();
@@ -5337,10 +5450,9 @@
           if (updateData[key] === null) delete updateData[key];
         });
 
-        const response = await fetch(`${API_URL}/profile/`, {
+        const response = await authFetch(`${API_URL}/profile/`, {
           method: 'PATCH',
           headers: {
-            'Authorization': `Bearer ${state.token}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(updateData)
@@ -6527,9 +6639,8 @@
         const formData = new FormData();
         formData.append('audio', audioBlob, 'audio.webm');
 
-        const response = await fetch(`${API_URL}/voice/stt`, {
+        const response = await authFetch(`${API_URL}/voice/stt`, {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${state.token}` },
           body: formData
         });
 
@@ -6798,9 +6909,8 @@
 
         let response;
         try {
-          response = await fetch(`${API_URL}/voice/chat`, {
+          response = await authFetch(`${API_URL}/voice/chat`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${state.token}` },
             body: formData
           });
         } catch (fetchError) {
@@ -6813,16 +6923,11 @@
 
         console.log('[VOICE] Response status:', response.status);
 
-        // Se token expirou, tenta renovar
+        // Se token expirou (refresh falhou)
         if (response.status === 401) {
           voiceOverlay.classList.remove('processing');
-          voiceStatus.textContent = 'Sessao expirada';
-          voiceTranscription.textContent = 'Por favor, faca login novamente.';
-          // Logout automatico
-          setTimeout(() => {
-            hideVoiceOverlay();
-            logout();
-          }, 2000);
+          hideVoiceOverlay();
+          // Modal de sessao expirada ja foi mostrado pelo authFetch
           return;
         }
 
@@ -7259,20 +7364,16 @@
             formData.append('conversation_id', state.conversationId);
           }
 
-          response = await fetch(`${API_URL}/chat/with-file`, {
+          response = await authFetch(`${API_URL}/chat/with-file`, {
             method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${state.token}`
-            },
             body: formData
           });
         } else {
           // Enviar apenas texto
-          response = await fetch(`${API_URL}/chat/`, {
+          response = await authFetch(`${API_URL}/chat/`, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${state.token}`
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({
               message: message,
@@ -7281,9 +7382,12 @@
           });
         }
 
+        // 401 ja tratado pelo authFetch com refresh automatico
         if (response.status === 401) {
-          logout();
-          throw new Error('Sessao expirada. Faca login novamente.');
+          // Se chegou aqui, refresh falhou - modal ja foi mostrado
+          state.isLoading = false;
+          hideTypingIndicator();
+          return;
         }
 
         if (response.status === 402) {
@@ -7328,9 +7432,7 @@
       if (!state.token) return;
 
       try {
-        const response = await fetch(`${API_URL}/chat/conversations`, {
-          headers: { 'Authorization': `Bearer ${state.token}` }
-        });
+        const response = await authFetch(`${API_URL}/chat/conversations`);
 
         if (!response.ok) return;
 
@@ -7432,9 +7534,7 @@
       if (!state.token) return;
 
       try {
-        const response = await fetch(`${API_URL}/chat/conversations/${conversationId}/messages`, {
-          headers: { 'Authorization': `Bearer ${state.token}` }
-        });
+        const response = await authFetch(`${API_URL}/chat/conversations/${conversationId}/messages`);
 
         if (!response.ok) return;
 
@@ -7608,10 +7708,9 @@
       }
 
       try {
-        const response = await fetch(`${API_URL}/chat/conversations/${editingConversationId}/rename`, {
+        const response = await authFetch(`${API_URL}/chat/conversations/${editingConversationId}/rename`, {
           method: 'PATCH',
           headers: {
-            'Authorization': `Bearer ${state.token}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ resumo: newName })
@@ -7635,9 +7734,8 @@
       if (!confirm('Tem certeza que deseja excluir esta conversa?')) return;
 
       try {
-        const response = await fetch(`${API_URL}/chat/conversations/${convId}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${state.token}` }
+        const response = await authFetch(`${API_URL}/chat/conversations/${convId}`, {
+          method: 'DELETE'
         });
 
         if (response.ok) {
@@ -8182,11 +8280,10 @@
       currentPlayingBtn = button;
 
       try {
-        const response = await fetch(`${API_URL}/voice/tts`, {
+        const response = await authFetch(`${API_URL}/voice/tts`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${state.token}`
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             text: text,
@@ -8277,11 +8374,10 @@
       submitBtn.textContent = 'Enviando...';
 
       try {
-        const response = await fetch(`${API_URL}/chat/feedback`, {
+        const response = await authFetch(`${API_URL}/chat/feedback`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${state.token}`
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             message_content: currentFeedbackContent,
