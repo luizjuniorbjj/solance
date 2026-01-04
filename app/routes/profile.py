@@ -44,8 +44,10 @@ class ProfileUpdate(BaseModel):
     horario_lembrete: Optional[str] = None  # formato "HH:MM"
     notificacoes_ativas: Optional[bool] = None
 
-    # Idioma (i18n)
-    language: Optional[str] = None  # "en", "pt", "es"
+    # Idioma (i18n) - como GPT
+    language: Optional[str] = None  # "auto", "en", "pt", "es" (texto/interface)
+    spoken_language: Optional[str] = None  # "auto", "en", "pt", "es" (voz/TTS)
+    voice: Optional[str] = None  # "alloy", "echo", "fable", "onyx", "nova", "shimmer"
 
 
 class OnboardingStep1(BaseModel):
@@ -83,6 +85,10 @@ class ProfileResponse(BaseModel):
     tom_preferido: str
     usa_emoji: bool
     onboarding_completed: bool
+    # Idioma e voz
+    language: Optional[str] = "auto"
+    spoken_language: Optional[str] = "auto"
+    voice: Optional[str] = "nova"
 
 
 # ============================================
@@ -113,7 +119,10 @@ async def get_profile(
         batizado=profile.get("batizado"),
         tom_preferido=profile.get("tom_preferido", "equilibrado"),
         usa_emoji=profile.get("usa_emoji", True),
-        onboarding_completed=onboarding_completed
+        onboarding_completed=onboarding_completed,
+        language=profile.get("language", "auto"),
+        spoken_language=profile.get("spoken_language", "auto"),
+        voice=profile.get("voice", "nova")
     )
 
 

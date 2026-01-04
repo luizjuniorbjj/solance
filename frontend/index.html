@@ -863,6 +863,34 @@
       color: white;
     }
 
+    .settings-btn-secondary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px 16px;
+      margin-top: 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--gold);
+      border-radius: var(--radius-sm);
+      color: var(--gold);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .settings-btn-secondary:hover {
+      background: var(--gold);
+      color: white;
+    }
+
+    .settings-btn-secondary svg {
+      width: 16px;
+      height: 16px;
+    }
+
     .settings-link {
       display: flex;
       align-items: center;
@@ -5652,6 +5680,55 @@
                 </div>
               </div>
 
+              <!-- Idioma e Voz -->
+              <div class="settings-section">
+                <div class="settings-section-title">Idioma e Voz</div>
+                <div class="settings-item">
+                  <div class="settings-item-info">
+                    <div class="settings-item-label">Idioma</div>
+                    <div class="settings-item-desc">Idioma das respostas da AiSyster</div>
+                  </div>
+                  <select id="languageSelect" class="settings-select" onchange="updateLanguageSetting('language', this.value)">
+                    <option value="auto">Autodetectar</option>
+                    <option value="pt">Português</option>
+                    <option value="en">English</option>
+                    <option value="es">Español</option>
+                  </select>
+                </div>
+                <div class="settings-item">
+                  <div class="settings-item-info">
+                    <div class="settings-item-label">Idioma Falado</div>
+                    <div class="settings-item-desc">Idioma para leitura em voz alta</div>
+                  </div>
+                  <select id="spokenLanguageSelect" class="settings-select" onchange="updateLanguageSetting('spoken_language', this.value)">
+                    <option value="auto">Autodetectar</option>
+                    <option value="pt">Português</option>
+                    <option value="en">English</option>
+                    <option value="es">Español</option>
+                  </select>
+                </div>
+                <div class="settings-item">
+                  <div class="settings-item-info">
+                    <div class="settings-item-label">Voz</div>
+                    <div class="settings-item-desc">Escolha a voz da AiSyster</div>
+                  </div>
+                  <select id="voiceSelect" class="settings-select" onchange="updateLanguageSetting('voice', this.value)">
+                    <option value="nova">Nova - Feminina, suave</option>
+                    <option value="shimmer">Shimmer - Feminina, brilhante</option>
+                    <option value="alloy">Alloy - Neutra, versátil</option>
+                    <option value="fable">Fable - Expressiva, narrativa</option>
+                    <option value="echo">Echo - Masculina, grave</option>
+                    <option value="onyx">Onyx - Masculina, profunda</option>
+                  </select>
+                </div>
+                <button class="settings-btn-secondary" onclick="testVoice()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                  </svg>
+                  Testar Voz
+                </button>
+              </div>
+
               <!-- Privacidade e Dados -->
               <div class="settings-section">
                 <div class="settings-section-title">Privacidade e Dados</div>
@@ -5703,6 +5780,9 @@
       }
 
       setTimeout(() => modal.classList.add('active'), 10);
+
+      // Carregar configurações de idioma e voz
+      loadLanguageSettings();
     }
 
     function closeSettings() {
@@ -6101,6 +6181,136 @@
       }
 
       showToast(!isEnabled ? 'Notificações por email ativadas' : 'Notificações por email desativadas');
+    }
+
+    // ============================================
+    // LANGUAGE & VOICE SETTINGS
+    // ============================================
+
+    async function loadLanguageSettings() {
+      try {
+        const token = localStorage.getItem('aisyster_token');
+        if (!token) return;
+
+        const response = await fetch(`${API_URL}/profile/`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const profile = await response.json();
+
+          // Atualizar selects se existirem
+          const languageSelect = document.getElementById('languageSelect');
+          const spokenLanguageSelect = document.getElementById('spokenLanguageSelect');
+          const voiceSelect = document.getElementById('voiceSelect');
+
+          if (languageSelect && profile.language) {
+            languageSelect.value = profile.language;
+          }
+          if (spokenLanguageSelect && profile.spoken_language) {
+            spokenLanguageSelect.value = profile.spoken_language;
+          }
+          if (voiceSelect && profile.voice) {
+            voiceSelect.value = profile.voice;
+          }
+
+          // Salvar no localStorage para acesso rápido
+          localStorage.setItem('aisyster_language', profile.language || 'auto');
+          localStorage.setItem('aisyster_spoken_language', profile.spoken_language || 'auto');
+          localStorage.setItem('aisyster_voice', profile.voice || 'nova');
+        }
+      } catch (e) {
+        console.log('Erro ao carregar configurações de idioma:', e);
+      }
+    }
+
+    async function updateLanguageSetting(field, value) {
+      try {
+        const token = localStorage.getItem('aisyster_token');
+        if (!token) {
+          showToast('Você precisa estar logado', 'error');
+          return;
+        }
+
+        const data = {};
+        data[field] = value;
+
+        const response = await fetch(`${API_URL}/profile/`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+          // Salvar no localStorage
+          if (field === 'language') {
+            localStorage.setItem('aisyster_language', value);
+          } else if (field === 'spoken_language') {
+            localStorage.setItem('aisyster_spoken_language', value);
+          } else if (field === 'voice') {
+            localStorage.setItem('aisyster_voice', value);
+          }
+
+          const messages = {
+            'language': 'Idioma atualizado',
+            'spoken_language': 'Idioma falado atualizado',
+            'voice': 'Voz atualizada'
+          };
+          showToast(messages[field] || 'Configuração salva');
+        } else {
+          showToast('Erro ao salvar configuração', 'error');
+        }
+      } catch (e) {
+        console.log('Erro ao atualizar configuração:', e);
+        showToast('Erro ao salvar', 'error');
+      }
+    }
+
+    async function testVoice() {
+      const voiceSelect = document.getElementById('voiceSelect');
+      const voice = voiceSelect ? voiceSelect.value : 'nova';
+
+      const testPhrases = {
+        'pt': 'Olá! Eu sou a AiSyster, sua companheira espiritual.',
+        'en': 'Hello! I am AiSyster, your spiritual companion.',
+        'es': 'Hola! Soy AiSyster, tu compañera espiritual.'
+      };
+
+      const spokenLang = localStorage.getItem('aisyster_spoken_language') || 'auto';
+      const lang = spokenLang === 'auto' ? 'pt' : spokenLang;
+      const text = testPhrases[lang] || testPhrases['pt'];
+
+      try {
+        showToast('Gerando áudio...', 'info');
+
+        const token = localStorage.getItem('aisyster_token');
+        const response = await fetch(`${API_URL}/voice/tts`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ text, voice })
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao gerar áudio');
+        }
+
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audio.play();
+        audio.onended = () => URL.revokeObjectURL(audioUrl);
+
+        showToast('Reproduzindo teste de voz');
+      } catch (e) {
+        console.error('Erro ao testar voz:', e);
+        showToast('Erro ao testar voz', 'error');
+      }
     }
 
     function showDeleteAccountModal() {
@@ -8428,6 +8638,9 @@
       currentPlayingBtn = button;
 
       try {
+        // Usar voz configurada pelo usuário
+        const userVoice = localStorage.getItem('aisyster_voice') || 'nova';
+
         const response = await authFetch(`${API_URL}/voice/tts`, {
           method: 'POST',
           headers: {
@@ -8435,7 +8648,7 @@
           },
           body: JSON.stringify({
             text: text,
-            voice: 'nova',
+            voice: userVoice,
             speed: 1.0
           })
         });

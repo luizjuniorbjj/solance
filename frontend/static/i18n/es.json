@@ -69,6 +69,12 @@
   "settings": {
     "title": "Configuracion",
     "language": "Idioma",
+    "languageDescription": "Idioma de las respuestas de AiSyster",
+    "spokenLanguage": "Idioma Hablado",
+    "spokenLanguageDescription": "Idioma para lectura en voz alta",
+    "autoDetect": "Autodetectar",
+    "voice": "Voz",
+    "voiceDescription": "Elige la voz de AiSyster",
     "notifications": "Notificaciones",
     "pushNotifications": "Notificaciones Push",
     "dailyReminder": "Recordatorio Diario",
@@ -187,5 +193,19 @@
     "installPrompt": "Instala AiSyster para una mejor experiencia",
     "install": "Instalar",
     "notNow": "Ahora No"
+  },
+  "languages": {
+    "auto": "Autodetectar",
+    "en": "Ingles",
+    "pt": "Portugues",
+    "es": "Espanol"
+  },
+  "voices": {
+    "alloy": "Alloy - Neutra, versatil",
+    "echo": "Echo - Masculina, grave",
+    "fable": "Fable - Expresiva, narrativa",
+    "onyx": "Onyx - Masculina, profunda",
+    "nova": "Nova - Femenina, suave (predeterminada)",
+    "shimmer": "Shimmer - Femenina, brillante"
   }
 }
