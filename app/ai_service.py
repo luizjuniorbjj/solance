@@ -190,11 +190,12 @@ class AIService:
                     context_memories = await self.db.get_user_memories(user_id, categoria="CONTEXTO", limit=10)
                     all_location_memories = identity_memories + context_memories
 
+                    print(f"[WEB_SEARCH] Buscando em {len(identity_memories)} IDENTIDADE + {len(context_memories)} CONTEXTO")
+
                     for mem in all_location_memories:
                         fato = mem.get("fato", "").lower()
-                        # Log para debug
-                        if any(loc in fato for loc in ["mora", "vive", "florida", "eua", "brasil", "cidade"]):
-                            print(f"[WEB_SEARCH] Memória relevante: {fato[:80]}")
+                        # Log todas as memórias para debug
+                        print(f"[WEB_SEARCH] Memória: {fato[:100]}")
 
                         if any(loc in fato for loc in ["florida", "flórida", "orlando", "miami"]):
                             user_location = "Estados Unidos"

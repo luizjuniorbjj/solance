@@ -201,32 +201,34 @@ INSTRUCOES:
 
             for block in response.content:
                 print(f"[SEARCH] Block type: {block.type}")
-                # Log completo para debug
-                print(f"[SEARCH] Block dir: {[a for a in dir(block) if not a.startswith('_')]}")
 
                 if block.type == "text":
-                    text_content = block.text
+                    text_content += block.text
+                    # NOVO: Extrair fontes do atributo citations nos blocos de texto
+                    if hasattr(block, 'citations') and block.citations:
+                        print(f"[SEARCH] Found {len(block.citations)} citations in text block")
+                        for citation in block.citations:
+                            # Cada citation tem url, title, cited_text, etc
+                            url = getattr(citation, 'url', None)
+                            title = getattr(citation, 'title', None)
+                            if url and title:
+                                # Evitar duplicatas
+                                if not any(s['url'] == url for s in sources):
+                                    sources.append({
+                                        "title": title,
+                                        "url": url
+                                    })
+                                    print(f"[SEARCH] Source from citation: {title[:50] if len(title) > 50 else title}")
                 elif block.type == "web_search_tool_result":
-                    # Novo formato da API - web_search_tool_result
+                    # Formato alternativo - resultados em bloco separado
                     print(f"[SEARCH] web_search_tool_result found!")
                     if hasattr(block, 'content') and block.content:
-                        print(f"[SEARCH] content length: {len(block.content)}")
-                        for i, item in enumerate(block.content):
-                            print(f"[SEARCH] Item {i}: type={type(item).__name__}, attrs={[a for a in dir(item) if not a.startswith('_')]}")
-                            if hasattr(item, 'url') and hasattr(item, 'title'):
-                                sources.append({
-                                    "title": item.title,
-                                    "url": item.url
-                                })
-                                print(f"[SEARCH] Found source: {item.title[:50]}")
-                            elif hasattr(item, 'type') and item.type == 'web_search_result':
-                                # Formato alternativo
-                                if hasattr(item, 'url') and hasattr(item, 'title'):
-                                    sources.append({
-                                        "title": item.title,
-                                        "url": item.url
-                                    })
-                                    print(f"[SEARCH] Found source (alt): {item.title[:50]}")
+                        for item in block.content:
+                            url = getattr(item, 'url', None)
+                            title = getattr(item, 'title', None)
+                            if url and title and not any(s['url'] == url for s in sources):
+                                sources.append({"title": title, "url": url})
+                                print(f"[SEARCH] Source from result: {title[:50] if len(title) > 50 else title}")
 
             print(f"[SEARCH] Total sources found: {len(sources)}")
             print(f"[SEARCH] Content length: {len(text_content)}")
