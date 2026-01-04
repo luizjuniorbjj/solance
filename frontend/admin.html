@@ -561,6 +561,69 @@
       padding: 40px;
       color: var(--text-secondary);
     }
+
+    /* Loading States */
+    .loading-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 20px;
+      color: var(--text-secondary);
+    }
+
+    .loading-spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .loading-spinner-small {
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .is-loading {
+      pointer-events: none;
+    }
+
+    /* Refresh Indicator */
+    .refresh-indicator {
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .refresh-indicator button {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: white;
+      cursor: pointer;
+    }
+
+    .refresh-indicator button:hover {
+      background: var(--bg-secondary);
+    }
+
+    /* Stat value transition */
+    .stat-value {
+      transition: opacity 0.2s ease;
+    }
   </style>
 </head>
 <body>
@@ -620,6 +683,10 @@
         </div>
       </div>
       <div class="header-actions">
+        <div class="refresh-indicator">
+          <span id="refreshIndicator"></span>
+          <button onclick="toggleAutoRefresh()">Toggle</button>
+        </div>
         <button class="btn btn-secondary" onclick="refreshData()">Atualizar</button>
         <button class="btn btn-secondary" onclick="logout()">Sair</button>
       </div>
@@ -1100,10 +1167,80 @@
     const API_URL = window.location.origin;
     let token = localStorage.getItem('aisyster_admin_token');
 
+    // ============================================
+    // AUTO-REFRESH POLLING SYSTEM
+    // ============================================
+    let autoRefreshInterval = null;
+    let autoRefreshEnabled = true;
+    const AUTO_REFRESH_INTERVAL = 30000; // 30 segundos
+    let lastUpdate = null;
+
+    function startAutoRefresh() {
+      if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+      autoRefreshInterval = setInterval(() => {
+        if (autoRefreshEnabled && document.visibilityState === 'visible') {
+          silentRefresh();
+        }
+      }, AUTO_REFRESH_INTERVAL);
+      updateRefreshIndicator();
+    }
+
+    function stopAutoRefresh() {
+      if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+      }
+    }
+
+    function toggleAutoRefresh() {
+      autoRefreshEnabled = !autoRefreshEnabled;
+      updateRefreshIndicator();
+      if (autoRefreshEnabled) {
+        startAutoRefresh();
+      }
+    }
+
+    function updateRefreshIndicator() {
+      const indicator = document.getElementById('refreshIndicator');
+      if (indicator) {
+        indicator.innerHTML = autoRefreshEnabled
+          ? `<span style="color: var(--green);">● Auto-refresh ON</span> ${lastUpdate ? `(${formatTimeAgo(lastUpdate)})` : ''}`
+          : '<span style="color: var(--text-secondary);">○ Auto-refresh OFF</span>';
+      }
+    }
+
+    function formatTimeAgo(date) {
+      const seconds = Math.floor((new Date() - date) / 1000);
+      if (seconds < 60) return 'agora';
+      const minutes = Math.floor(seconds / 60);
+      return `${minutes}m atrás`;
+    }
+
+    async function silentRefresh() {
+      // Refresh sem loading states visíveis
+      try {
+        await Promise.all([
+          loadUserStats(true),
+          loadConversationStats(true),
+          loadActivity(true)
+        ]);
+        lastUpdate = new Date();
+        updateRefreshIndicator();
+      } catch (error) {
+        console.error('Silent refresh error:', error);
+      }
+    }
+
+    // Pause refresh when tab is hidden
+    document.addEventListener('visibilitychange', () => {
+      updateRefreshIndicator();
+    });
+
     // Check auth on load
     if (token) {
       showDashboard();
       loadData();
+      startAutoRefresh();
     }
 
     // Toggle password visibility
@@ -1168,10 +1305,48 @@
     }
 
     function logout() {
+      stopAutoRefresh();
       token = null;
       localStorage.removeItem('aisyster_admin_token');
       document.getElementById('loginScreen').style.display = 'block';
       document.getElementById('dashboard').style.display = 'none';
+    }
+
+    // ============================================
+    // LOADING STATES
+    // ============================================
+    function showLoading(elementId, small = false) {
+      const el = document.getElementById(elementId);
+      if (el) {
+        el.dataset.originalContent = el.innerHTML;
+        el.innerHTML = small
+          ? '<span class="loading-spinner-small"></span>'
+          : '<div class="loading-state"><span class="loading-spinner"></span> Carregando...</div>';
+        el.classList.add('is-loading');
+      }
+    }
+
+    function hideLoading(elementId) {
+      const el = document.getElementById(elementId);
+      if (el && el.classList.contains('is-loading')) {
+        el.classList.remove('is-loading');
+      }
+    }
+
+    function setStatLoading(elementId) {
+      const el = document.getElementById(elementId);
+      if (el && !el.dataset.loading) {
+        el.dataset.loading = 'true';
+        el.style.opacity = '0.5';
+      }
+    }
+
+    function clearStatLoading(elementId) {
+      const el = document.getElementById(elementId);
+      if (el) {
+        el.dataset.loading = '';
+        el.style.opacity = '1';
+      }
     }
 
     async function loadData() {
@@ -1338,7 +1513,13 @@
       setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
     }
 
-    async function loadUserStats() {
+    async function loadUserStats(silent = false) {
+      const statIds = ['statTotalUsers', 'statPremiumUsers', 'statActiveToday'];
+
+      if (!silent) {
+        statIds.forEach(id => setStatLoading(id));
+      }
+
       try {
         const response = await fetch(`${API_URL}/admin/stats/users`, {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -1356,10 +1537,18 @@
         document.getElementById('statNewUsers').textContent = `+${data.new_this_week} esta semana`;
       } catch (error) {
         console.error('Error loading user stats:', error);
+      } finally {
+        statIds.forEach(id => clearStatLoading(id));
       }
     }
 
-    async function loadConversationStats() {
+    async function loadConversationStats(silent = false) {
+      const statIds = ['statConversationsToday', 'statTotalMessages'];
+
+      if (!silent) {
+        statIds.forEach(id => setStatLoading(id));
+      }
+
       try {
         const response = await fetch(`${API_URL}/admin/stats/conversations`, {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -1371,6 +1560,8 @@
         document.getElementById('statAvgMessages').textContent = data.avg_messages_per_conversation;
       } catch (error) {
         console.error('Error loading conversation stats:', error);
+      } finally {
+        statIds.forEach(id => clearStatLoading(id));
       }
     }
 
@@ -1435,15 +1626,19 @@
       }
     }
 
-    async function loadActivity() {
+    async function loadActivity(silent = false) {
+      const container = document.getElementById('activityList');
+
+      if (!silent && container) {
+        container.innerHTML = '<div class="loading-state"><span class="loading-spinner"></span> Carregando...</div>';
+      }
+
       try {
         const response = await fetch(`${API_URL}/admin/audit/recent?limit=20`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
         const logs = await response.json();
-
-        const container = document.getElementById('activityList');
 
         if (logs.length === 0) {
           container.innerHTML = '<div class="loading">Nenhuma atividade recente</div>';
@@ -1479,6 +1674,9 @@
         }).join('');
       } catch (error) {
         console.error('Error loading activity:', error);
+        if (!silent && container) {
+          container.innerHTML = '<div style="color: var(--red); padding: 20px; text-align: center;">Erro ao carregar atividade</div>';
+        }
       }
     }
 

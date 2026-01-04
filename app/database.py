@@ -2017,9 +2017,96 @@ class Database:
             )
             return [dict(row) for row in rows]
 
-    async def get_users_for_engagement(self, days_inactive: int = 3) -> List[dict]:
+    async def get_users_for_reminder_with_timezone(self, utc_hour: int, day_of_week: str) -> List[dict]:
+        """
+        Busca usuários que devem receber lembrete agora, considerando timezone.
+        utc_hour: hora atual em UTC (0-23)
+        day_of_week: dia da semana em inglês (mon, tue, etc.)
+
+        Calcula a hora local do usuário baseado no timezone configurado.
+        """
+        # Mapeamento de timezones para offsets
+        timezone_offsets = {
+            'America/Sao_Paulo': -3,
+            'America/Manaus': -4,
+            'America/Belem': -3,
+            'America/Fortaleza': -3,
+            'America/Recife': -3,
+            'America/Cuiaba': -4,
+            'America/Porto_Velho': -4,
+            'America/Rio_Branco': -5,
+            'America/Noronha': -2,
+            'UTC': 0,
+        }
+
+        async with self.pool.acquire() as conn:
+            # Buscar usuários considerando conversão de timezone
+            rows = await conn.fetch(
+                """
+                WITH user_local_hours AS (
+                    SELECT
+                        unp.user_id,
+                        unp.timezone,
+                        unp.reminder_time,
+                        unp.reminder_days,
+                        EXTRACT(HOUR FROM unp.reminder_time) as reminder_hour,
+                        CASE
+                            WHEN unp.timezone = 'America/Sao_Paulo' THEN -3
+                            WHEN unp.timezone = 'America/Manaus' THEN -4
+                            WHEN unp.timezone = 'America/Belem' THEN -3
+                            WHEN unp.timezone = 'America/Fortaleza' THEN -3
+                            WHEN unp.timezone = 'America/Recife' THEN -3
+                            WHEN unp.timezone = 'America/Cuiaba' THEN -4
+                            WHEN unp.timezone = 'America/Porto_Velho' THEN -4
+                            WHEN unp.timezone = 'America/Rio_Branco' THEN -5
+                            WHEN unp.timezone = 'America/Noronha' THEN -2
+                            WHEN unp.timezone = 'UTC' THEN 0
+                            ELSE -3  -- Default: Brasilia
+                        END as tz_offset
+                    FROM user_notification_preferences unp
+                    WHERE unp.reminder_enabled = TRUE
+                    AND unp.push_enabled = TRUE
+                )
+                SELECT
+                    ulh.user_id,
+                    ulh.timezone,
+                    u.email,
+                    ps.endpoint,
+                    ps.p256dh,
+                    ps.auth
+                FROM user_local_hours ulh
+                JOIN users u ON u.id = ulh.user_id
+                JOIN push_subscriptions ps ON ps.user_id = ulh.user_id
+                WHERE ps.is_active = TRUE
+                AND ulh.reminder_days ? $2
+                -- Verifica se a hora UTC atual corresponde à hora local do lembrete
+                AND MOD(ulh.reminder_hour - ulh.tz_offset + 24, 24) = $1
+                -- Evita enviar mais de uma vez por dia
+                AND NOT EXISTS (
+                    SELECT 1 FROM notification_logs nl
+                    WHERE nl.user_id = ulh.user_id
+                    AND nl.notification_type = 'reminder'
+                    AND nl.sent_at > NOW() - INTERVAL '20 hours'
+                )
+                """,
+                utc_hour, day_of_week
+            )
+            return [dict(row) for row in rows]
+
+    async def get_users_for_engagement(
+        self,
+        days_inactive: int = 3,
+        limit: int = 100,
+        offset: int = 0
+    ) -> List[dict]:
         """
         Busca usuários inativos que devem receber notificação de engajamento.
+        Suporta paginação para processar em batches.
+
+        Args:
+            days_inactive: Dias minimos de inatividade (default 3)
+            limit: Maximo de usuarios por pagina
+            offset: Offset para paginacao
         """
         async with self.pool.acquire() as conn:
             rows = await conn.fetch(
@@ -2031,22 +2118,25 @@ class Database:
                     ps.endpoint,
                     ps.p256dh,
                     ps.auth,
-                    unp.engagement_after_days
+                    unp.engagement_after_days,
+                    unp.timezone
                 FROM user_notification_preferences unp
                 JOIN users u ON u.id = unp.user_id
                 JOIN push_subscriptions ps ON ps.user_id = unp.user_id
                 WHERE unp.engagement_enabled = TRUE
                 AND unp.push_enabled = TRUE
                 AND ps.is_active = TRUE
-                AND u.last_login < NOW() - (unp.engagement_after_days || ' days')::INTERVAL
+                AND u.last_login < NOW() - (COALESCE(unp.engagement_after_days, $1) || ' days')::INTERVAL
                 AND NOT EXISTS (
                     SELECT 1 FROM notification_logs nl
                     WHERE nl.user_id = unp.user_id
                     AND nl.notification_type = 'engagement'
                     AND nl.sent_at > NOW() - INTERVAL '7 days'
                 )
-                LIMIT 100
-                """
+                ORDER BY u.last_login ASC
+                LIMIT $2 OFFSET $3
+                """,
+                days_inactive, limit, offset
             )
             return [dict(row) for row in rows]
 

@@ -1,6 +1,9 @@
 // AiSyster Service Worker
-const CACHE_NAME = 'aisyster-v1';
+const CACHE_NAME = 'aisyster-v2';
 const OFFLINE_URL = '/offline.html';
+const DB_NAME = 'aisyster-offline';
+const DB_VERSION = 1;
+const SYNC_TAG = 'sync-messages';
 
 // Arquivos para cachear
 const STATIC_ASSETS = [
@@ -13,6 +16,95 @@ const STATIC_ASSETS = [
   '/static/icons/icon-192x192-maskable.png',
   '/static/icons/icon-512x512-maskable.png'
 ];
+
+// ============================================
+// INDEXEDDB HELPERS
+// ============================================
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+
+      // Store para mensagens pendentes
+      if (!db.objectStoreNames.contains('pendingMessages')) {
+        const store = db.createObjectStore('pendingMessages', {
+          keyPath: 'id',
+          autoIncrement: true
+        });
+        store.createIndex('timestamp', 'timestamp', { unique: false });
+        store.createIndex('conversationId', 'conversationId', { unique: false });
+      }
+
+      // Store para cache de conversas
+      if (!db.objectStoreNames.contains('conversationCache')) {
+        const convStore = db.createObjectStore('conversationCache', {
+          keyPath: 'conversationId'
+        });
+        convStore.createIndex('lastUpdated', 'lastUpdated', { unique: false });
+      }
+    };
+  });
+}
+
+async function savePendingMessage(message) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('pendingMessages', 'readwrite');
+    const store = tx.objectStore('pendingMessages');
+
+    const data = {
+      ...message,
+      timestamp: Date.now(),
+      status: 'pending'
+    };
+
+    const request = store.add(data);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function getPendingMessages() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('pendingMessages', 'readonly');
+    const store = tx.objectStore('pendingMessages');
+    const request = store.getAll();
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function deletePendingMessage(id) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('pendingMessages', 'readwrite');
+    const store = tx.objectStore('pendingMessages');
+    const request = store.delete(id);
+
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function clearAllPendingMessages() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('pendingMessages', 'readwrite');
+    const store = tx.objectStore('pendingMessages');
+    const request = store.clear();
+
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
 
 // Instalação do Service Worker
 self.addEventListener('install', (event) => {
@@ -171,8 +263,154 @@ self.addEventListener('notificationclose', (event) => {
 });
 
 // Receber mensagens do cliente
-self.addEventListener('message', (event) => {
+self.addEventListener('message', async (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+
+  // Salvar mensagem para envio offline
+  if (event.data && event.data.type === 'QUEUE_MESSAGE') {
+    try {
+      const messageId = await savePendingMessage(event.data.message);
+      console.log('[SW] Message queued for sync:', messageId);
+
+      // Registrar sync se disponível
+      if ('sync' in self.registration) {
+        await self.registration.sync.register(SYNC_TAG);
+        console.log('[SW] Sync registered');
+      }
+
+      // Responder ao cliente
+      if (event.ports && event.ports[0]) {
+        event.ports[0].postMessage({ success: true, id: messageId });
+      }
+    } catch (error) {
+      console.error('[SW] Error queuing message:', error);
+      if (event.ports && event.ports[0]) {
+        event.ports[0].postMessage({ success: false, error: error.message });
+      }
+    }
+  }
+
+  // Verificar status de conexão
+  if (event.data && event.data.type === 'CHECK_PENDING') {
+    try {
+      const pending = await getPendingMessages();
+      if (event.ports && event.ports[0]) {
+        event.ports[0].postMessage({ pending: pending.length });
+      }
+    } catch (error) {
+      if (event.ports && event.ports[0]) {
+        event.ports[0].postMessage({ pending: 0, error: error.message });
+      }
+    }
+  }
+
+  // Limpar mensagens pendentes manualmente
+  if (event.data && event.data.type === 'CLEAR_PENDING') {
+    try {
+      await clearAllPendingMessages();
+      if (event.ports && event.ports[0]) {
+        event.ports[0].postMessage({ success: true });
+      }
+    } catch (error) {
+      if (event.ports && event.ports[0]) {
+        event.ports[0].postMessage({ success: false, error: error.message });
+      }
+    }
+  }
+});
+
+// ============================================
+// BACKGROUND SYNC
+// ============================================
+
+self.addEventListener('sync', async (event) => {
+  console.log('[SW] Sync event:', event.tag);
+
+  if (event.tag === SYNC_TAG) {
+    event.waitUntil(syncPendingMessages());
+  }
+});
+
+async function syncPendingMessages() {
+  console.log('[SW] Starting message sync...');
+
+  try {
+    const pendingMessages = await getPendingMessages();
+    console.log('[SW] Found pending messages:', pendingMessages.length);
+
+    if (pendingMessages.length === 0) {
+      return;
+    }
+
+    // Notificar cliente que sync começou
+    notifyClients({ type: 'SYNC_STARTED', count: pendingMessages.length });
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const msg of pendingMessages) {
+      try {
+        // Enviar mensagem para o servidor
+        const response = await fetch('/chat/message', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${msg.token}`
+          },
+          body: JSON.stringify({
+            message: msg.content,
+            conversation_id: msg.conversationId,
+            offline_id: msg.id,
+            offline_timestamp: msg.timestamp
+          })
+        });
+
+        if (response.ok) {
+          await deletePendingMessage(msg.id);
+          successCount++;
+          console.log('[SW] Message synced:', msg.id);
+        } else if (response.status === 401) {
+          // Token expirado - notificar cliente
+          notifyClients({ type: 'AUTH_EXPIRED', messageId: msg.id });
+          break;
+        } else {
+          failCount++;
+          console.error('[SW] Failed to sync message:', response.status);
+        }
+      } catch (error) {
+        failCount++;
+        console.error('[SW] Error syncing message:', error);
+      }
+    }
+
+    // Notificar cliente do resultado
+    notifyClients({
+      type: 'SYNC_COMPLETED',
+      success: successCount,
+      failed: failCount
+    });
+
+    console.log(`[SW] Sync completed: ${successCount} success, ${failCount} failed`);
+
+  } catch (error) {
+    console.error('[SW] Sync error:', error);
+    notifyClients({ type: 'SYNC_ERROR', error: error.message });
+  }
+}
+
+// Helper para notificar todos os clientes
+async function notifyClients(message) {
+  const allClients = await clients.matchAll({ includeUncontrolled: true });
+  allClients.forEach(client => {
+    client.postMessage(message);
+  });
+}
+
+// Periodic Sync para tentar sync quando há conexão
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'sync-pending-messages') {
+    event.waitUntil(syncPendingMessages());
   }
 });
