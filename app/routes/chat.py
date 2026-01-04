@@ -40,6 +40,11 @@ class TrialChatRequest(BaseModel):
     session_id: str
 
 
+class WebSource(BaseModel):
+    title: str
+    url: str
+
+
 class ChatResponse(BaseModel):
     response: str
     conversation_id: str
@@ -51,6 +56,7 @@ class ChatResponse(BaseModel):
     limit_warning: Optional[str] = None  # "soft", "urgent", "reached"
     # Pesquisa web
     web_search: Optional[str] = None  # Indicador do que foi pesquisado (ex: "Buscando: preços iPhone...")
+    web_sources: Optional[List[WebSource]] = None  # Fontes/links de referência
 
 
 class TrialChatResponse(BaseModel):
@@ -81,6 +87,7 @@ class MessageResponse(BaseModel):
 @router.post("/", response_model=ChatResponse)
 async def send_message(
     request: ChatRequest,
+    req: Request,
     current_user: dict = Depends(get_current_user),
     db: Database = Depends(get_db)
 ):
@@ -88,6 +95,14 @@ async def send_message(
     Envia mensagem e recebe resposta da IA
     """
     user_id = current_user["user_id"]
+
+    # Detectar localizacao do usuario pelo IP/headers (para pesquisa web)
+    from app.geo_service import detect_user_location
+    client_ip = req.client.host if req.client else None
+    detected_location = await detect_user_location(
+        ip_address=client_ip,
+        headers=dict(req.headers)
+    )
 
     # Rate limiting
     if not rate_limiter.is_allowed(user_id, max_requests=30, window_seconds=60):
@@ -123,7 +138,8 @@ async def send_message(
         result = await ai_service.chat(
             user_id=user_id,
             message=request.message,
-            conversation_id=request.conversation_id
+            conversation_id=request.conversation_id,
+            detected_location=detected_location  # Localizacao detectada pelo IP
         )
     except Exception as e:
         # Log detalhado do erro para debug
@@ -159,6 +175,14 @@ async def send_message(
         details={"conversation_id": result["conversation_id"]}
     )
 
+    # Converter fontes para o formato do response
+    web_sources = None
+    if result.get("web_sources"):
+        web_sources = [
+            WebSource(title=s.get("title", "Link"), url=s.get("url", ""))
+            for s in result["web_sources"]
+        ]
+
     return ChatResponse(
         response=result["response"],
         conversation_id=result["conversation_id"],
@@ -167,7 +191,8 @@ async def send_message(
         messages_used=messages_used if not is_premium else None,
         messages_limit=FREE_MESSAGE_LIMIT if not is_premium else None,
         limit_warning=limit_warning,
-        web_search=result.get("web_search")
+        web_search=result.get("web_search"),
+        web_sources=web_sources
     )
 
 

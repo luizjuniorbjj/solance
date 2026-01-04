@@ -57,7 +57,8 @@ class AIService:
         conversation_id: Optional[str] = None,
         image_data: Optional[str] = None,  # Base64 encoded image (single)
         image_media_type: Optional[str] = None,  # image/jpeg, image/png, etc.
-        images: Optional[List[tuple]] = None  # Lista de (base64, media_type) para PDFs
+        images: Optional[List[tuple]] = None,  # Lista de (base64, media_type) para PDFs
+        detected_location: Optional[str] = None  # Localizacao detectada pelo IP/headers
     ) -> Dict:
         """
         Processa mensagem do usuário com contexto completo
@@ -172,12 +173,33 @@ class AIService:
         has_attachments = image_data or images
         web_search_context = None
         web_search_indicator = None  # Para mostrar ao usuário o que está buscando
+        web_search_sources = None  # Fontes para mostrar ao usuário
         if WEB_SEARCH_ENABLED and not has_attachments:
             try:
-                # Detectar localização do usuário das memórias
-                user_location = None
-                if profile:
-                    user_location = profile.get("localizacao") or profile.get("cidade")
+                # Detectar localização: IP > memórias > perfil (ordem de prioridade)
+                user_location = detected_location  # Localização detectada pelo IP (mais precisa)
+
+                # Se não detectou pelo IP, tentar perfil
+                if not user_location and profile:
+                    user_location = profile.get("localizacao") or profile.get("cidade") or profile.get("pais")
+
+                # Se ainda não tem, tentar extrair das memórias
+                if not user_location and permanent_memory:
+                    location_keywords = ["mora em", "vive em", "está em", "mora nos", "vive nos",
+                                        "Florida", "EUA", "Estados Unidos", "Brasil", "São Paulo",
+                                        "Rio de Janeiro", "Texas", "California", "New York"]
+                    for keyword in location_keywords:
+                        if keyword.lower() in permanent_memory.lower():
+                            if keyword in ["Florida", "EUA", "Estados Unidos", "Texas", "California", "New York"]:
+                                user_location = "Estados Unidos"
+                            elif keyword in ["Brasil", "São Paulo", "Rio de Janeiro"]:
+                                user_location = "Brasil"
+                            else:
+                                user_location = keyword
+                            break
+
+                if user_location:
+                    print(f"[WEB_SEARCH] Localização detectada: {user_location}")
 
                 # Pesquisa inteligente: Claude decide se precisa e gera queries otimizadas
                 search_result = await web_search_service.smart_search(
@@ -191,7 +213,9 @@ class AIService:
                     web_search_context = web_search_service.format_for_context(search_result)
                     # Indicador para UI (ex: "Buscando: preços de iPhone...")
                     web_search_indicator = web_search_service.format_search_indicator(search_result)
-                    print(f"[WEB_SEARCH] {web_search_indicator} - tokens: {search_result.get('tokens_used', 0)}")
+                    # Fontes para mostrar ao usuário
+                    web_search_sources = search_result.get("sources", [])
+                    print(f"[WEB_SEARCH] {web_search_indicator} - tokens: {search_result.get('tokens_used', 0)} - fontes: {len(web_search_sources)}")
             except Exception as e:
                 print(f"[WEB_SEARCH] Erro ao pesquisar: {e}")
                 web_search_context = None
@@ -376,6 +400,8 @@ class AIService:
         # Incluir info de pesquisa se houve
         if web_search_indicator:
             result["web_search"] = web_search_indicator
+        if web_search_sources:
+            result["web_sources"] = web_search_sources
 
         return result
 

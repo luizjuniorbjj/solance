@@ -1518,6 +1518,31 @@
       flex-shrink: 0;
     }
 
+    .web-search-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .web-search-sources {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(139, 115, 85, 0.2);
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .web-search-sources a {
+      color: var(--gold);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .web-search-sources a:hover {
+      color: var(--gold-dark);
+      text-decoration: underline;
+    }
+
     @keyframes fadeInSearch {
       from { opacity: 0; transform: translateX(-10px); }
       to { opacity: 1; transform: translateX(0); }
@@ -7265,25 +7290,38 @@
       if (typing) typing.remove();
     }
 
-    function showWebSearchIndicator(searchText) {
+    function showWebSearchIndicator(searchText, sources = []) {
       // Mostrar badge sutil indicando que houve pesquisa
       const searchDiv = document.createElement('div');
       searchDiv.className = 'web-search-indicator';
+
+      // Construir HTML dos links de referencia
+      let sourcesHtml = '';
+      if (sources && sources.length > 0) {
+        const sourceLinks = sources.slice(0, 3).map(s =>
+          `<a href="${s.url}" target="_blank" rel="noopener">${s.title.substring(0, 30)}${s.title.length > 30 ? '...' : ''}</a>`
+        ).join(' • ');
+        sourcesHtml = `<div class="web-search-sources">Fontes: ${sourceLinks}</div>`;
+      }
+
       searchDiv.innerHTML = `
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"></circle>
-          <path d="M21 21l-4.35-4.35"></path>
-        </svg>
-        <span>${searchText}</span>
+        <div class="web-search-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="M21 21l-4.35-4.35"></path>
+          </svg>
+          <span>${searchText}</span>
+        </div>
+        ${sourcesHtml}
       `;
       chatMessages.appendChild(searchDiv);
       chatContainer.scrollTop = chatContainer.scrollHeight;
 
-      // Auto-remover apos 5 segundos (ja foi mostrado na resposta)
+      // Auto-remover apos 10 segundos (mais tempo para ver as fontes)
       setTimeout(() => {
         searchDiv.style.opacity = '0';
         setTimeout(() => searchDiv.remove(), 300);
-      }, 5000);
+      }, 10000);
     }
 
     // ============================================
@@ -7451,9 +7489,9 @@
         state.messages.push({ role: 'assistant', content: data.response });
         hideTypingIndicator();
 
-        // Se houve pesquisa web, mostrar indicador antes da resposta
+        // Se houve pesquisa web, mostrar indicador e fontes
         if (data.web_search) {
-          showWebSearchIndicator(data.web_search);
+          showWebSearchIndicator(data.web_search, data.web_sources);
         }
 
         renderMessage('assistant', data.response);

@@ -35,12 +35,18 @@ NAO PESQUISAR quando:
 - Perguntas sobre voce mesma (AiSyster)
 
 Mensagem do usuario: "{message}"
+{location_context}
+
+IMPORTANTE para queries:
+- Se a pergunta envolve precos, lojas, servicos locais, eventos - INCLUA a localizacao nas queries
+- Exemplo: "preco iPhone" com localizacao "Brasil" -> query: "preco iPhone 15 Brasil 2024"
+- Exemplo: "restaurante japones" com localizacao "Sao Paulo" -> query: "melhores restaurantes japoneses Sao Paulo"
 
 Responda APENAS em JSON:
 {{
     "needs_search": true/false,
     "reason": "motivo breve",
-    "search_queries": ["query1", "query2"] // apenas se needs_search=true, max 2 queries otimizadas
+    "search_queries": ["query1", "query2"] // apenas se needs_search=true, max 2 queries otimizadas COM localizacao quando relevante
 }}"""
 
 
@@ -73,13 +79,19 @@ class SmartWebSearchService:
         self.client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
         self.enabled = WEB_SEARCH_ENABLED
 
-    async def analyze_search_need(self, message: str) -> Dict:
+    async def analyze_search_need(self, message: str, user_location: Optional[str] = None) -> Dict:
         """
         Usa Claude (Haiku) para decidir se precisa pesquisar e gerar queries.
         Rapido e barato (~50 tokens).
+        Considera a localizacao do usuario para queries mais precisas.
         """
         if not self.enabled:
             return {"needs_search": False, "reason": "Pesquisa desabilitada"}
+
+        # Construir contexto de localizacao
+        location_context = ""
+        if user_location:
+            location_context = f"Localizacao do usuario: {user_location}"
 
         try:
             response = self.client.messages.create(
@@ -87,7 +99,10 @@ class SmartWebSearchService:
                 max_tokens=200,
                 messages=[{
                     "role": "user",
-                    "content": SEARCH_DECISION_PROMPT.format(message=message)
+                    "content": SEARCH_DECISION_PROMPT.format(
+                        message=message,
+                        location_context=location_context
+                    )
                 }]
             )
 
@@ -211,8 +226,8 @@ INSTRUCOES:
             - sources: List[Dict] (fontes com titulo e URL)
             Ou None se nao precisar pesquisar
         """
-        # 1. Analisar necessidade
-        analysis = await self.analyze_search_need(message)
+        # 1. Analisar necessidade (passa localizacao para queries mais precisas)
+        analysis = await self.analyze_search_need(message, user_location)
 
         if not analysis.get("needs_search"):
             return None
