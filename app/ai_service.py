@@ -176,27 +176,40 @@ class AIService:
         web_search_sources = None  # Fontes para mostrar ao usuário
         if WEB_SEARCH_ENABLED and not has_attachments:
             try:
-                # Detectar localização: MEMÓRIAS > perfil > IP
+                # Detectar localização: MEMÓRIAS (busca específica) > perfil > IP
                 # (memórias são mais confiáveis - usuário disse explicitamente onde mora)
                 # (IP pode ser enganado por VPN)
                 user_location = None
                 print(f"[WEB_SEARCH] Localização via IP (ignorada se houver memória): {detected_location}")
 
-                # 1. PRIMEIRO: Tentar extrair das memórias (mais confiável)
-                if permanent_memory:
-                    memory_lower = permanent_memory.lower()
-                    if "florida" in memory_lower or "flórida" in memory_lower or "orlando" in memory_lower:
-                        user_location = "Estados Unidos"
-                        print(f"[WEB_SEARCH] Localização via memória: Florida/Orlando -> Estados Unidos")
-                    elif "eua" in memory_lower or "estados unidos" in memory_lower or "usa" in memory_lower:
-                        user_location = "Estados Unidos"
-                        print(f"[WEB_SEARCH] Localização via memória: EUA")
-                    elif any(state in memory_lower for state in ["texas", "california", "new york", "miami", "los angeles"]):
-                        user_location = "Estados Unidos"
-                        print(f"[WEB_SEARCH] Localização via memória: Estado/cidade americana")
-                    elif "brasil" in memory_lower or "são paulo" in memory_lower or "rio de janeiro" in memory_lower:
-                        user_location = "Brasil"
-                        print(f"[WEB_SEARCH] Localização via memória: Brasil")
+                # 1. PRIMEIRO: Buscar memórias de IDENTIDADE e CONTEXTO diretamente no banco
+                # (não depende de relevância à mensagem atual)
+                try:
+                    # Buscar memórias de identidade (onde mora, quem é, etc)
+                    identity_memories = await self.db.get_user_memories(user_id, categoria="IDENTIDADE", limit=20)
+                    context_memories = await self.db.get_user_memories(user_id, categoria="CONTEXTO", limit=10)
+                    all_location_memories = identity_memories + context_memories
+
+                    for mem in all_location_memories:
+                        fato = mem.get("fato", "").lower()
+                        # Log para debug
+                        if any(loc in fato for loc in ["mora", "vive", "florida", "eua", "brasil", "cidade"]):
+                            print(f"[WEB_SEARCH] Memória relevante: {fato[:80]}")
+
+                        if any(loc in fato for loc in ["florida", "flórida", "orlando", "miami"]):
+                            user_location = "Estados Unidos"
+                            print(f"[WEB_SEARCH] Localização via memória DB: Florida -> Estados Unidos")
+                            break
+                        elif any(loc in fato for loc in ["eua", "estados unidos", "usa", "texas", "california", "new york", "los angeles"]):
+                            user_location = "Estados Unidos"
+                            print(f"[WEB_SEARCH] Localização via memória DB: EUA")
+                            break
+                        elif any(loc in fato for loc in ["brasil", "são paulo", "rio de janeiro", "belo horizonte", "brasília"]):
+                            user_location = "Brasil"
+                            print(f"[WEB_SEARCH] Localização via memória DB: Brasil")
+                            break
+                except Exception as e:
+                    print(f"[WEB_SEARCH] Erro ao buscar memórias de localização: {e}")
 
                 # 2. Se não encontrou na memória, tentar perfil
                 if not user_location and profile:
