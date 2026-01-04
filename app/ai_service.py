@@ -155,8 +155,8 @@ class AIService:
         # 6. Construir prompts SEPARADOS (melhor para caching)
         is_first = len(recent_conversations) <= 1 and len(messages) == 0
 
-        # Obter idioma do usuario (default: ingles)
-        user_language = profile.get("language", "en") if profile else "en"
+        # Detectar idioma automaticamente pela mensagem (como GPT faz)
+        user_language = self._detect_language(message)
 
         # SYSTEM: so persona/regras (estavel, cacheable) - no idioma do usuario
         system_prompt = self._build_system_prompt(is_first_conversation=is_first, language=user_language)
@@ -435,6 +435,63 @@ class AIService:
             result["web_sources"] = web_search_sources
 
         return result
+
+    def _detect_language(self, message: str) -> str:
+        """
+        Detecta o idioma da mensagem automaticamente (como GPT faz).
+        Analisa palavras comuns para identificar o idioma.
+
+        Returns: 'en', 'pt', ou 'es'
+        """
+        message_lower = message.lower()
+
+        # Palavras muito comuns em portugues (incluindo sem acentos)
+        pt_words = [
+            "voce", "você", "oi", "ola", "olá", "bom dia", "boa tarde", "boa noite",
+            "obrigado", "obrigada", "por favor", "como", "que", "não", "nao", "sim",
+            "eu", "meu", "minha", "para", "com", "uma", "este", "esta", "isso",
+            "aqui", "ali", "hoje", "amanha", "ontem", "muito", "pouco", "bem",
+            "fazer", "falar", "quero", "preciso", "ajuda", "ajudar", "deus",
+            "senhor", "jesus", "oracao", "oração", "biblia", "bíblia", "igreja"
+        ]
+
+        # Palavras muito comuns em espanhol
+        es_words = [
+            "hola", "buenos dias", "buenas tardes", "buenas noches", "gracias",
+            "por favor", "como", "que", "si", "no", "yo", "mi", "tu", "para",
+            "con", "una", "este", "esta", "eso", "aqui", "alli", "hoy", "manana",
+            "ayer", "muy", "poco", "bien", "hacer", "hablar", "quiero", "necesito",
+            "ayuda", "ayudar", "dios", "senor", "señor", "iglesia", "oracion"
+        ]
+
+        # Palavras muito comuns em ingles
+        en_words = [
+            "hello", "hi", "hey", "good morning", "good afternoon", "good evening",
+            "thank you", "thanks", "please", "how", "what", "yes", "no", "i", "my",
+            "you", "your", "for", "with", "the", "this", "that", "here", "there",
+            "today", "tomorrow", "yesterday", "very", "little", "well", "good",
+            "make", "do", "speak", "want", "need", "help", "god", "lord", "jesus",
+            "prayer", "bible", "church"
+        ]
+
+        # Contar matches
+        pt_count = sum(1 for word in pt_words if word in message_lower)
+        es_count = sum(1 for word in es_words if word in message_lower)
+        en_count = sum(1 for word in en_words if word in message_lower)
+
+        # Caracteres especiais que indicam portugues/espanhol
+        if any(c in message for c in ['ã', 'õ', 'ç']):
+            pt_count += 3  # Bonus forte para portugues
+        if any(c in message for c in ['ñ', '¿', '¡']):
+            es_count += 3  # Bonus forte para espanhol
+
+        # Determinar idioma
+        if pt_count > es_count and pt_count > en_count:
+            return "pt"
+        elif es_count > pt_count and es_count > en_count:
+            return "es"
+        else:
+            return "en"  # Default: ingles
 
     def _select_model(self, user: dict) -> str:
         """
