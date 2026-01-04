@@ -1463,6 +1463,27 @@
       font-style: italic;
     }
 
+    .message-text ul {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+
+    .message-text li {
+      margin-bottom: 6px;
+    }
+
+    .message-text a {
+      color: var(--gold);
+      text-decoration: none;
+      border-bottom: 1px solid var(--gold);
+      transition: all 0.2s;
+    }
+
+    .message-text a:hover {
+      color: var(--gold-dark);
+      border-bottom-color: var(--gold-dark);
+    }
+
     /* Typing Indicator */
     .typing-indicator {
       display: flex;
@@ -1500,15 +1521,15 @@
     /* Web Search Indicator */
     .web-search-indicator {
       display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 12px;
+      flex-direction: column;
+      gap: 4px;
+      padding: 10px 14px;
       margin: 8px 0;
-      background: linear-gradient(135deg, rgba(139, 115, 85, 0.1), rgba(212, 175, 55, 0.08));
+      background: linear-gradient(135deg, rgba(139, 115, 85, 0.12), rgba(212, 175, 55, 0.1));
       border-left: 3px solid var(--gold);
       border-radius: 0 8px 8px 0;
-      font-size: 12px;
-      color: var(--gold-dark);
+      font-size: 13px;
+      color: var(--text-primary);
       animation: fadeInSearch 0.3s ease;
       transition: opacity 0.3s ease;
     }
@@ -1521,25 +1542,28 @@
     .web-search-header {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      font-weight: 500;
     }
 
     .web-search-sources {
-      margin-top: 6px;
+      margin-top: 4px;
       padding-top: 6px;
       border-top: 1px solid rgba(139, 115, 85, 0.2);
-      font-size: 11px;
+      font-size: 12px;
       color: var(--text-secondary);
+      line-height: 1.6;
     }
 
     .web-search-sources a {
       color: var(--gold);
       text-decoration: none;
       transition: color 0.2s;
+      margin-right: 4px;
     }
 
     .web-search-sources a:hover {
-      color: var(--gold-dark);
+      color: var(--gold-light);
       text-decoration: underline;
     }
 
@@ -7205,6 +7229,41 @@
       sendMessage();
     }
 
+    // Converter markdown basico para HTML
+    function formatMarkdown(text) {
+      if (!text) return '';
+
+      let html = text
+        // Escapar HTML primeiro
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        // Negrito: **texto** ou __texto__
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/__(.+?)__/g, '<strong>$1</strong>')
+        // Italico: *texto* ou _texto_
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        .replace(/_([^_]+)_/g, '<em>$1</em>')
+        // Links: [texto](url)
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+        // Listas com - ou *
+        .replace(/^[\-\*]\s+(.+)$/gm, '<li>$1</li>')
+        // Quebras de linha duplas = paragrafos
+        .split('\n\n')
+        .map(p => {
+          // Se contem <li>, envolver em <ul>
+          if (p.includes('<li>')) {
+            return `<ul>${p}</ul>`;
+          }
+          return `<p>${p}</p>`;
+        })
+        .join('')
+        // Quebras simples dentro de paragrafos
+        .replace(/([^>])\n([^<])/g, '$1<br>$2');
+
+      return html;
+    }
+
     function renderMessage(role, content) {
       const messageDiv = document.createElement('div');
       messageDiv.className = `message ${role}`;
@@ -7212,10 +7271,8 @@
       const avatarText = role === 'user' ? (state.user?.nome?.[0] || 'U') : 'S';
       const roleName = role === 'user' ? 'Voce' : 'AiSyster';
 
-      const formattedContent = content
-        .split('\n\n')
-        .map(p => `<p>${p}</p>`)
-        .join('');
+      // Converter markdown para HTML
+      const formattedContent = formatMarkdown(content);
 
       // Botões de ação para mensagens da IA (ouvir + feedback)
       const messageActions = role === 'assistant' ? `
