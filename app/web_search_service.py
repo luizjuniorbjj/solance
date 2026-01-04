@@ -159,14 +159,34 @@ INSTRUCOES:
 4. Se for tema religioso, priorize fontes cristas respeitadas
 5. Seja objetivo e factual"""
 
+            # Mapear localização para código de país (API usa country codes)
+            location_config = {}
+            if user_location:
+                if user_location in ["Estados Unidos", "USA", "EUA"]:
+                    location_config = {
+                        "type": "approximate",
+                        "country": "US"
+                    }
+                elif user_location == "Brasil":
+                    location_config = {
+                        "type": "approximate",
+                        "country": "BR"
+                    }
+
+            # Construir tool config
+            web_search_tool = {
+                "type": "web_search_20250305",
+                "name": "web_search",
+                "max_uses": WEB_SEARCH_MAX_RESULTS
+            }
+            if location_config:
+                web_search_tool["user_location"] = location_config
+                print(f"[SEARCH] Usando localização: {location_config}")
+
             response = self.client.messages.create(
                 model=AI_MODEL_FALLBACK,  # Haiku com web search
                 max_tokens=1500,
-                tools=[{
-                    "type": "web_search_20250305",  # Novo formato da API (2025)
-                    "name": "web_search",
-                    "max_uses": WEB_SEARCH_MAX_RESULTS
-                }],
+                tools=[web_search_tool],
                 messages=[{
                     "role": "user",
                     "content": search_prompt
@@ -181,30 +201,32 @@ INSTRUCOES:
 
             for block in response.content:
                 print(f"[SEARCH] Block type: {block.type}")
+                # Log completo para debug
+                print(f"[SEARCH] Block dir: {[a for a in dir(block) if not a.startswith('_')]}")
 
                 if block.type == "text":
                     text_content = block.text
                 elif block.type == "web_search_tool_result":
                     # Novo formato da API - web_search_tool_result
+                    print(f"[SEARCH] web_search_tool_result found!")
                     if hasattr(block, 'content') and block.content:
-                        for item in block.content:
-                            print(f"[SEARCH] Search result item type: {type(item)}")
+                        print(f"[SEARCH] content length: {len(block.content)}")
+                        for i, item in enumerate(block.content):
+                            print(f"[SEARCH] Item {i}: type={type(item).__name__}, attrs={[a for a in dir(item) if not a.startswith('_')]}")
                             if hasattr(item, 'url') and hasattr(item, 'title'):
                                 sources.append({
                                     "title": item.title,
                                     "url": item.url
                                 })
-                                print(f"[SEARCH] Found source: {item.title[:30]}")
-                elif hasattr(block, 'type') and 'web_search' in str(block.type):
-                    # Formato alternativo
-                    print(f"[SEARCH] Alternative block: {block}")
-                    if hasattr(block, 'content'):
-                        for item in block.content:
-                            if hasattr(item, 'url') and hasattr(item, 'title'):
-                                sources.append({
-                                    "title": item.title,
-                                    "url": item.url
-                                })
+                                print(f"[SEARCH] Found source: {item.title[:50]}")
+                            elif hasattr(item, 'type') and item.type == 'web_search_result':
+                                # Formato alternativo
+                                if hasattr(item, 'url') and hasattr(item, 'title'):
+                                    sources.append({
+                                        "title": item.title,
+                                        "url": item.url
+                                    })
+                                    print(f"[SEARCH] Found source (alt): {item.title[:50]}")
 
             print(f"[SEARCH] Total sources found: {len(sources)}")
             print(f"[SEARCH] Content length: {len(text_content)}")
