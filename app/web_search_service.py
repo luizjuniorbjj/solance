@@ -177,11 +177,27 @@ INSTRUCOES:
             text_content = ""
             sources = []
 
+            print(f"[SEARCH] Response blocks: {len(response.content)}")
+
             for block in response.content:
+                print(f"[SEARCH] Block type: {block.type}")
+
                 if block.type == "text":
                     text_content = block.text
+                elif block.type == "web_search_tool_result":
+                    # Novo formato da API - web_search_tool_result
+                    if hasattr(block, 'content') and block.content:
+                        for item in block.content:
+                            print(f"[SEARCH] Search result item type: {type(item)}")
+                            if hasattr(item, 'url') and hasattr(item, 'title'):
+                                sources.append({
+                                    "title": item.title,
+                                    "url": item.url
+                                })
+                                print(f"[SEARCH] Found source: {item.title[:30]}")
                 elif hasattr(block, 'type') and 'web_search' in str(block.type):
-                    # Capturar fontes dos resultados de busca
+                    # Formato alternativo
+                    print(f"[SEARCH] Alternative block: {block}")
                     if hasattr(block, 'content'):
                         for item in block.content:
                             if hasattr(item, 'url') and hasattr(item, 'title'):
@@ -189,6 +205,9 @@ INSTRUCOES:
                                     "title": item.title,
                                     "url": item.url
                                 })
+
+            print(f"[SEARCH] Total sources found: {len(sources)}")
+            print(f"[SEARCH] Content length: {len(text_content)}")
 
             return {
                 "success": True,

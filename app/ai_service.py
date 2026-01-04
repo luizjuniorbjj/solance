@@ -178,28 +178,36 @@ class AIService:
             try:
                 # Detectar localização: IP > memórias > perfil (ordem de prioridade)
                 user_location = detected_location  # Localização detectada pelo IP (mais precisa)
+                print(f"[WEB_SEARCH] Localização via IP: {detected_location}")
 
-                # Se não detectou pelo IP, tentar perfil
+                # Se não detectou pelo IP, tentar extrair das memórias PRIMEIRO
+                # (memórias são mais confiáveis que perfil porque são explícitas)
+                if not user_location and permanent_memory:
+                    # Buscar padrões específicos de localização
+                    memory_lower = permanent_memory.lower()
+                    if "florida" in memory_lower or "flórida" in memory_lower:
+                        user_location = "Estados Unidos"
+                        print(f"[WEB_SEARCH] Localização via memória: Florida -> Estados Unidos")
+                    elif "eua" in memory_lower or "estados unidos" in memory_lower:
+                        user_location = "Estados Unidos"
+                        print(f"[WEB_SEARCH] Localização via memória: EUA")
+                    elif any(state in memory_lower for state in ["texas", "california", "new york", "orlando"]):
+                        user_location = "Estados Unidos"
+                        print(f"[WEB_SEARCH] Localização via memória: Estado americano")
+                    elif "brasil" in memory_lower or "são paulo" in memory_lower or "rio de janeiro" in memory_lower:
+                        user_location = "Brasil"
+                        print(f"[WEB_SEARCH] Localização via memória: Brasil")
+
+                # Se ainda não tem, tentar perfil
                 if not user_location and profile:
                     user_location = profile.get("localizacao") or profile.get("cidade") or profile.get("pais")
-
-                # Se ainda não tem, tentar extrair das memórias
-                if not user_location and permanent_memory:
-                    location_keywords = ["mora em", "vive em", "está em", "mora nos", "vive nos",
-                                        "Florida", "EUA", "Estados Unidos", "Brasil", "São Paulo",
-                                        "Rio de Janeiro", "Texas", "California", "New York"]
-                    for keyword in location_keywords:
-                        if keyword.lower() in permanent_memory.lower():
-                            if keyword in ["Florida", "EUA", "Estados Unidos", "Texas", "California", "New York"]:
-                                user_location = "Estados Unidos"
-                            elif keyword in ["Brasil", "São Paulo", "Rio de Janeiro"]:
-                                user_location = "Brasil"
-                            else:
-                                user_location = keyword
-                            break
+                    if user_location:
+                        print(f"[WEB_SEARCH] Localização via perfil: {user_location}")
 
                 if user_location:
-                    print(f"[WEB_SEARCH] Localização detectada: {user_location}")
+                    print(f"[WEB_SEARCH] Localização FINAL: {user_location}")
+                else:
+                    print(f"[WEB_SEARCH] Localização NÃO detectada")
 
                 # Pesquisa inteligente: Claude decide se precisa e gera queries otimizadas
                 search_result = await web_search_service.smart_search(
