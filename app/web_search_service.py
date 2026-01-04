@@ -204,21 +204,45 @@ INSTRUCOES:
 
                 if block.type == "text":
                     text_content += block.text
-                    # NOVO: Extrair fontes do atributo citations nos blocos de texto
+                    # Extrair fontes do atributo citations nos blocos de texto
                     if hasattr(block, 'citations') and block.citations:
                         print(f"[SEARCH] Found {len(block.citations)} citations in text block")
                         for citation in block.citations:
-                            # Cada citation tem url, title, cited_text, etc
-                            url = getattr(citation, 'url', None)
-                            title = getattr(citation, 'title', None)
-                            if url and title:
+                            # Debug: mostrar estrutura da citation
+                            print(f"[SEARCH] Citation type: {type(citation).__name__}")
+                            print(f"[SEARCH] Citation attrs: {[a for a in dir(citation) if not a.startswith('_')][:10]}")
+
+                            # Tentar diferentes formas de acessar url e title
+                            url = None
+                            title = None
+
+                            # Forma 1: atributos diretos
+                            if hasattr(citation, 'url'):
+                                url = citation.url
+                            elif hasattr(citation, 'source_url'):
+                                url = citation.source_url
+                            elif isinstance(citation, dict):
+                                url = citation.get('url') or citation.get('source_url')
+
+                            if hasattr(citation, 'title'):
+                                title = citation.title
+                            elif hasattr(citation, 'source_title'):
+                                title = citation.source_title
+                            elif isinstance(citation, dict):
+                                title = citation.get('title') or citation.get('source_title')
+
+                            # Se não achou title, usar parte do URL
+                            if url and not title:
+                                title = url.split('/')[2] if '/' in url else url[:30]
+
+                            if url:
                                 # Evitar duplicatas
                                 if not any(s['url'] == url for s in sources):
                                     sources.append({
-                                        "title": title,
+                                        "title": title or "Link",
                                         "url": url
                                     })
-                                    print(f"[SEARCH] Source from citation: {title[:50] if len(title) > 50 else title}")
+                                    print(f"[SEARCH] Source added: {title[:50] if title and len(title) > 50 else title}")
                 elif block.type == "web_search_tool_result":
                     # Formato alternativo - resultados em bloco separado
                     print(f"[SEARCH] web_search_tool_result found!")
