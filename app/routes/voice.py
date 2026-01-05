@@ -187,6 +187,12 @@ async def voice_chat(
             detail="Você atingiu o limite gratuito. Assine para continuar conversando!"
         )
 
+    # Obter preferências de idioma/voz do perfil do usuário
+    profile = await db.get_user_profile(user_id)
+    user_language = profile.get("language", "auto") if profile else "auto"
+    spoken_language = profile.get("spoken_language", "auto") if profile else "auto"
+    user_voice = profile.get("voice", "nova") if profile else "nova"
+
     # Ler áudio
     audio_bytes = await audio.read()
 
@@ -200,7 +206,10 @@ async def voice_chat(
         chat_callback=ai_service.chat,
         user_id=user_id,
         conversation_id=conversation_id,
-        return_audio=return_audio
+        return_audio=return_audio,
+        language=user_language,
+        spoken_language=spoken_language,
+        voice=user_voice
     )
 
     if not result["success"]:
@@ -267,6 +276,12 @@ async def voice_chat_audio_response(
     if not is_premium and messages_used >= FREE_MESSAGE_LIMIT:
         raise HTTPException(status_code=402, detail="Limite gratuito atingido")
 
+    # Obter preferências de idioma/voz do perfil do usuário
+    profile = await db.get_user_profile(user_id)
+    user_language = profile.get("language", "auto") if profile else "auto"
+    spoken_language = profile.get("spoken_language", "auto") if profile else "auto"
+    user_voice = profile.get("voice", "nova") if profile else "nova"
+
     # Ler áudio
     audio_bytes = await audio.read()
 
@@ -280,7 +295,10 @@ async def voice_chat_audio_response(
         chat_callback=ai_service.chat,
         user_id=user_id,
         conversation_id=conversation_id,
-        return_audio=True
+        return_audio=True,
+        language=user_language,
+        spoken_language=spoken_language,
+        voice=user_voice
     )
 
     if not result["success"] or not result.get("response_audio"):

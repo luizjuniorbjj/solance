@@ -4871,16 +4871,30 @@
     // ============================================
 
     let currentTranslations = {};
-    let currentLanguage = localStorage.getItem('aisyster_language') || 'pt';
+    // Se 'auto' ou não definido, detectar pelo navegador
+    let storedLang = localStorage.getItem('aisyster_language') || 'auto';
+    let currentLanguage = storedLang;
+    if (storedLang === 'auto') {
+      const browserLang = navigator.language?.split('-')[0] || 'pt';
+      currentLanguage = ['pt', 'en', 'es'].includes(browserLang) ? browserLang : 'pt';
+    }
 
     // Carregar traduções
     async function loadTranslations(lang) {
+      // Se 'auto', detectar pelo navegador
+      if (lang === 'auto') {
+        const browserLang = navigator.language?.split('-')[0] || 'pt';
+        lang = ['pt', 'en', 'es'].includes(browserLang) ? browserLang : 'pt';
+      }
       try {
         const response = await fetch(`/static/i18n/${lang}.json`);
         if (response.ok) {
           currentTranslations = await response.json();
           currentLanguage = lang;
-          localStorage.setItem('aisyster_language', lang);
+          // Não sobrescrever 'auto' no localStorage se foi auto-detectado
+          if (storedLang !== 'auto') {
+            localStorage.setItem('aisyster_language', lang);
+          }
           return true;
         }
       } catch (e) {
@@ -6329,9 +6343,14 @@
           const voiceSelect = document.getElementById('voiceSelect');
 
           // Carregar idioma da interface
-          const lang = profile.language || 'pt';
+          // Se 'auto', detectar pelo navegador ou usar 'pt' como fallback
+          let lang = profile.language || 'auto';
+          if (lang === 'auto') {
+            const browserLang = navigator.language?.split('-')[0] || 'pt';
+            lang = ['pt', 'en', 'es'].includes(browserLang) ? browserLang : 'pt';
+          }
           if (languageSelect) {
-            languageSelect.value = lang;
+            languageSelect.value = profile.language || 'auto';
           }
           if (spokenLanguageSelect && profile.spoken_language) {
             spokenLanguageSelect.value = profile.spoken_language;

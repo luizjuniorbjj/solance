@@ -152,7 +152,10 @@ class VoiceService:
         chat_callback,
         user_id: str,
         conversation_id: Optional[str] = None,
-        return_audio: bool = True
+        return_audio: bool = True,
+        language: str = "pt",
+        spoken_language: Optional[str] = None,
+        voice: Optional[str] = None
     ) -> dict:
         """
         Fluxo completo: Áudio do usuário -> Texto -> Chat -> Áudio da resposta
@@ -164,6 +167,9 @@ class VoiceService:
             user_id: ID do usuário
             conversation_id: ID da conversa (opcional)
             return_audio: Se deve retornar áudio da resposta
+            language: Idioma do usuário para STT (pt, en, es, auto)
+            spoken_language: Idioma para TTS (se diferente do language)
+            voice: Voz preferida do usuário para TTS
 
         Returns:
             dict com: success, user_text, response_text, response_audio, conversation_id
@@ -177,8 +183,14 @@ class VoiceService:
             "error": ""
         }
 
+        # Mapear idioma para código Whisper (auto = None para autodetectar)
+        stt_language = None if language == "auto" else language
+        tts_voice = voice or TTS_VOICE
+
+        print(f"[VOICE] language={language}, spoken_language={spoken_language}, voice={tts_voice}")
+
         # 1. Transcrever áudio do usuário
-        stt_success, user_text = await self.speech_to_text(audio_bytes, filename)
+        stt_success, user_text = await self.speech_to_text(audio_bytes, filename, language=stt_language)
 
         if not stt_success:
             result["error"] = user_text  # Mensagem de erro
@@ -203,7 +215,10 @@ class VoiceService:
 
         # 3. Converter resposta em áudio (se solicitado)
         if return_audio and result["response_text"]:
-            tts_success, audio, tts_error = await self.text_to_speech(result["response_text"])
+            tts_success, audio, tts_error = await self.text_to_speech(
+                result["response_text"],
+                voice=tts_voice
+            )
             if tts_success:
                 result["response_audio"] = audio
             else:
