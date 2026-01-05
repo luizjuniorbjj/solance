@@ -1,6 +1,6 @@
 {
   "name": "AiSyster",
-  "short_name": "AiS",
+  "short_name": "AiSyster",
   "description": "Sua companheira AI para apoio no dia a dia",
   "start_url": "/app",
   "display": "standalone",
