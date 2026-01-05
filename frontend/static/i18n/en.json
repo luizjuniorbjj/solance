@@ -201,11 +201,7 @@
     "es": "Spanish"
   },
   "voices": {
-    "alloy": "Alloy - Neutral, versatile",
-    "echo": "Echo - Male, deep",
-    "fable": "Fable - Expressive, narrative",
-    "onyx": "Onyx - Male, profound",
-    "nova": "Nova - Female, soft (default)",
-    "shimmer": "Shimmer - Female, bright"
+    "nova": "Nova - Soft and warm (default)",
+    "shimmer": "Shimmer - Clear and vibrant"
   }
 }
