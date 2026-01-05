@@ -2647,6 +2647,17 @@
       50% { opacity: 0.7; }
     }
 
+    @keyframes pulse-glow {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      }
+      50% {
+        transform: scale(1.05);
+        box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+      }
+    }
+
     /* Mobile Adjustments */
     @media (max-width: 480px) {
       .voice-overlay-status {
@@ -7575,13 +7586,34 @@
               })
               .catch((error) => {
                 console.warn('[Voice] Autoplay blocked, trying with user gesture:', error);
-                // No iOS, mostrar botão para tocar manualmente
-                voiceStatus.textContent = 'Toque para ouvir';
-                voiceStatus.style.cursor = 'pointer';
-                voiceStatus.onclick = () => {
+                // No iOS, mostrar botão destacado para tocar manualmente
+                voiceStatus.innerHTML = `
+                  <button class="ios-play-btn" style="
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border: none;
+                    color: white;
+                    padding: 16px 32px;
+                    border-radius: 50px;
+                    font-size: 18px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin: 0 auto;
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                    animation: pulse-glow 1.5s ease-in-out infinite;
+                  ">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                      <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                    Toque para ouvir
+                  </button>
+                `;
+                const playBtn = voiceStatus.querySelector('.ios-play-btn');
+                playBtn.onclick = () => {
                   voiceResponseAudio.play();
-                  voiceStatus.style.cursor = 'default';
-                  voiceStatus.onclick = null;
+                  voiceStatus.textContent = 'Reproduzindo...';
                 };
               });
           }
