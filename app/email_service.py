@@ -233,7 +233,7 @@ class EmailService:
     def _base_template(self, content: str, language: str = "pt") -> str:
         """Template base para todos os emails com suporte a i18n"""
         # Logo via URL publica para melhor compatibilidade com clientes de email
-        logo_url = f"{APP_URL}/static/icons/logo-email-v5.png"
+        logo_url = f"{APP_URL}/static/icons/logo-email-v6.png"
         tagline = get_email_text("tagline", language)
         sent_by = get_email_text("sent_by", language)
 
