@@ -202,6 +202,8 @@
   },
   "voices": {
     "nova": "Nova - Suave e acolhedora (padrao)",
-    "shimmer": "Shimmer - Clara e vibrante"
+    "shimmer": "Shimmer - Clara e vibrante",
+    "coral": "Coral - Calorosa e envolvente",
+    "sage": "Sage - Calma e serena"
   }
 }
