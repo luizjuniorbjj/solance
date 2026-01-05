@@ -249,6 +249,7 @@
     "networkError": "Erro de rede",
     "needLogin": "Voce precisa estar logado para usar o modo voz",
     "connectionFailed": "Nao foi possivel conectar ao servidor. Verifique sua internet.",
-    "processingFailed": "Nao foi possivel processar"
+    "processingFailed": "Nao foi possivel processar",
+    "stopAndSend": "Parar e Enviar"
   }
 }

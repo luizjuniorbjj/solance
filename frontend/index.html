@@ -4525,7 +4525,7 @@
   <!-- Immersive Voice Mode Overlay -->
   <div id="voiceOverlay" class="voice-overlay">
     <div class="voice-overlay-header">
-      <button class="voice-overlay-cancel" onclick="cancelVoiceOverlay()" title="Cancelar">
+      <button class="voice-overlay-cancel" onclick="cancelVoiceOverlay()" data-i18n-title="common.cancel" title="Cancel">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M18 6L6 18M6 6l12 12"/>
         </svg>
@@ -4534,7 +4534,7 @@
     </div>
 
     <div class="voice-overlay-content">
-      <div class="voice-overlay-status" id="voiceStatus">Ouvindo...</div>
+      <div class="voice-overlay-status" id="voiceStatus" data-i18n="voice.speakNow">Speak now...</div>
 
       <!-- Waveform Animation -->
       <div class="voice-waveform" id="voiceWaveform">
@@ -4560,7 +4560,7 @@
             <path d="M18 6L6 18M6 6l12 12"/>
           </svg>
         </div>
-        <span class="btn-label">Cancelar</span>
+        <span class="btn-label" data-i18n="common.cancel">Cancel</span>
       </button>
 
       <button class="voice-action-btn send" id="voiceSendBtn" onclick="sendVoiceOverlay()">
@@ -4569,7 +4569,7 @@
             <rect x="6" y="6" width="12" height="12" rx="2"/>
           </svg>
         </div>
-        <span class="btn-label">Parar e Enviar</span>
+        <span class="btn-label" data-i18n="voice.stopAndSend">Stop and Send</span>
       </button>
     </div>
   </div>
@@ -7281,6 +7281,19 @@
       voiceTimer.textContent = '00:00';
       voiceRecordingSeconds = 0;
       currentVoiceAudioBlob = null;
+
+      // Translate overlay buttons
+      voiceOverlay.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const translation = t(key);
+        if (translation && translation !== key) {
+          el.textContent = translation;
+        }
+      });
+      voiceOverlay.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        el.title = t(key);
+      });
     }
 
     function hideVoiceOverlay() {

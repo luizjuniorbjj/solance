@@ -249,6 +249,7 @@
     "networkError": "Network error",
     "needLogin": "You need to be logged in to use voice mode",
     "connectionFailed": "Could not connect to server. Check your internet.",
-    "processingFailed": "Could not process"
+    "processingFailed": "Could not process",
+    "stopAndSend": "Stop and Send"
   }
 }
