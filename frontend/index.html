@@ -4847,6 +4847,108 @@
     const API_URL = window.location.origin;
 
     // ============================================
+    // INTERNATIONALIZATION (i18n) SYSTEM
+    // ============================================
+
+    let currentTranslations = {};
+    let currentLanguage = localStorage.getItem('aisyster_language') || 'pt';
+
+    // Carregar traduções
+    async function loadTranslations(lang) {
+      try {
+        const response = await fetch(`/static/i18n/${lang}.json`);
+        if (response.ok) {
+          currentTranslations = await response.json();
+          currentLanguage = lang;
+          localStorage.setItem('aisyster_language', lang);
+          return true;
+        }
+      } catch (e) {
+        console.error('Erro ao carregar traduções:', e);
+      }
+      return false;
+    }
+
+    // Obter tradução por chave (ex: "settings.language")
+    function t(key, fallback = '') {
+      const keys = key.split('.');
+      let value = currentTranslations;
+      for (const k of keys) {
+        if (value && typeof value === 'object' && k in value) {
+          value = value[k];
+        } else {
+          return fallback || key;
+        }
+      }
+      return value || fallback || key;
+    }
+
+    // Aplicar traduções a todos os elementos com data-i18n
+    function applyTranslations() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const translation = t(key);
+        if (translation && translation !== key) {
+          if (el.tagName === 'INPUT' && el.placeholder) {
+            el.placeholder = translation;
+          } else {
+            el.textContent = translation;
+          }
+        }
+      });
+
+      // Atualizar placeholders
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        el.placeholder = t(key);
+      });
+
+      // Atualizar títulos
+      document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        el.title = t(key);
+      });
+    }
+
+    // Mudar idioma do app
+    async function changeAppLanguage(lang) {
+      const success = await loadTranslations(lang);
+      if (success) {
+        applyTranslations();
+
+        // Salvar no perfil do usuário
+        const token = localStorage.getItem('aisyster_token');
+        if (token) {
+          try {
+            await fetch(`${API_URL}/profile/`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ language: lang })
+            });
+          } catch (e) {
+            console.log('Erro ao salvar idioma no perfil:', e);
+          }
+        }
+
+        showToast(t('profile.saved', 'Idioma atualizado!'));
+      }
+    }
+
+    // Inicializar traduções no carregamento
+    (async function initI18n() {
+      await loadTranslations(currentLanguage);
+      // Aplicar traduções quando o DOM estiver pronto
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', applyTranslations);
+      } else {
+        applyTranslations();
+      }
+    })();
+
+    // ============================================
     // TOKEN REFRESH SYSTEM
     // ============================================
 
@@ -5657,24 +5759,24 @@
         modal.innerHTML = `
           <div class="settings-modal-content">
             <div class="settings-header">
-              <div class="settings-title">Configurações</div>
+              <div class="settings-title" data-i18n="settings.title">${t('settings.title', 'Configurações')}</div>
               <button class="settings-close" onclick="closeSettings()">&times;</button>
             </div>
             <div class="settings-body">
               <!-- Notificacoes -->
               <div class="settings-section">
-                <div class="settings-section-title">Notificações</div>
+                <div class="settings-section-title" data-i18n="settings.notifications">${t('settings.notifications', 'Notificações')}</div>
                 <div class="settings-item">
                   <div class="settings-item-info">
-                    <div class="settings-item-label">Notificações Push${notificationStatus}</div>
-                    <div class="settings-item-desc">${notificationBlocked ? 'Habilite nas configurações do navegador' : 'Receba lembretes e atualizações'}</div>
+                    <div class="settings-item-label" data-i18n="settings.pushNotifications">${t('settings.pushNotifications', 'Notificações Push')}${notificationStatus}</div>
+                    <div class="settings-item-desc">${notificationBlocked ? t('errors.microphoneError', 'Habilite nas configurações do navegador') : t('settings.pushNotificationsDesc', 'Receba lembretes e atualizações')}</div>
                   </div>
                   <div class="settings-toggle ${notificationsEnabled && !notificationBlocked ? 'active' : ''}" id="notificationToggle" onclick="toggleNotifications()" ${notificationBlocked ? 'style="opacity: 0.5"' : ''}></div>
                 </div>
                 <div class="settings-item">
                   <div class="settings-item-info">
-                    <div class="settings-item-label">Notificações por Email</div>
-                    <div class="settings-item-desc">Receba lembretes e atualizações por email</div>
+                    <div class="settings-item-label" data-i18n="settings.emailNotifications">${t('settings.emailNotifications', 'Notificações por Email')}</div>
+                    <div class="settings-item-desc" data-i18n="settings.emailNotificationsDesc">${t('settings.emailNotificationsDesc', 'Receba lembretes e atualizações por email')}</div>
                   </div>
                   <div class="settings-toggle ${emailNotificationsEnabled ? 'active' : ''}" id="emailNotificationToggle" onclick="toggleEmailNotifications()"></div>
                 </div>
@@ -5682,26 +5784,25 @@
 
               <!-- Idioma e Voz -->
               <div class="settings-section">
-                <div class="settings-section-title">Idioma e Voz</div>
+                <div class="settings-section-title" data-i18n="settings.languageAndVoice">${t('settings.languageAndVoice', 'Idioma e Voz')}</div>
                 <div class="settings-item">
                   <div class="settings-item-info">
-                    <div class="settings-item-label">Idioma</div>
-                    <div class="settings-item-desc">Idioma das respostas da AiSyster</div>
+                    <div class="settings-item-label" data-i18n="settings.language">${t('settings.language', 'Idioma')}</div>
+                    <div class="settings-item-desc" data-i18n="settings.languageDescription">${t('settings.languageDescription', 'Idioma do aplicativo e respostas')}</div>
                   </div>
-                  <select id="languageSelect" class="settings-select" onchange="updateLanguageSetting('language', this.value)">
-                    <option value="auto">Autodetectar</option>
-                    <option value="pt">Português</option>
-                    <option value="en">English</option>
-                    <option value="es">Español</option>
+                  <select id="languageSelect" class="settings-select" onchange="changeAppLanguage(this.value)">
+                    <option value="pt">Português (Brasil)</option>
+                    <option value="en">English (US)</option>
+                    <option value="es">Español (Latinoamérica)</option>
                   </select>
                 </div>
                 <div class="settings-item">
                   <div class="settings-item-info">
-                    <div class="settings-item-label">Idioma Falado</div>
-                    <div class="settings-item-desc">Idioma para leitura em voz alta</div>
+                    <div class="settings-item-label" data-i18n="settings.spokenLanguage">${t('settings.spokenLanguage', 'Idioma Falado')}</div>
+                    <div class="settings-item-desc" data-i18n="settings.spokenLanguageDescription">${t('settings.spokenLanguageDescription', 'Idioma para leitura em voz alta')}</div>
                   </div>
                   <select id="spokenLanguageSelect" class="settings-select" onchange="updateLanguageSetting('spoken_language', this.value)">
-                    <option value="auto">Autodetectar</option>
+                    <option value="auto">${t('settings.autoDetect', 'Autodetectar')}</option>
                     <option value="pt">Português</option>
                     <option value="en">English</option>
                     <option value="es">Español</option>
@@ -5709,27 +5810,27 @@
                 </div>
                 <div class="settings-item">
                   <div class="settings-item-info">
-                    <div class="settings-item-label">Voz</div>
-                    <div class="settings-item-desc">Escolha a voz da AiSyster</div>
+                    <div class="settings-item-label" data-i18n="settings.voice">${t('settings.voice', 'Voz')}</div>
+                    <div class="settings-item-desc" data-i18n="settings.voiceDescription">${t('settings.voiceDescription', 'Escolha a voz da AiSyster')}</div>
                   </div>
                   <select id="voiceSelect" class="settings-select" onchange="updateLanguageSetting('voice', this.value)">
-                    <option value="nova">Nova - Suave e acolhedora</option>
-                    <option value="shimmer">Shimmer - Clara e vibrante</option>
-                    <option value="coral">Coral - Calorosa e envolvente</option>
-                    <option value="sage">Sage - Calma e serena</option>
+                    <option value="nova">${t('voices.nova', 'Nova - Suave e acolhedora')}</option>
+                    <option value="shimmer">${t('voices.shimmer', 'Shimmer - Clara e vibrante')}</option>
+                    <option value="coral">${t('voices.coral', 'Coral - Calorosa e envolvente')}</option>
+                    <option value="sage">${t('voices.sage', 'Sage - Calma e serena')}</option>
                   </select>
                 </div>
                 <button class="settings-btn-secondary" onclick="testVoice()">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polygon points="5 3 19 12 5 21 5 3"/>
                   </svg>
-                  Testar Voz
+                  ${t('settings.testVoice', 'Testar Voz')}
                 </button>
               </div>
 
               <!-- Privacidade e Dados -->
               <div class="settings-section">
-                <div class="settings-section-title">Privacidade e Dados</div>
+                <div class="settings-section-title" data-i18n="settings.privacyAndData">${t('settings.privacyAndData', 'Privacidade e Dados')}</div>
                 <a href="/termos" target="_blank" class="settings-link">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
@@ -5738,14 +5839,14 @@
                     <line x1="16" y1="17" x2="8" y2="17"/>
                     <polyline points="10 9 9 9 8 9"/>
                   </svg>
-                  Termos de Uso
+                  <span data-i18n="settings.termsOfService">${t('settings.termsOfService', 'Termos de Uso')}</span>
                 </a>
                 <div style="height: 10px;"></div>
                 <a href="/privacidade" target="_blank" class="settings-link">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                   </svg>
-                  Política de Privacidade
+                  <span data-i18n="settings.privacyPolicy">${t('settings.privacyPolicy', 'Política de Privacidade')}</span>
                 </a>
                 <div style="height: 10px;"></div>
                 <button class="settings-btn-danger" onclick="showDeleteAccountModal()">
@@ -5754,7 +5855,7 @@
                     <line x1="10" y1="11" x2="10" y2="17"/>
                     <line x1="14" y1="11" x2="14" y2="17"/>
                   </svg>
-                  Excluir Minha Conta
+                  <span data-i18n="settings.deleteAccount">${t('settings.deleteAccount', 'Excluir Minha Conta')}</span>
                 </button>
               </div>
             </div>
@@ -6202,8 +6303,10 @@
           const spokenLanguageSelect = document.getElementById('spokenLanguageSelect');
           const voiceSelect = document.getElementById('voiceSelect');
 
-          if (languageSelect && profile.language) {
-            languageSelect.value = profile.language;
+          // Carregar idioma da interface
+          const lang = profile.language || 'pt';
+          if (languageSelect) {
+            languageSelect.value = lang;
           }
           if (spokenLanguageSelect && profile.spoken_language) {
             spokenLanguageSelect.value = profile.spoken_language;
@@ -6213,9 +6316,15 @@
           }
 
           // Salvar no localStorage para acesso rápido
-          localStorage.setItem('aisyster_language', profile.language || 'auto');
+          localStorage.setItem('aisyster_language', lang);
           localStorage.setItem('aisyster_spoken_language', profile.spoken_language || 'auto');
           localStorage.setItem('aisyster_voice', profile.voice || 'nova');
+
+          // Aplicar traduções da interface
+          if (lang !== currentLanguage) {
+            await loadTranslations(lang);
+            applyTranslations();
+          }
         }
       } catch (e) {
         console.log('Erro ao carregar configurações de idioma:', e);

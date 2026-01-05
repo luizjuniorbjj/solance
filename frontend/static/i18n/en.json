@@ -69,14 +69,18 @@
   "settings": {
     "title": "Settings",
     "language": "Language",
-    "languageDescription": "Language for AiSyster responses",
+    "languageDescription": "App and response language",
     "spokenLanguage": "Spoken Language",
     "spokenLanguageDescription": "Language for text-to-speech",
     "autoDetect": "Auto-detect",
     "voice": "Voice",
     "voiceDescription": "Choose AiSyster's voice",
+    "languageAndVoice": "Language and Voice",
     "notifications": "Notifications",
     "pushNotifications": "Push Notifications",
+    "pushNotificationsDesc": "Receive reminders and updates",
+    "emailNotifications": "Email Notifications",
+    "emailNotificationsDesc": "Receive reminders and updates by email",
     "dailyReminder": "Daily Reminder",
     "reminderTime": "Reminder Time",
     "reminderDays": "Reminder Days",
@@ -99,7 +103,9 @@
     "version": "Version",
     "termsOfService": "Terms of Service",
     "privacyPolicy": "Privacy Policy",
-    "contactSupport": "Contact Support"
+    "contactSupport": "Contact Support",
+    "testVoice": "Test Voice",
+    "privacyAndData": "Privacy and Data"
   },
   "profile": {
     "title": "Profile",
