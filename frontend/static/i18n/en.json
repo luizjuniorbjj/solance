@@ -197,8 +197,30 @@
   },
   "pwa": {
     "installPrompt": "Install AiSyster for a better experience",
-    "install": "Install",
+    "install": "Install App",
     "notNow": "Not Now"
+  },
+  "welcome": {
+    "title": "Hi! How can I help?",
+    "subtitle": "I'm AiSyster. An AI companion to walk with you day by day.",
+    "prompt1": "I need to vent",
+    "prompt1Desc": "I'm going through something difficult",
+    "prompt1Full": "I need to vent about something I'm going through",
+    "prompt2": "Seeking God's direction",
+    "prompt2Desc": "I have a decision to make",
+    "prompt2Full": "I'm seeking God's direction, I have an important decision to make",
+    "prompt3": "I want to give thanks",
+    "prompt3Desc": "Something good happened to me",
+    "prompt3Full": "I want to thank God, something good happened to me",
+    "prompt4": "I feel lonely",
+    "prompt4Desc": "I need Christ's comfort",
+    "prompt4Full": "I'm feeling lonely and need Christ's comfort"
+  },
+  "sidebar": {
+    "today": "TODAY",
+    "yesterday": "YESTERDAY",
+    "previous": "PREVIOUS",
+    "loading": "Loading conversations..."
   },
   "languages": {
     "auto": "Auto-detect",

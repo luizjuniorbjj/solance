@@ -197,8 +197,30 @@
   },
   "pwa": {
     "installPrompt": "Instala AiSyster para una mejor experiencia",
-    "install": "Instalar",
+    "install": "Instalar App",
     "notNow": "Ahora No"
+  },
+  "welcome": {
+    "title": "Hola! Como puedo ayudarte?",
+    "subtitle": "Soy AiSyster. Una companera de IA para caminar contigo dia a dia.",
+    "prompt1": "Necesito desahogarme",
+    "prompt1Desc": "Estoy pasando por algo dificil",
+    "prompt1Full": "Necesito desahogarme sobre algo que estoy pasando",
+    "prompt2": "Busco direccion de Dios",
+    "prompt2Desc": "Tengo una decision que tomar",
+    "prompt2Full": "Busco direccion de Dios, tengo una decision importante que tomar",
+    "prompt3": "Quiero agradecer",
+    "prompt3Desc": "Algo bueno me paso",
+    "prompt3Full": "Quiero agradecer a Dios, algo bueno me paso",
+    "prompt4": "Me siento solo",
+    "prompt4Desc": "Necesito el consuelo de Cristo",
+    "prompt4Full": "Me siento solo y necesito el consuelo de Cristo"
+  },
+  "sidebar": {
+    "today": "HOY",
+    "yesterday": "AYER",
+    "previous": "ANTERIORES",
+    "loading": "Cargando conversaciones..."
   },
   "languages": {
     "auto": "Autodetectar",

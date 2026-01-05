@@ -4573,7 +4573,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 5v14M5 12h14"/>
           </svg>
-          Nova conversa
+          <span data-i18n="chat.newChat">Nova conversa</span>
         </button>
       </div>
 
@@ -4601,7 +4601,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
               </svg>
-              Fazer upgrade do plano
+              <span data-i18n="profile.upgrade">Fazer upgrade do plano</span>
             </button>
             <button class="dropdown-item manage-subscription" id="dropdownManageBtn" onclick="openManageSubscription()" style="display: none;">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -4610,21 +4610,21 @@
                 <line x1="8" y1="2" x2="8" y2="6"/>
                 <line x1="3" y1="10" x2="21" y2="10"/>
               </svg>
-              Gerenciar Assinatura
+              <span data-i18n="profile.manageSubscription">Gerenciar Assinatura</span>
             </button>
             <button class="dropdown-item" onclick="showProfileSettings()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                 <circle cx="12" cy="7" r="4"/>
               </svg>
-              Meu perfil
+              <span data-i18n="nav.profile">Meu perfil</span>
             </button>
             <button class="dropdown-item" onclick="showSettings()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="3"/>
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
               </svg>
-              Configuracoes
+              <span data-i18n="nav.settings">Configuracoes</span>
             </button>
             <button class="dropdown-item install-app" id="installAppBtn" onclick="installApp()" style="display: none;">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -4632,7 +4632,7 @@
                 <polyline points="7 10 12 15 17 10"/>
                 <line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
-              Instalar Aplicativo
+              <span data-i18n="pwa.install">Instalar Aplicativo</span>
             </button>
             <div class="dropdown-divider"></div>
             <button class="dropdown-item logout" onclick="logout()">
@@ -4641,7 +4641,7 @@
                 <polyline points="16 17 21 12 16 7"/>
                 <line x1="21" y1="12" x2="9" y2="12"/>
               </svg>
-              Sair
+              <span data-i18n="nav.logout">Sair</span>
             </button>
           </div>
         </div>
@@ -4695,26 +4695,26 @@
       <div class="chat-container" id="chatContainer">
         <!-- Welcome Screen -->
         <div class="welcome-screen" id="welcomeScreen">
-          <h1 class="welcome-title">Olá! Como posso ajudar?</h1>
-          <p class="welcome-subtitle">
+          <h1 class="welcome-title" data-i18n="welcome.title">Olá! Como posso ajudar?</h1>
+          <p class="welcome-subtitle" data-i18n="welcome.subtitle">
             Sou a AiSyster. Uma companheira de IA para caminhar com você no dia a dia.
           </p>
           <div class="quick-prompts">
-            <div class="quick-prompt" onclick="sendQuickPrompt('Preciso desabafar sobre algo que estou passando')">
-              <div class="quick-prompt-title">Preciso desabafar</div>
-              <div class="quick-prompt-desc">Estou passando por algo difícil</div>
+            <div class="quick-prompt" onclick="sendQuickPrompt(t('welcome.prompt1Full', 'Preciso desabafar sobre algo que estou passando'))">
+              <div class="quick-prompt-title" data-i18n="welcome.prompt1">Preciso desabafar</div>
+              <div class="quick-prompt-desc" data-i18n="welcome.prompt1Desc">Estou passando por algo difícil</div>
             </div>
-            <div class="quick-prompt" onclick="sendQuickPrompt('Busco direção de Deus, tenho uma decisão importante para tomar')">
-              <div class="quick-prompt-title">Busco direção de Deus</div>
-              <div class="quick-prompt-desc">Tenho uma decisão para tomar</div>
+            <div class="quick-prompt" onclick="sendQuickPrompt(t('welcome.prompt2Full', 'Busco direção de Deus, tenho uma decisão importante para tomar'))">
+              <div class="quick-prompt-title" data-i18n="welcome.prompt2">Busco direção de Deus</div>
+              <div class="quick-prompt-desc" data-i18n="welcome.prompt2Desc">Tenho uma decisão para tomar</div>
             </div>
-            <div class="quick-prompt" onclick="sendQuickPrompt('Quero agradecer a Deus, algo bom aconteceu comigo')">
-              <div class="quick-prompt-title">Quero agradecer</div>
-              <div class="quick-prompt-desc">Algo bom aconteceu comigo</div>
+            <div class="quick-prompt" onclick="sendQuickPrompt(t('welcome.prompt3Full', 'Quero agradecer a Deus, algo bom aconteceu comigo'))">
+              <div class="quick-prompt-title" data-i18n="welcome.prompt3">Quero agradecer</div>
+              <div class="quick-prompt-desc" data-i18n="welcome.prompt3Desc">Algo bom aconteceu comigo</div>
             </div>
-            <div class="quick-prompt" onclick="sendQuickPrompt('Estou me sentindo sozinho e preciso do conforto de Cristo')">
-              <div class="quick-prompt-title">Me sinto sozinho</div>
-              <div class="quick-prompt-desc">Preciso do conforto de Cristo</div>
+            <div class="quick-prompt" onclick="sendQuickPrompt(t('welcome.prompt4Full', 'Estou me sentindo sozinho e preciso do conforto de Cristo'))">
+              <div class="quick-prompt-title" data-i18n="welcome.prompt4">Me sinto sozinho</div>
+              <div class="quick-prompt-desc" data-i18n="welcome.prompt4Desc">Preciso do conforto de Cristo</div>
             </div>
           </div>
         </div>
@@ -4731,6 +4731,7 @@
               class="input-field"
               id="messageInput"
               placeholder="Mensagem para AiSyster..."
+              data-i18n-placeholder="chat.placeholder"
               rows="1"
               onkeydown="handleKeyDown(event)"
               oninput="autoResize(this)"
@@ -4915,6 +4916,11 @@
       const success = await loadTranslations(lang);
       if (success) {
         applyTranslations();
+
+        // Recarregar lista de conversas com novo idioma
+        if (typeof loadConversations === 'function') {
+          loadConversations();
+        }
 
         // Salvar no perfil do usuário
         const token = localStorage.getItem('aisyster_token');
@@ -7942,7 +7948,7 @@
         container.innerHTML = `
           <div class="sidebar-section">
             <div class="sidebar-section-title" style="text-align: center; color: var(--text-muted);">
-              Nenhuma conversa ainda
+              ${t('chat.noConversations', 'Nenhuma conversa ainda')}
             </div>
           </div>
         `;
@@ -7969,7 +7975,7 @@
       let html = '';
 
       if (groups.hoje.length > 0) {
-        html += `<div class="sidebar-section"><div class="sidebar-section-title">Hoje</div>`;
+        html += `<div class="sidebar-section"><div class="sidebar-section-title">${t('sidebar.today', 'Hoje')}</div>`;
         groups.hoje.forEach(conv => {
           html += renderConversationItem(conv);
         });
@@ -7977,7 +7983,7 @@
       }
 
       if (groups.ontem.length > 0) {
-        html += `<div class="sidebar-section"><div class="sidebar-section-title">Ontem</div>`;
+        html += `<div class="sidebar-section"><div class="sidebar-section-title">${t('sidebar.yesterday', 'Ontem')}</div>`;
         groups.ontem.forEach(conv => {
           html += renderConversationItem(conv);
         });
@@ -7985,7 +7991,7 @@
       }
 
       if (groups.anteriores.length > 0) {
-        html += `<div class="sidebar-section"><div class="sidebar-section-title">Anteriores</div>`;
+        html += `<div class="sidebar-section"><div class="sidebar-section-title">${t('sidebar.previous', 'Anteriores')}</div>`;
         groups.anteriores.forEach(conv => {
           html += renderConversationItem(conv);
         });
