@@ -2069,7 +2069,6 @@ async def clear_push_subscriptions(
 
 @router.post("/run-migration/language-voice")
 async def run_language_voice_migration(
-    admin: dict = Depends(verify_admin),
     db: Database = Depends(get_db)
 ):
     """
