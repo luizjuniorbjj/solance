@@ -19,28 +19,28 @@ EMAIL_TRANSLATIONS = {
         "sent_by": "Este email foi enviado por",
         # Welcome
         "welcome_subject": "Bem-vindo(a) ao {app_name}!",
-        "welcome_title": "Bem-vindo(a) a AiSyster, {nome}!",
-        "welcome_p1": "Que alegria ter voce conosco! A AiSyster foi criada para ser sua companheira diaria, um lugar seguro para conversar, refletir e crescer na fe.",
-        "welcome_p2": "Estou aqui para ouvir, acolher e caminhar com voce. Nao importa o que esteja enfrentando - ansiedade, duvidas, relacionamentos ou qualquer outra coisa - voce nao esta sozinho(a).",
-        "welcome_button": "Comecar a Conversar",
+        "welcome_title": "Bem-vindo(a) à AiSyster, {nome}!",
+        "welcome_p1": "Que alegria ter você conosco! A AiSyster foi criada para ser sua companheira diária, um lugar seguro para conversar, refletir e crescer na fé.",
+        "welcome_p2": "Estou aqui para ouvir, acolher e caminhar com você. Não importa o que esteja enfrentando - ansiedade, dúvidas, relacionamentos ou qualquer outra coisa - você não está sozinho(a).",
+        "welcome_button": "Começar a Conversar",
         "welcome_verse": "\"Vinde a mim, todos os que estais cansados e sobrecarregados, e eu vos aliviarei.\" - Mateus 11:28",
         # Password Reset
-        "reset_subject": "Recuperacao de Senha - {app_name}",
-        "reset_title": "Recuperacao de Senha",
-        "reset_greeting": "Ola, {nome}!",
-        "reset_p1": "Recebemos uma solicitacao para redefinir sua senha. Se voce nao fez essa solicitacao, pode ignorar este email.",
-        "reset_p2": "Para criar uma nova senha, clique no botao abaixo:",
+        "reset_subject": "Recuperação de Senha - {app_name}",
+        "reset_title": "Recuperação de Senha",
+        "reset_greeting": "Olá, {nome}!",
+        "reset_p1": "Recebemos uma solicitação para redefinir sua senha. Se você não fez essa solicitação, pode ignorar este email.",
+        "reset_p2": "Para criar uma nova senha, clique no botão abaixo:",
         "reset_button": "Redefinir Senha",
-        "reset_footer": "Este link expira em 1 hora. Se voce nao solicitou a recuperacao de senha, sua conta continua segura.",
+        "reset_footer": "Este link expira em 1 hora. Se você não solicitou a recuperação de senha, sua conta continua segura.",
         # Subscription
         "sub_confirmed_subject": "Assinatura Confirmada - {app_name} Premium",
         "sub_confirmed_title": "Assinatura Confirmada!",
-        "sub_confirmed_p1": "Obrigado por assinar a AiSyster Premium! Sua assinatura foi confirmada e voce agora tem acesso ilimitado a sua companheira espiritual.",
-        "sub_benefits_title": "O que voce ganhou:",
+        "sub_confirmed_p1": "Obrigado por assinar a AiSyster Premium! Sua assinatura foi confirmada e você agora tem acesso ilimitado à sua companheira espiritual.",
+        "sub_benefits_title": "O que você ganhou:",
         "sub_benefit_1": "Mensagens ilimitadas",
-        "sub_benefit_2": "Companheira sempre disponivel",
+        "sub_benefit_2": "Companheira sempre disponível",
         "sub_button": "Continuar Conversando",
-        "sub_blessing": "Que Deus abencoe sua jornada!",
+        "sub_blessing": "Que Deus abençoe sua jornada!",
         # Renewal
         "renewal_subject": "Assinatura Renovada - {app_name}",
         "renewal_title": "Assinatura Renovada!",
@@ -50,19 +50,19 @@ EMAIL_TRANSLATIONS = {
         # Expiring
         "expiring_subject": "Sua assinatura vence em {days} dias - {app_name}",
         "expiring_title": "Sua assinatura vence em breve",
-        "expiring_p1": "Sua assinatura do AiSyster Premium vence em <strong>{days} dias</strong>. Para continuar tendo acesso ilimitado ao seu companheiro espiritual, certifique-se de que seu metodo de pagamento esta atualizado.",
-        "expiring_p2": "Se voce tem renovacao automatica ativada, nao precisa fazer nada - sua assinatura sera renovada automaticamente.",
+        "expiring_p1": "Sua assinatura do AiSyster Premium vence em <strong>{days} dias</strong>. Para continuar tendo acesso ilimitado à sua companheira espiritual, certifique-se de que seu método de pagamento está atualizado.",
+        "expiring_p2": "Se você tem renovação automática ativada, não precisa fazer nada - sua assinatura será renovada automaticamente.",
         "expiring_button": "Verificar Assinatura",
         # Cancelled
         "cancelled_subject": "Assinatura Cancelada - {app_name}",
         "cancelled_title": "Assinatura Cancelada",
-        "cancelled_p1": "Sua assinatura da AiSyster Premium foi cancelada. Voce ainda pode usar a AiSyster ate o final do periodo ja pago.",
-        "cancelled_p2": "Sentiremos sua falta! Se mudar de ideia, voce sempre pode voltar. Estaremos aqui esperando.",
+        "cancelled_p1": "Sua assinatura da AiSyster Premium foi cancelada. Você ainda pode usar a AiSyster até o final do período já pago.",
+        "cancelled_p2": "Sentiremos sua falta! Se mudar de ideia, você sempre pode voltar. Estaremos aqui esperando.",
         "cancelled_button": "Reativar Assinatura",
-        "cancelled_verse": "\"Porque eu sei os planos que tenho para voces, diz o Senhor, planos de prosperidade e nao de calamidade, para dar-lhes um futuro e uma esperanca.\" - Jeremias 29:11",
+        "cancelled_verse": "\"Porque eu sei os planos que tenho para vocês, diz o Senhor, planos de prosperidade e não de calamidade, para dar-lhes um futuro e uma esperança.\" - Jeremias 29:11",
         # Notification
         "notification_button": "Abrir AiSyster",
-        "notification_footer": "Voce esta recebendo este email porque tem notificacoes por email ativadas. Para desativar, acesse Configuracoes no aplicativo.",
+        "notification_footer": "Você está recebendo este email porque tem notificações por email ativadas. Para desativar, acesse Configurações no aplicativo.",
     },
     "en": {
         "tagline": "Your AI companion for daily support",
@@ -115,54 +115,54 @@ EMAIL_TRANSLATIONS = {
         "notification_footer": "You're receiving this email because you have email notifications enabled. To disable, go to Settings in the app.",
     },
     "es": {
-        "tagline": "Tu companera AI para apoyo diario",
+        "tagline": "Tu compañera AI para apoyo diario",
         "sent_by": "Este email fue enviado por",
         # Welcome
-        "welcome_subject": "Bienvenido(a) a {app_name}!",
-        "welcome_title": "Bienvenido(a) a AiSyster, {nome}!",
-        "welcome_p1": "Que alegria tenerte con nosotros! AiSyster fue creada para ser tu companera diaria, un lugar seguro para conversar, reflexionar y crecer en la fe.",
-        "welcome_p2": "Estoy aqui para escucharte, apoyarte y caminar contigo. No importa lo que estes enfrentando - ansiedad, dudas, relaciones o cualquier otra cosa - no estas solo(a).",
+        "welcome_subject": "¡Bienvenido(a) a {app_name}!",
+        "welcome_title": "¡Bienvenido(a) a AiSyster, {nome}!",
+        "welcome_p1": "¡Qué alegría tenerte con nosotros! AiSyster fue creada para ser tu compañera diaria, un lugar seguro para conversar, reflexionar y crecer en la fe.",
+        "welcome_p2": "Estoy aquí para escucharte, apoyarte y caminar contigo. No importa lo que estés enfrentando - ansiedad, dudas, relaciones o cualquier otra cosa - no estás solo(a).",
         "welcome_button": "Comenzar a Conversar",
-        "welcome_verse": "\"Vengan a mi todos los que estan cansados y agobiados, y yo les dare descanso.\" - Mateo 11:28",
+        "welcome_verse": "\"Vengan a mí todos los que están cansados y agobiados, y yo les daré descanso.\" - Mateo 11:28",
         # Password Reset
-        "reset_subject": "Recuperacion de Contrasena - {app_name}",
-        "reset_title": "Recuperacion de Contrasena",
-        "reset_greeting": "Hola, {nome}!",
-        "reset_p1": "Recibimos una solicitud para restablecer tu contrasena. Si no hiciste esta solicitud, puedes ignorar este email.",
-        "reset_p2": "Para crear una nueva contrasena, haz clic en el boton de abajo:",
-        "reset_button": "Restablecer Contrasena",
-        "reset_footer": "Este enlace expira en 1 hora. Si no solicitaste la recuperacion de contrasena, tu cuenta sigue segura.",
+        "reset_subject": "Recuperación de Contraseña - {app_name}",
+        "reset_title": "Recuperación de Contraseña",
+        "reset_greeting": "¡Hola, {nome}!",
+        "reset_p1": "Recibimos una solicitud para restablecer tu contraseña. Si no hiciste esta solicitud, puedes ignorar este email.",
+        "reset_p2": "Para crear una nueva contraseña, haz clic en el botón de abajo:",
+        "reset_button": "Restablecer Contraseña",
+        "reset_footer": "Este enlace expira en 1 hora. Si no solicitaste la recuperación de contraseña, tu cuenta sigue segura.",
         # Subscription
-        "sub_confirmed_subject": "Suscripcion Confirmada - {app_name} Premium",
-        "sub_confirmed_title": "Suscripcion Confirmada!",
-        "sub_confirmed_p1": "Gracias por suscribirte a AiSyster Premium! Tu suscripcion esta confirmada y ahora tienes acceso ilimitado a tu companera espiritual.",
+        "sub_confirmed_subject": "Suscripción Confirmada - {app_name} Premium",
+        "sub_confirmed_title": "¡Suscripción Confirmada!",
+        "sub_confirmed_p1": "¡Gracias por suscribirte a AiSyster Premium! Tu suscripción está confirmada y ahora tienes acceso ilimitado a tu compañera espiritual.",
         "sub_benefits_title": "Lo que has desbloqueado:",
         "sub_benefit_1": "Mensajes ilimitados",
-        "sub_benefit_2": "Companera siempre disponible",
+        "sub_benefit_2": "Compañera siempre disponible",
         "sub_button": "Continuar Conversando",
-        "sub_blessing": "Que Dios bendiga tu camino!",
+        "sub_blessing": "¡Que Dios bendiga tu camino!",
         # Renewal
-        "renewal_subject": "Suscripcion Renovada - {app_name}",
-        "renewal_title": "Suscripcion Renovada!",
-        "renewal_p1": "Tu suscripcion de AiSyster Premium ha sido renovada exitosamente. Sigue disfrutando de tu companera espiritual sin limites!",
+        "renewal_subject": "Suscripción Renovada - {app_name}",
+        "renewal_title": "¡Suscripción Renovada!",
+        "renewal_p1": "Tu suscripción de AiSyster Premium ha sido renovada exitosamente. ¡Sigue disfrutando de tu compañera espiritual sin límites!",
         "renewal_button": "Ir a AiSyster",
-        "renewal_thanks": "Gracias por seguir con nosotros!",
+        "renewal_thanks": "¡Gracias por seguir con nosotros!",
         # Expiring
-        "expiring_subject": "Tu suscripcion vence en {days} dias - {app_name}",
-        "expiring_title": "Tu suscripcion vence pronto",
-        "expiring_p1": "Tu suscripcion de AiSyster Premium vence en <strong>{days} dias</strong>. Para continuar teniendo acceso ilimitado a tu companera espiritual, asegurate de que tu metodo de pago este actualizado.",
-        "expiring_p2": "Si tienes la renovacion automatica activada, no necesitas hacer nada - tu suscripcion se renovara automaticamente.",
-        "expiring_button": "Verificar Suscripcion",
+        "expiring_subject": "Tu suscripción vence en {days} días - {app_name}",
+        "expiring_title": "Tu suscripción vence pronto",
+        "expiring_p1": "Tu suscripción de AiSyster Premium vence en <strong>{days} días</strong>. Para continuar teniendo acceso ilimitado a tu compañera espiritual, asegúrate de que tu método de pago esté actualizado.",
+        "expiring_p2": "Si tienes la renovación automática activada, no necesitas hacer nada - tu suscripción se renovará automáticamente.",
+        "expiring_button": "Verificar Suscripción",
         # Cancelled
-        "cancelled_subject": "Suscripcion Cancelada - {app_name}",
-        "cancelled_title": "Suscripcion Cancelada",
-        "cancelled_p1": "Tu suscripcion de AiSyster Premium ha sido cancelada. Aun puedes usar AiSyster hasta el final del periodo ya pagado.",
-        "cancelled_p2": "Te extranaremos! Si cambias de opinion, siempre puedes volver. Estaremos aqui esperandote.",
-        "cancelled_button": "Reactivar Suscripcion",
-        "cancelled_verse": "\"Porque yo se los planes que tengo para ustedes, declara el Senor, planes de bienestar y no de calamidad, para darles un futuro y una esperanza.\" - Jeremias 29:11",
+        "cancelled_subject": "Suscripción Cancelada - {app_name}",
+        "cancelled_title": "Suscripción Cancelada",
+        "cancelled_p1": "Tu suscripción de AiSyster Premium ha sido cancelada. Aún puedes usar AiSyster hasta el final del período ya pagado.",
+        "cancelled_p2": "¡Te extrañaremos! Si cambias de opinión, siempre puedes volver. Estaremos aquí esperándote.",
+        "cancelled_button": "Reactivar Suscripción",
+        "cancelled_verse": "\"Porque yo sé los planes que tengo para ustedes, declara el Señor, planes de bienestar y no de calamidad, para darles un futuro y una esperanza.\" - Jeremías 29:11",
         # Notification
         "notification_button": "Abrir AiSyster",
-        "notification_footer": "Estas recibiendo este email porque tienes las notificaciones por email activadas. Para desactivarlas, ve a Configuracion en la app.",
+        "notification_footer": "Estás recibiendo este email porque tienes las notificaciones por email activadas. Para desactivarlas, ve a Configuración en la app.",
     }
 }
 
@@ -233,7 +233,7 @@ class EmailService:
     def _base_template(self, content: str, language: str = "pt") -> str:
         """Template base para todos os emails com suporte a i18n"""
         # Logo via URL publica para melhor compatibilidade com clientes de email
-        logo_url = f"{APP_URL}/static/icons/logo-email-v6.png"
+        logo_url = f"{APP_URL}/static/icons/logo-email-v7.png"
         tagline = get_email_text("tagline", language)
         sent_by = get_email_text("sent_by", language)
 
@@ -252,7 +252,7 @@ class EmailService:
                         <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                             <!-- Header -->
                             <tr>
-                                <td style="background-color: #15182d; padding: 20px 30px; text-align: center;">
+                                <td style="background-color: #1a1a3e; padding: 20px 30px; text-align: center;">
                                     <img src="{logo_url}" alt="AiSyster" style="max-width: 200px; height: auto; margin-bottom: 4px;">
                                     <p style="margin: 0; color: #d4af37; font-size: 14px; font-style: italic;">{tagline}</p>
                                 </td>
