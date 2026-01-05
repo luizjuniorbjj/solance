@@ -57,7 +57,7 @@ MAINTENANCE_MODE = os.getenv("MAINTENANCE_MODE", "False").lower() == "true"
 # ============================================
 AI_MODEL_PRIMARY = "claude-sonnet-4-20250514"  # Assinantes - máxima qualidade pastoral
 AI_MODEL_FALLBACK = "claude-3-5-haiku-20241022"  # Trial/Free - economia, boa qualidade
-MAX_TOKENS_RESPONSE = 1000  # Teto alto - prompt controla tamanho real por tipo de resposta
+MAX_TOKENS_RESPONSE = 2000  # Teto para estudos bíblicos completos - prompt controla tamanho por tipo
 MAX_CONTEXT_TOKENS = 4000
 
 # Web Search - Pesquisa na internet quando necessário
