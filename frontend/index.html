@@ -7513,6 +7513,40 @@
       }
     }
 
+    // Audio context para iOS - precisa ser criado com interação do usuário
+    let iosAudioContext = null;
+    let iosAudioUnlocked = false;
+
+    // Desbloquear áudio no iOS quando usuário interage
+    function unlockIOSAudio() {
+      if (iosAudioUnlocked) return;
+
+      // Criar AudioContext se não existe
+      if (!iosAudioContext) {
+        iosAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      // Tocar som silencioso para desbloquear
+      const buffer = iosAudioContext.createBuffer(1, 1, 22050);
+      const source = iosAudioContext.createBufferSource();
+      source.buffer = buffer;
+      source.connect(iosAudioContext.destination);
+      source.start(0);
+
+      // Resumir contexto se suspenso
+      if (iosAudioContext.state === 'suspended') {
+        iosAudioContext.resume();
+      }
+
+      iosAudioUnlocked = true;
+      console.log('[iOS] Audio unlocked');
+    }
+
+    // Chamar unlock quando usuário clica no botão de voz
+    if (voiceModeBtn) {
+      voiceModeBtn.addEventListener('click', unlockIOSAudio, { once: false });
+    }
+
     function playVoiceResponseInOverlay(base64Audio) {
       return new Promise((resolve) => {
         try {
@@ -7524,14 +7558,41 @@
           }
           const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
           const url = URL.createObjectURL(blob);
+
           voiceResponseAudio = new Audio(url);
-          voiceResponseAudio.play();
+
+          // iOS: usar playsinline e tentar múltiplas vezes
+          voiceResponseAudio.setAttribute('playsinline', '');
+          voiceResponseAudio.setAttribute('webkit-playsinline', '');
+
+          // Tentar tocar
+          const playPromise = voiceResponseAudio.play();
+
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                console.log('[Voice] Audio playing');
+              })
+              .catch((error) => {
+                console.warn('[Voice] Autoplay blocked, trying with user gesture:', error);
+                // No iOS, mostrar botão para tocar manualmente
+                voiceStatus.textContent = 'Toque para ouvir';
+                voiceStatus.style.cursor = 'pointer';
+                voiceStatus.onclick = () => {
+                  voiceResponseAudio.play();
+                  voiceStatus.style.cursor = 'default';
+                  voiceStatus.onclick = null;
+                };
+              });
+          }
+
           voiceResponseAudio.onended = () => {
             URL.revokeObjectURL(url);
             voiceResponseAudio = null;
             resolve();
           };
-          voiceResponseAudio.onerror = () => {
+          voiceResponseAudio.onerror = (e) => {
+            console.error('[Voice] Audio error:', e);
             URL.revokeObjectURL(url);
             voiceResponseAudio = null;
             resolve();

@@ -186,11 +186,13 @@ class VoiceService:
 
         result["user_text"] = user_text
 
-        # 2. Processar no chat
+        # 2. Processar no chat (com instrução para resposta curta - modo voz)
+        # Adicionar prefixo invisível para forçar resposta concisa
+        voice_instruction = "[MODO VOZ - Responda em 1-2 frases curtas e diretas. Seja objetiva.]\n"
         try:
             chat_result = await chat_callback(
                 user_id=user_id,
-                message=user_text,
+                message=voice_instruction + user_text,
                 conversation_id=conversation_id
             )
             result["response_text"] = chat_result["response"]
