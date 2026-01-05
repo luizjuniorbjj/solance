@@ -2439,7 +2439,9 @@
     .voice-waveform-bar:nth-child(9) { height: 30px; animation-delay: 0.8s; }
 
     .voice-overlay.recording .voice-waveform-bar {
-      animation: waveform-active 0.5s ease-in-out infinite alternate;
+      /* Animação controlada pelo JavaScript VAD */
+      animation: none;
+      transition: height 0.1s ease-out;
     }
 
     .voice-overlay.processing .voice-waveform-bar {
@@ -2552,6 +2554,12 @@
     .voice-transcription.ai-text {
       color: white;
       font-weight: 500;
+    }
+
+    .voice-transcription.hint {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+      font-style: italic;
     }
 
     /* Voice Action Buttons */
@@ -4550,7 +4558,7 @@
             <rect x="6" y="6" width="12" height="12" rx="2"/>
           </svg>
         </div>
-        <span class="btn-label">Enviar</span>
+        <span class="btn-label">Parar e Enviar</span>
       </button>
     </div>
   </div>
@@ -6909,6 +6917,16 @@
     let currentMimeType = 'audio/webm';
     let activeToast = null;
 
+    // VAD (Voice Activity Detection) - Auto-detectar silêncio
+    let audioContext = null;
+    let analyser = null;
+    let vadInterval = null;
+    let silenceStart = null;
+    let hasSpoken = false;
+    const VAD_SILENCE_THRESHOLD = 15; // Volume mínimo para considerar como fala (0-255)
+    const VAD_SILENCE_DURATION = 1500; // ms de silêncio para auto-enviar
+    const VAD_MIN_SPEECH_DURATION = 300; // ms mínimo de fala antes de considerar silêncio
+
     // Inicializa gravação de voz
     async function initVoiceInput() {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -6917,6 +6935,93 @@
         console.log('MediaRecorder not supported');
         return;
       }
+    }
+
+    // ============================================
+    // VAD (Voice Activity Detection) Functions
+    // ============================================
+    function startVAD(stream) {
+      try {
+        // Criar contexto de áudio
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 512;
+        analyser.smoothingTimeConstant = 0.3;
+
+        const source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
+
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        silenceStart = null;
+        hasSpoken = false;
+        let speechStart = null;
+
+        // Verificar volume a cada 100ms
+        vadInterval = setInterval(() => {
+          analyser.getByteFrequencyData(dataArray);
+
+          // Calcular volume médio
+          const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+
+          // Atualizar visualização das barras com o volume real
+          updateWaveformWithVolume(average);
+
+          if (average > VAD_SILENCE_THRESHOLD) {
+            // Usuário está falando
+            if (!speechStart) {
+              speechStart = Date.now();
+            }
+            silenceStart = null;
+
+            // Marcar que houve fala após tempo mínimo
+            if (Date.now() - speechStart > VAD_MIN_SPEECH_DURATION) {
+              hasSpoken = true;
+            }
+          } else if (hasSpoken) {
+            // Silêncio após fala detectada
+            if (!silenceStart) {
+              silenceStart = Date.now();
+              voiceStatus.textContent = 'Detectando silêncio...';
+            } else if (Date.now() - silenceStart > VAD_SILENCE_DURATION) {
+              // Silêncio por tempo suficiente, auto-enviar
+              console.log('[VAD] Auto-enviando após silêncio');
+              voiceStatus.textContent = 'Enviando...';
+              stopVAD();
+              sendVoiceOverlay();
+            }
+          }
+        }, 100);
+
+      } catch (error) {
+        console.error('[VAD] Erro ao iniciar:', error);
+      }
+    }
+
+    function stopVAD() {
+      if (vadInterval) {
+        clearInterval(vadInterval);
+        vadInterval = null;
+      }
+      if (audioContext && audioContext.state !== 'closed') {
+        audioContext.close().catch(() => {});
+        audioContext = null;
+      }
+      analyser = null;
+      silenceStart = null;
+      hasSpoken = false;
+    }
+
+    function updateWaveformWithVolume(volume) {
+      // Normalizar volume para 0-1
+      const normalized = Math.min(volume / 50, 1);
+      const bars = document.querySelectorAll('#voiceWaveform .voice-waveform-bar');
+
+      bars.forEach((bar, i) => {
+        // Criar variação para cada barra
+        const variation = 0.3 + (Math.sin(Date.now() / 100 + i) + 1) / 2 * 0.7;
+        const height = Math.max(10, normalized * variation * 100);
+        bar.style.height = `${height}%`;
+      });
     }
 
     // ============================================
@@ -7127,6 +7232,9 @@
         showVoiceOverlay();
         startVoiceTimer();
 
+        // Iniciar VAD para auto-detectar silêncio
+        startVAD(audioStream);
+
       } catch (error) {
         console.error('Error starting voice mode:', error);
         handleMicError(error);
@@ -7137,9 +7245,9 @@
     function showVoiceOverlay() {
       voiceOverlay.classList.add('active', 'recording');
       voiceOverlay.classList.remove('processing', 'playing');
-      voiceStatus.textContent = 'Ouvindo...';
-      voiceTranscription.textContent = '';
-      voiceTranscription.className = 'voice-transcription';
+      voiceStatus.textContent = 'Fale agora...';
+      voiceTranscription.textContent = 'Auto-envia quando parar de falar';
+      voiceTranscription.className = 'voice-transcription hint';
       voiceTimer.textContent = '00:00';
       voiceRecordingSeconds = 0;
       currentVoiceAudioBlob = null;
@@ -7148,6 +7256,7 @@
     function hideVoiceOverlay() {
       voiceOverlay.classList.remove('active', 'recording', 'processing', 'playing');
       stopVoiceTimer();
+      stopVAD(); // Parar VAD ao fechar overlay
       isVoiceMode = false;
       voiceModeBtn.classList.remove('active');
       if (voiceResponseAudio) {
@@ -7207,13 +7316,16 @@
         // Atualiza o overlay para estado de gravação
         voiceOverlay.classList.remove('processing', 'playing');
         voiceOverlay.classList.add('recording');
-        voiceStatus.textContent = 'Ouvindo...';
-        voiceTranscription.textContent = '';
-        voiceTranscription.className = 'voice-transcription';
+        voiceStatus.textContent = 'Fale agora...';
+        voiceTranscription.textContent = 'Auto-envia quando parar de falar';
+        voiceTranscription.className = 'voice-transcription hint';
         voiceTimer.textContent = '00:00';
         voiceRecordingSeconds = 0;
         currentVoiceAudioBlob = null;
         startVoiceTimer();
+
+        // Iniciar VAD para auto-detectar silêncio
+        startVAD(audioStream);
 
       } catch (error) {
         console.error('Error restarting voice recording:', error);
@@ -7254,6 +7366,9 @@
       console.log('[VOICE] mediaRecorder state:', mediaRecorder?.state);
       console.log('[VOICE] audioChunks length:', audioChunks?.length);
 
+      // Parar VAD imediatamente
+      stopVAD();
+
       // Se ainda está gravando, para a gravação e aguarda o blob ser criado
       if (mediaRecorder && mediaRecorder.state === 'recording') {
         console.log('[VOICE] Stopping recording...');
@@ -7280,7 +7395,9 @@
       // Muda para estado de processamento
       voiceOverlay.classList.remove('recording');
       voiceOverlay.classList.add('processing');
-      voiceStatus.textContent = 'Processando...';
+      voiceStatus.textContent = 'Transcrevendo...';
+      voiceTranscription.textContent = '';
+      voiceTranscription.className = 'voice-transcription';
 
       try {
         // Verificar se tem token válido
