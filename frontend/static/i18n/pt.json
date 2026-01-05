@@ -233,5 +233,22 @@
     "shimmer": "Shimmer - Clara e vibrante",
     "coral": "Coral - Calorosa e envolvente",
     "sage": "Sage - Calma e serena"
+  },
+  "voice": {
+    "tapToListen": "Toque para ouvir",
+    "playing": "Reproduzindo...",
+    "speakNow": "Fale agora...",
+    "autoSendHint": "Auto-envia quando parar de falar",
+    "processing": "Processando...",
+    "testVoice": "Reproduzindo teste de voz",
+    "transcribing": "Transcrevendo...",
+    "detectingSilence": "Detectando silencio...",
+    "sending": "Enviando...",
+    "noAudio": "Nenhum audio gravado",
+    "error": "Erro",
+    "networkError": "Erro de rede",
+    "needLogin": "Voce precisa estar logado para usar o modo voz",
+    "connectionFailed": "Nao foi possivel conectar ao servidor. Verifique sua internet.",
+    "processingFailed": "Nao foi possivel processar"
   }
 }

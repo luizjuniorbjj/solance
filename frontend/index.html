@@ -6438,7 +6438,7 @@
         audio.play();
         audio.onended = () => URL.revokeObjectURL(audioUrl);
 
-        showToast('Reproduzindo teste de voz');
+        showToast(t('voice.testVoice', 'Playing voice test'));
       } catch (e) {
         console.error('Erro ao testar voz:', e);
         showToast('Erro ao testar voz', 'error');
@@ -6992,11 +6992,11 @@
             // Silêncio após fala detectada
             if (!silenceStart) {
               silenceStart = Date.now();
-              voiceStatus.textContent = 'Detectando silêncio...';
+              voiceStatus.textContent = t('voice.detectingSilence', 'Detecting silence...');
             } else if (Date.now() - silenceStart > VAD_SILENCE_DURATION) {
               // Silêncio por tempo suficiente, auto-enviar
               console.log('[VAD] Auto-enviando após silêncio');
-              voiceStatus.textContent = 'Enviando...';
+              voiceStatus.textContent = t('voice.sending', 'Sending...');
               stopVAD();
               sendVoiceOverlay();
             }
@@ -7256,8 +7256,8 @@
     function showVoiceOverlay() {
       voiceOverlay.classList.add('active', 'recording');
       voiceOverlay.classList.remove('processing', 'playing');
-      voiceStatus.textContent = 'Fale agora...';
-      voiceTranscription.textContent = 'Auto-envia quando parar de falar';
+      voiceStatus.textContent = t('voice.speakNow', 'Speak now...');
+      voiceTranscription.textContent = t('voice.autoSendHint', 'Auto-sends when you stop speaking');
       voiceTranscription.className = 'voice-transcription hint';
       voiceTimer.textContent = '00:00';
       voiceRecordingSeconds = 0;
@@ -7327,8 +7327,8 @@
         // Atualiza o overlay para estado de gravação
         voiceOverlay.classList.remove('processing', 'playing');
         voiceOverlay.classList.add('recording');
-        voiceStatus.textContent = 'Fale agora...';
-        voiceTranscription.textContent = 'Auto-envia quando parar de falar';
+        voiceStatus.textContent = t('voice.speakNow', 'Speak now...');
+        voiceTranscription.textContent = t('voice.autoSendHint', 'Auto-sends when you stop speaking');
         voiceTranscription.className = 'voice-transcription hint';
         voiceTimer.textContent = '00:00';
         voiceRecordingSeconds = 0;
@@ -7397,7 +7397,7 @@
       console.log('[VOICE] Blob size:', currentVoiceAudioBlob?.size);
 
       if (!currentVoiceAudioBlob || currentVoiceAudioBlob.size < 100) {
-        voiceStatus.textContent = 'Nenhum audio gravado';
+        voiceStatus.textContent = t('voice.noAudio', 'No audio recorded');
         console.log('[VOICE] No audio blob or too small');
         setTimeout(() => hideVoiceOverlay(), 1500);
         return;
@@ -7406,15 +7406,15 @@
       // Muda para estado de processamento
       voiceOverlay.classList.remove('recording');
       voiceOverlay.classList.add('processing');
-      voiceStatus.textContent = 'Transcrevendo...';
+      voiceStatus.textContent = t('voice.transcribing', 'Transcribing...');
       voiceTranscription.textContent = '';
       voiceTranscription.className = 'voice-transcription';
 
       try {
         // Verificar se tem token válido
         if (!state.token) {
-          voiceStatus.textContent = 'Erro';
-          voiceTranscription.textContent = 'Voce precisa estar logado para usar o modo voz';
+          voiceStatus.textContent = t('voice.error', 'Error');
+          voiceTranscription.textContent = t('voice.needLogin', 'You need to be logged in to use voice mode');
           return;
         }
 
@@ -7442,8 +7442,8 @@
         } catch (fetchError) {
           console.error('[VOICE] Fetch failed:', fetchError);
           voiceOverlay.classList.remove('processing');
-          voiceStatus.textContent = 'Erro de rede';
-          voiceTranscription.textContent = 'Nao foi possivel conectar ao servidor. Verifique sua internet.';
+          voiceStatus.textContent = t('voice.networkError', 'Network error');
+          voiceTranscription.textContent = t('voice.connectionFailed', 'Could not connect to server. Check your internet.');
           return;
         }
 
@@ -7503,8 +7503,8 @@
           await restartVoiceRecording();
 
         } else {
-          voiceStatus.textContent = 'Erro';
-          voiceTranscription.textContent = data.error || 'Nao foi possivel processar';
+          voiceStatus.textContent = t('voice.error', 'Error');
+          voiceTranscription.textContent = data.error || t('voice.processingFailed', 'Could not process');
           // Aguarda 2 segundos e reinicia para tentar novamente
           await new Promise(resolve => setTimeout(resolve, 2000));
           await restartVoiceRecording();
@@ -7516,8 +7516,8 @@
         console.error('[VOICE] Error message:', error.message);
         console.error('[VOICE] Error stack:', error.stack);
         voiceOverlay.classList.remove('processing');
-        voiceStatus.textContent = 'Erro';
-        voiceTranscription.textContent = `${error.name || 'Erro'}: ${error.message || 'Conexao falhou'}`;
+        voiceStatus.textContent = t('voice.error', 'Error');
+        voiceTranscription.textContent = `${error.name || t('voice.error', 'Error')}: ${error.message || t('voice.connectionFailed', 'Connection failed')}`;
         // Aguarda e reinicia para tentar novamente
         await new Promise(resolve => setTimeout(resolve, 2000));
         await restartVoiceRecording();
@@ -7607,13 +7607,13 @@
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
                       <polygon points="5 3 19 12 5 21 5 3"/>
                     </svg>
-                    Toque para ouvir
+                    ${t('voice.tapToListen', 'Tap to listen')}
                   </button>
                 `;
                 const playBtn = voiceStatus.querySelector('.ios-play-btn');
                 playBtn.onclick = () => {
                   voiceResponseAudio.play();
-                  voiceStatus.textContent = 'Reproduzindo...';
+                  voiceStatus.textContent = t('voice.playing', 'Playing...');
                 };
               });
           }

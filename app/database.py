@@ -109,13 +109,16 @@ class Database:
     # ============================================
 
     async def create_user_profile(self, user_id: str, nome: Optional[str] = None) -> dict:
-        """Cria perfil do usuário"""
+        """Cria perfil do usuário com configurações padrão"""
         user_uuid = UUID(user_id) if isinstance(user_id, str) else user_id
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(
                 """
-                INSERT INTO user_profiles (user_id, nome)
-                VALUES ($1, $2)
+                INSERT INTO user_profiles (
+                    user_id, nome, language, spoken_language, voice,
+                    push_notifications, email_notifications
+                )
+                VALUES ($1, $2, 'auto', 'auto', 'nova', TRUE, TRUE)
                 RETURNING *
                 """,
                 user_uuid, nome
@@ -2272,6 +2275,42 @@ async def init_db():
             await conn.execute("CREATE INDEX IF NOT EXISTS idx_notification_deliveries_user_id ON notification_deliveries(user_id)")
         except:
             pass
+
+        # Adicionar colunas de idioma/voz se não existirem
+        try:
+            await conn.execute("""
+                ALTER TABLE user_profiles
+                ADD COLUMN IF NOT EXISTS language VARCHAR(10) DEFAULT 'auto'
+            """)
+            await conn.execute("""
+                ALTER TABLE user_profiles
+                ADD COLUMN IF NOT EXISTS spoken_language VARCHAR(10) DEFAULT 'auto'
+            """)
+            await conn.execute("""
+                ALTER TABLE user_profiles
+                ADD COLUMN IF NOT EXISTS voice VARCHAR(20) DEFAULT 'nova'
+            """)
+        except:
+            pass
+
+        # Atualizar usuários existentes com configurações padrão (se NULL)
+        try:
+            await conn.execute("""
+                UPDATE user_profiles SET
+                    language = COALESCE(language, 'auto'),
+                    spoken_language = COALESCE(spoken_language, 'auto'),
+                    voice = COALESCE(voice, 'nova'),
+                    push_notifications = COALESCE(push_notifications, TRUE),
+                    email_notifications = COALESCE(email_notifications, TRUE)
+                WHERE language IS NULL
+                   OR spoken_language IS NULL
+                   OR voice IS NULL
+                   OR push_notifications IS NULL
+                   OR email_notifications IS NULL
+            """)
+            print("[DB] Configurações padrão aplicadas a usuários existentes")
+        except Exception as e:
+            print(f"[DB] Aviso ao atualizar configs: {e}")
 
     print("[DB] Tabelas de notificações verificadas/criadas")
     return _pool
