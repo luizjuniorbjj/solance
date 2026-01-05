@@ -2067,6 +2067,77 @@ async def clear_push_subscriptions(
         }
 
 
+@router.post("/run-migration/language-voice")
+async def run_language_voice_migration(
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Executa migration para adicionar colunas language, spoken_language e voice
+    na tabela user_profiles.
+    """
+    results = []
+
+    async with db.pool.acquire() as conn:
+        # 1. Adicionar coluna language
+        try:
+            await conn.execute("""
+                ALTER TABLE user_profiles
+                ADD COLUMN IF NOT EXISTS language VARCHAR(10) DEFAULT 'auto'
+            """)
+            results.append({"column": "language", "status": "success"})
+        except Exception as e:
+            results.append({"column": "language", "status": "error", "error": str(e)})
+
+        # 2. Adicionar coluna spoken_language
+        try:
+            await conn.execute("""
+                ALTER TABLE user_profiles
+                ADD COLUMN IF NOT EXISTS spoken_language VARCHAR(10) DEFAULT 'auto'
+            """)
+            results.append({"column": "spoken_language", "status": "success"})
+        except Exception as e:
+            results.append({"column": "spoken_language", "status": "error", "error": str(e)})
+
+        # 3. Adicionar coluna voice
+        try:
+            await conn.execute("""
+                ALTER TABLE user_profiles
+                ADD COLUMN IF NOT EXISTS voice VARCHAR(20) DEFAULT 'nova'
+            """)
+            results.append({"column": "voice", "status": "success"})
+        except Exception as e:
+            results.append({"column": "voice", "status": "error", "error": str(e)})
+
+        # Verificar colunas criadas
+        columns = await conn.fetch("""
+            SELECT column_name, data_type, column_default
+            FROM information_schema.columns
+            WHERE table_name = 'user_profiles'
+            AND column_name IN ('language', 'spoken_language', 'voice')
+            ORDER BY column_name
+        """)
+
+        columns_info = [
+            {
+                "name": col["column_name"],
+                "type": col["data_type"],
+                "default": col["column_default"]
+            }
+            for col in columns
+        ]
+
+    success = all(r["status"] == "success" for r in results)
+
+    return {
+        "success": success,
+        "migration": "language_voice_columns",
+        "results": results,
+        "columns_verified": columns_info,
+        "message": "Migration executada com sucesso!" if success else "Alguns erros ocorreram"
+    }
+
+
 @router.get("/debug/push-subscriptions")
 async def list_all_push_subscriptions(
     db: Database = Depends(get_db)
