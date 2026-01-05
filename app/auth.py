@@ -49,6 +49,7 @@ class RegisterRequest(BaseModel):
     password: str
     nome: Optional[str] = None
     accepted_terms: bool = False  # Aceite dos Termos de Uso e Política de Privacidade
+    language: Optional[str] = "pt"  # Idioma preferido (pt, en, es)
 
 
 class LoginRequest(BaseModel):
@@ -164,7 +165,8 @@ async def register(request: RegisterRequest, db: Database = Depends(get_db)):
     # Envia email de boas-vindas (async, nao bloqueia)
     try:
         nome = request.nome or request.email.split("@")[0]
-        await email_service.send_welcome_email(request.email, nome)
+        language = request.language if request.language in ["pt", "en", "es"] else "pt"
+        await email_service.send_welcome_email(request.email, nome, language)
     except Exception as e:
         print(f"[AUTH] Erro ao enviar email de boas-vindas: {e}")
 
@@ -277,13 +279,16 @@ async def request_password_reset(request: PasswordResetRequest, db: Database = D
         token = generate_secure_token()
         await db.save_password_reset_token(user["id"], token)
 
-        # Buscar nome do usuario
+        # Buscar nome e idioma do usuario
         profile = await db.get_user_profile(user["id"])
         nome = profile.get("nome") if profile else request.email.split("@")[0]
+        language = profile.get("language", "pt") if profile else "pt"
+        if language == "auto" or language not in ["pt", "en", "es"]:
+            language = "pt"
 
         # Enviar email
         try:
-            result = await email_service.send_password_reset_email(request.email, nome, token)
+            result = await email_service.send_password_reset_email(request.email, nome, token, language)
             if result:
                 print(f"[AUTH] Email de reset enviado com sucesso para {request.email}")
             else:

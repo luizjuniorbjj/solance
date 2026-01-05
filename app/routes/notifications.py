@@ -118,7 +118,7 @@ async def send_notification(
         if notification.target_audience == "all":
             users = await conn.fetch(
                 """
-                SELECT u.id, u.email, up.nome, up.push_notifications, up.email_notifications
+                SELECT u.id, u.email, up.nome, up.push_notifications, up.email_notifications, up.language
                 FROM users u
                 LEFT JOIN user_profiles up ON u.id = up.user_id
                 WHERE u.is_active = TRUE
@@ -127,7 +127,7 @@ async def send_notification(
         elif notification.target_audience == "premium":
             users = await conn.fetch(
                 """
-                SELECT u.id, u.email, up.nome, up.push_notifications, up.email_notifications
+                SELECT u.id, u.email, up.nome, up.push_notifications, up.email_notifications, up.language
                 FROM users u
                 LEFT JOIN user_profiles up ON u.id = up.user_id
                 WHERE u.is_active = TRUE AND u.is_premium = TRUE
@@ -136,7 +136,7 @@ async def send_notification(
         elif notification.target_audience == "free":
             users = await conn.fetch(
                 """
-                SELECT u.id, u.email, up.nome, up.push_notifications, up.email_notifications
+                SELECT u.id, u.email, up.nome, up.push_notifications, up.email_notifications, up.language
                 FROM users u
                 LEFT JOIN user_profiles up ON u.id = up.user_id
                 WHERE u.is_active = TRUE AND u.is_premium = FALSE
@@ -146,7 +146,7 @@ async def send_notification(
             user_ids = [UUID(uid) for uid in notification.specific_users]
             users = await conn.fetch(
                 """
-                SELECT u.id, u.email, up.nome, up.push_notifications, up.email_notifications
+                SELECT u.id, u.email, up.nome, up.push_notifications, up.email_notifications, up.language
                 FROM users u
                 LEFT JOIN user_profiles up ON u.id = up.user_id
                 WHERE u.id = ANY($1) AND u.is_active = TRUE
@@ -231,6 +231,9 @@ async def process_notification_delivery(
         user_id = str(user["id"])
         email = user["email"]
         nome = user.get("nome") or email.split("@")[0]
+        language = user.get("language", "pt") or "pt"
+        if language == "auto" or language not in ["pt", "en", "es"]:
+            language = "pt"
 
         # Enviar Push (só se tiver subscription)
         if send_push and user.get("push_notifications", True):
@@ -317,7 +320,8 @@ async def process_notification_delivery(
                     to=email,
                     nome=nome,
                     title=title,
-                    message=message
+                    message=message,
+                    language=language
                 )
                 status = "sent" if success else "failed"
 

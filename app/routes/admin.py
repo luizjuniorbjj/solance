@@ -2190,3 +2190,176 @@ async def list_all_push_subscriptions(
                 for r in rows
             ]
         }
+
+
+# ============================================
+# TESTE DE EMAILS
+# ============================================
+
+@router.post("/test-emails")
+async def test_all_emails(
+    language: str = "pt",
+    admin: dict = Depends(verify_admin),
+    db: Database = Depends(get_db)
+):
+    """
+    Envia todos os tipos de email para o admin logado para teste.
+    Suporta idiomas: pt, en, es
+    """
+    from app.email_service import email_service
+
+    # Pegar email e nome do admin
+    admin_email = admin["email"]
+    profile = await db.get_user_profile(admin["user_id"])
+    admin_name = profile.get("nome", "Admin") if profile else "Admin"
+
+    # Validar idioma
+    if language not in ["pt", "en", "es"]:
+        language = "pt"
+
+    results = []
+
+    # 1. Email de Boas-vindas
+    try:
+        success = await email_service.send_welcome_email(admin_email, admin_name, language)
+        results.append({
+            "type": "welcome",
+            "success": success,
+            "description": "Email de boas-vindas"
+        })
+    except Exception as e:
+        results.append({
+            "type": "welcome",
+            "success": False,
+            "error": str(e)
+        })
+
+    # 2. Email de Reset de Senha
+    try:
+        success = await email_service.send_password_reset_email(
+            admin_email, admin_name, "TEST_TOKEN_123456", language
+        )
+        results.append({
+            "type": "password_reset",
+            "success": success,
+            "description": "Email de reset de senha"
+        })
+    except Exception as e:
+        results.append({
+            "type": "password_reset",
+            "success": False,
+            "error": str(e)
+        })
+
+    # 3. Email de Confirmacao de Assinatura
+    try:
+        success = await email_service.send_subscription_confirmation(
+            admin_email, admin_name, language
+        )
+        results.append({
+            "type": "subscription_confirmation",
+            "success": success,
+            "description": "Email de confirmacao de assinatura"
+        })
+    except Exception as e:
+        results.append({
+            "type": "subscription_confirmation",
+            "success": False,
+            "error": str(e)
+        })
+
+    # 4. Email de Renovacao de Assinatura
+    try:
+        success = await email_service.send_subscription_renewal(
+            admin_email, admin_name, language
+        )
+        results.append({
+            "type": "subscription_renewal",
+            "success": success,
+            "description": "Email de renovacao de assinatura"
+        })
+    except Exception as e:
+        results.append({
+            "type": "subscription_renewal",
+            "success": False,
+            "error": str(e)
+        })
+
+    # 5. Email de Assinatura Expirando
+    try:
+        success = await email_service.send_subscription_expiring(
+            admin_email, admin_name, 7, language
+        )
+        results.append({
+            "type": "subscription_expiring",
+            "success": success,
+            "description": "Email de assinatura expirando (7 dias)"
+        })
+    except Exception as e:
+        results.append({
+            "type": "subscription_expiring",
+            "success": False,
+            "error": str(e)
+        })
+
+    # 6. Email de Assinatura Cancelada
+    try:
+        success = await email_service.send_subscription_cancelled(
+            admin_email, admin_name, language
+        )
+        results.append({
+            "type": "subscription_cancelled",
+            "success": success,
+            "description": "Email de assinatura cancelada"
+        })
+    except Exception as e:
+        results.append({
+            "type": "subscription_cancelled",
+            "success": False,
+            "error": str(e)
+        })
+
+    # 7. Email de Notificacao
+    try:
+        test_title = {
+            "pt": "Teste de Notificacao",
+            "en": "Test Notification",
+            "es": "Prueba de Notificacion"
+        }.get(language, "Teste de Notificacao")
+
+        test_message = {
+            "pt": "Este e um email de teste para verificar se as notificacoes estao funcionando corretamente.",
+            "en": "This is a test email to verify that notifications are working correctly.",
+            "es": "Este es un email de prueba para verificar que las notificaciones estan funcionando correctamente."
+        }.get(language, "Este e um email de teste.")
+
+        success = await email_service.send_notification_email(
+            admin_email, admin_name, test_title, test_message, language
+        )
+        results.append({
+            "type": "notification",
+            "success": success,
+            "description": "Email de notificacao"
+        })
+    except Exception as e:
+        results.append({
+            "type": "notification",
+            "success": False,
+            "error": str(e)
+        })
+
+    # Resumo
+    total = len(results)
+    success_count = sum(1 for r in results if r["success"])
+    failed_count = total - success_count
+
+    return {
+        "admin_email": admin_email,
+        "admin_name": admin_name,
+        "language": language,
+        "total_emails": total,
+        "success": success_count,
+        "failed": failed_count,
+        "all_success": failed_count == 0,
+        "results": results
+    }
