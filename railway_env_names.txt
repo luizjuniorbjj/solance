@@ -1,0 +1,31 @@
+# ============================================
+# AiSyster - Variáveis de Ambiente (Railway)
+# Apenas NOMES - sem valores
+# ============================================
+
+# Configuradas manualmente no Railway:
+ANTHROPIC_API_KEY
+DATABASE_URL
+DEBUG
+ENCRYPTION_KEY
+GOOGLE_REDIRECT_URI
+OPENAI_API_KEY
+REDIS_URL
+RESEND_API_KEY
+SECRET_KEY
+STRIPE_PRICE_ID
+STRIPE_PUBLISHABLE_KEY
+STRIPE_SECRET_KEY
+STRIPE_WEBHOOK_SECRET
+VAPID_PRIVATE_KEY
+VAPID_PUBLIC_KEY
+
+# Adicionadas automaticamente pelo Railway (8):
+RAILWAY_PUBLIC_DOMAIN        # The public service or customer domain
+RAILWAY_PRIVATE_DOMAIN       # The private DNS name of the service
+RAILWAY_PROJECT_NAME         # The project name the service belongs to
+RAILWAY_ENVIRONMENT_NAME     # The environment name of the service instance
+RAILWAY_SERVICE_NAME         # The service name
+RAILWAY_PROJECT_ID           # The project ID the service belongs to
+RAILWAY_ENVIRONMENT_ID       # The environment ID of the service instance
+RAILWAY_SERVICE_ID           # The service ID
