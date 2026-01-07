@@ -26,6 +26,13 @@ secrets.json
 credentials.json
 api_keys.txt
 
+# Database backups and user data (NEVER commit - contains PII)
+*_backup.sql
+*_backup.json
+users_backup.json
+backup_*.sql
+RECOVERY-CODES*.txt
+
 # IDE
 .vscode/
 .idea/

@@ -8,7 +8,10 @@ import asyncio
 import asyncpg
 import re
 
-RAILWAY_URL = "postgresql://postgres:xHvevFIkoLZjOhnVIpgNfCBohVwZkOqi@switchback.proxy.rlwy.net:42816/railway"
+import os
+RAILWAY_URL = os.getenv("DATABASE_URL", "")
+if not RAILWAY_URL:
+    raise ValueError("DATABASE_URL não configurada. Use: set DATABASE_URL=postgresql://...")
 
 def parse_copy_data(sql_content: str, table_name: str, columns: list) -> list:
     """Parse COPY data from SQL backup"""

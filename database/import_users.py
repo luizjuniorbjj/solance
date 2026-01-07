@@ -4,89 +4,23 @@ Script para importar usuários do backup local para o Railway
 import asyncio
 import asyncpg
 
-RAILWAY_URL = "postgresql://postgres:xHvevFIkoLZjOhnVIpgNfCBohVwZkOqi@switchback.proxy.rlwy.net:42816/railway"
+import os
+import json
 
-# Dados dos usuários extraídos do backup
-USERS = [
-    {
-        "id": "193c910b-629c-4bdd-8302-8baf50a73e33",
-        "email": "maxwell.ciriaco1991@gmail.com",
-        "password_hash": "$2b$12$MKfi0KBcyh5cofBRpeL6tu3Zw/b8W5SrbyCX9QE6HxTQwCwsR46Vy",
-        "is_active": True,
-        "is_premium": False,
-        "trial_messages_used": 2,
-        "total_messages": 2,
-        "accepted_terms": True,
-        "accepted_privacy": True
-    },
-    {
-        "id": "5dcfcba8-4b12-4344-af8e-e734c68d195a",
-        "email": "jhennysama@icloud.com",
-        "password_hash": "$2b$12$VG136gy2V5uYXiaRAL4LmuD9UhbCAcLzFMRFqJ8w70D7cQHkEK1py",
-        "is_active": True,
-        "is_premium": False,
-        "trial_messages_used": 8,
-        "total_messages": 8,
-        "accepted_terms": True,
-        "accepted_privacy": True
-    },
-    {
-        "id": "aac61923-7730-4691-895f-8d14aaf2d473",
-        "email": "paolapmf12@gmail.com",
-        "password_hash": "$2b$12$w9rvvWK8lrOPkRRopS521.5X7RpUvRy0qO5LZhJD2z7cMhby3RFne",
-        "is_active": True,
-        "is_premium": True,
-        "trial_messages_used": 64,
-        "total_messages": 64,
-        "accepted_terms": True,
-        "accepted_privacy": True
-    },
-    {
-        "id": "94a61709-616f-4999-b4c2-69116dea8dce",
-        "email": "pra.izilda@homail.com",
-        "password_hash": "$2b$12$Lrnc5qSes375Dz9l/nVI3.u0J7ji653wWyAkyD.H7FqEEeTF423ry",
-        "is_active": True,
-        "is_premium": False,
-        "trial_messages_used": 4,
-        "total_messages": 4,
-        "accepted_terms": True,
-        "accepted_privacy": True
-    },
-    {
-        "id": "dbb82c3b-715c-49f7-a33f-5df195a24591",
-        "email": "manuelafs12@gmail.com",
-        "password_hash": "$2b$12$JQGpDKq.hO1bl9YLDZskq.yo3AMx7mXR067fLpA38vOA1lRNwCW/i",
-        "is_active": True,
-        "is_premium": False,
-        "trial_messages_used": 6,
-        "total_messages": 6,
-        "accepted_terms": True,
-        "accepted_privacy": True
-    },
-    {
-        "id": "1e868db6-0ae4-46dd-a068-c22f60f5d489",
-        "email": "jullycat11@hotmail.com",
-        "password_hash": "$2b$12$421WgnCSxr/lWfMEbIzXs.xdD/LQxUk9kSNOH7le.QRPoxtSy74My",
-        "is_active": True,
-        "is_premium": False,
-        "trial_messages_used": 12,
-        "total_messages": 12,
-        "accepted_terms": True,
-        "accepted_privacy": True
-    },
-    {
-        "id": "c980af15-468d-4433-9515-c4528ef452f5",
-        "email": "luizjuniorbjj@gmail.com",
-        "password_hash": "$2b$12$WhCBhKiLi.uruuR8XzHR9e46VVs9ZSMiz3jhliGM.CHUWSu//oVNe",
-        "is_active": True,
-        "is_premium": True,
-        "trial_messages_used": 0,
-        "total_messages": 21,
-        "subscription_status": "beta_active",
-        "accepted_terms": True,
-        "accepted_privacy": True
-    }
-]
+RAILWAY_URL = os.getenv("DATABASE_URL", "")
+if not RAILWAY_URL:
+    raise ValueError("DATABASE_URL não configurada. Use: set DATABASE_URL=postgresql://...")
+
+# Carregar usuários de arquivo JSON externo (não versionado)
+# Criar arquivo users_backup.json com formato:
+# [{"id": "...", "email": "...", "password_hash": "...", ...}]
+USERS_FILE = os.path.join(os.path.dirname(__file__), "users_backup.json")
+if os.path.exists(USERS_FILE):
+    with open(USERS_FILE, "r") as f:
+        USERS = json.load(f)
+else:
+    print(f"AVISO: {USERS_FILE} não encontrado. Crie o arquivo com os dados dos usuários.")
+    USERS = []
 
 async def import_users():
     print("Conectando ao Railway...")
