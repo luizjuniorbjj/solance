@@ -1,3 +1,4 @@
+# Local volumes renamed from soulhaven_* to aisyster_*; local data will be recreated.
 version: '3.8'
 
 services:
