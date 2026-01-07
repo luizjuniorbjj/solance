@@ -1,8 +1,0 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "com.aisyster.app",
-        "sha256_cert_fingerprints": ["2A:0A:39:BC:40:B8:3C:6D:6F:95:66:27:41:4F:75:DE:9A:CF:EE:AE:BC:3D:44:E3:F5:36:73:7D:3F:C1:5E:A5"]
-      }
-    }]

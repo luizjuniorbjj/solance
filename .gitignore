@@ -60,6 +60,16 @@ yarn-error.log
 *.mobileprovision
 *.orig.*
 
+# Android Keystores (NEVER commit - security critical)
+*.keystore
+signing-key-info.txt
+Credenciais*.txt
+android-twa/
+
+# APK/AAB builds
+*.apk
+*.aab
+
 # Testing
 .coverage
 htmlcov/
