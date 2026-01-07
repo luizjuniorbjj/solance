@@ -120,7 +120,9 @@ app.add_middleware(
 
 
 # ============================================
-# REDIRECT SOULHAVENAPP.COM -> AISYSTER.COM
+# LEGACY: REDIRECT DE DOMÍNIO ANTIGO
+# Redireciona usuários do domínio anterior para o novo.
+# TODO(2026-06): Remover após expiração do domínio antigo.
 # ============================================
 
 OLD_DOMAINS = ["soulhavenapp.com", "www.soulhavenapp.com"]
@@ -128,8 +130,8 @@ NEW_DOMAIN = "www.aisyster.com"
 
 
 @app.middleware("http")
-async def redirect_old_domain(request: Request, call_next):
-    """Redireciona soulhavenapp.com para aisyster.com"""
+async def redirect_legacy_domain(request: Request, call_next):
+    """LEGACY: Redireciona domínio antigo para aisyster.com"""
     host = request.headers.get("host", "").lower()
 
     # Verifica se e dominio antigo

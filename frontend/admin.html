@@ -1155,8 +1155,11 @@
   </div>
 
   <script>
-    // Migration: soulhaven_admin_token -> aisyster_admin_token
-    (function() {
+    // ============================================
+    // LEGACY: Migração de token admin do branding anterior
+    // TODO(2026-06): Remover após período de migração.
+    // ============================================
+    (function migrateLegacyAdminToken() {
       const oldToken = localStorage.getItem('soulhaven_admin_token');
       if (oldToken && !localStorage.getItem('aisyster_admin_token')) {
         localStorage.setItem('aisyster_admin_token', oldToken);

@@ -97,7 +97,10 @@ def _get_fernet_key(user_salt: str = "") -> bytes:
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
-        salt=b"soulhaven_salt_v1",  # Salt fixo para derivação
+        # LEGACY: Salt imutável por compatibilidade com dados criptografados existentes.
+        # NÃO ALTERAR - mudança quebraria descriptografia de todos os dados de usuários.
+        # TODO(2026-01): Avaliar migração de criptografia se necessário.
+        salt=b"soulhaven_salt_v1",
         iterations=100000,
     )
     key = b64encode(kdf.derive(combined))

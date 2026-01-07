@@ -4821,10 +4821,12 @@
 
   <script>
     // ============================================
-    // MIGRATION: soulhaven_ -> aisyster_
+    // LEGACY: Migração de localStorage do branding anterior
+    // Migra chaves 'soulhaven_*' para 'aisyster_*' para usuários existentes.
+    // TODO(2026-06): Remover após período de migração.
     // ============================================
-    (function migrateLocalStorage() {
-      const migrations = [
+    (function migrateLegacyLocalStorageKeys() {
+      const LEGACY_KEY_MIGRATIONS = [
         ['soulhaven_token', 'aisyster_token'],
         ['soulhaven_user', 'aisyster_user'],
         ['soulhaven_refresh', 'aisyster_refresh'],
@@ -4840,7 +4842,7 @@
         ['soulhaven_install_dismissed', 'aisyster_install_dismissed']
       ];
 
-      migrations.forEach(([oldKey, newKey]) => {
+      LEGACY_KEY_MIGRATIONS.forEach(([oldKey, newKey]) => {
         const oldValue = localStorage.getItem(oldKey);
         if (oldValue && !localStorage.getItem(newKey)) {
           localStorage.setItem(newKey, oldValue);
