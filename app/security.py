@@ -1,5 +1,5 @@
 """
-SoulHaven - Segurança e Criptografia
+AiSyster - Segurança e Criptografia
 Sistema de autenticação e proteção de dados sensíveis
 """
 

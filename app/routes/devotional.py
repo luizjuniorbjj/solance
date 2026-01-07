@@ -1,5 +1,5 @@
 """
-SoulHaven - Rotas de Devocional
+AiSyster - Rotas de Devocional
 """
 
 from datetime import date

@@ -1,13 +1,13 @@
 # ============================================
-# SoulHaven - Dockerfile
+# AiSyster - Dockerfile
 # Version: 1.1.0 - Push Notifications
 # ============================================
 
 FROM python:3.11-slim
 
 # Metadata
-LABEL maintainer="SoulHaven Team"
-LABEL description="SoulHaven API - Seu companheiro de IA para apoio emocional e espiritual"
+LABEL maintainer="AiSyster Team"
+LABEL description="AiSyster API - Seu companheiro de IA para apoio emocional e espiritual"
 
 # Set working directory
 WORKDIR /app

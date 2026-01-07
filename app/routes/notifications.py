@@ -1,5 +1,5 @@
 """
-SoulHaven - Sistema de Notificações
+AiSyster - Sistema de Notificações
 Gerenciamento de notificações push e email para usuários
 """
 

@@ -1,5 +1,5 @@
 """
-SoulHaven - Fundamentação Teológica Reformada
+AiSyster - Fundamentação Teológica Reformada
 Base doutrinária completa para respostas biblicamente precisas
 """
 

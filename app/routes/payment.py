@@ -1,5 +1,5 @@
 """
-SoulHaven - Rotas de Pagamento (Stripe)
+AiSyster - Rotas de Pagamento (Stripe)
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Request

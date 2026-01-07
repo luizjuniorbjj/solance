@@ -1,5 +1,5 @@
 """
-SoulHaven - Sistema de Aprendizado Contínuo
+AiSyster - Sistema de Aprendizado Contínuo
 Motor que melhora a IA com cada interação
 """
 

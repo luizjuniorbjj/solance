@@ -1,5 +1,5 @@
 """
-SoulHaven - Serviço de Voz
+AiSyster - Serviço de Voz
 STT (Speech-to-Text) via Whisper e TTS (Text-to-Speech) via OpenAI
 """
 

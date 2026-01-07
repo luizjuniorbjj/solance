@@ -1,5 +1,5 @@
 """
-SoulHaven - Serviço de PDF
+AiSyster - Serviço de PDF
 Converte PDFs em imagens para análise pelo Claude
 """
 

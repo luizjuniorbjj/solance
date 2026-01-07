@@ -1,3 +1,3 @@
 """
-SoulHaven - Pacote principal
+AiSyster - Pacote principal
 """

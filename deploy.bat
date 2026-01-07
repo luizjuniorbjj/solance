@@ -1,10 +1,10 @@
 @echo off
 echo ========================================
-echo   SoulHaven - Deploy para Railway
+echo   AiSyster - Deploy para Railway
 echo ========================================
 echo.
 
-cd /d c:\soulhaven
+cd /d c:\aisyster
 
 echo Adicionando arquivos...
 git add .
@@ -25,6 +25,6 @@ echo.
 echo ========================================
 echo   Deploy iniciado!
 echo   Aguarde 2-3 min para ficar online.
-echo   URL: https://solance-production-959e.up.railway.app/app
+echo   URL: https://www.aisyster.com/app
 echo ========================================
 pause

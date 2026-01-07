@@ -1,4 +1,4 @@
--- SoulHaven - Migração: Adicionar contadores separados para Push e Email
+-- AiSyster - Migração: Adicionar contadores separados para Push e Email
 -- Execute este script no banco de dados PostgreSQL/Supabase
 
 -- Adicionar colunas para contagem separada de Push e Email

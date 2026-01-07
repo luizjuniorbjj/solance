@@ -1,6 +1,6 @@
-# SoulHaven
+# AiSyster
 
-**Seu companheiro de IA para apoio emocional e espiritual**
+**Sua companheira de IA para apoio emocional e espiritual**
 
 Ajudando pessoas a atravessarem as lutas da vida com clareza, fé e continuidade.
 
@@ -8,16 +8,16 @@ Ajudando pessoas a atravessarem as lutas da vida com clareza, fé e continuidade
 
 ## Visão Geral
 
-SoulHaven é um companheiro cristão de IA que:
+A AiSyster é uma companheira cristã de IA que:
 - **Conhece você** — Lembra sua jornada de fé, lutas e vitórias
-- **Caminha junto** — Não é chatbot, é discipulador pessoal
+- **Caminha junto** — Não é chatbot, é discipuladora pessoal
 - **Fala a verdade em amor** — Corrige quando necessário
-- **100% bíblico** — Fundamentado nas Escrituras Sagradas
+- **100% bíblica** — Fundamentada nas Escrituras Sagradas
 
 ### Diferenciais
 
-| Feature | SoulHaven | Concorrentes |
-|---------|-----------|--------------|
+| Feature | AiSyster | Concorrentes |
+|---------|----------|--------------|
 | Memória | ✅ Perpétua | ❌ Esquece tudo |
 | Perfil | ✅ Psicológico + Espiritual | ❌ Genérico |
 | Tom | ✅ Pastoral, acolhedor | ❌ Robótico |
@@ -29,7 +29,7 @@ SoulHaven é um companheiro cristão de IA que:
 ## Estrutura do Projeto
 
 ```
-soulhaven/
+aisyster/
 ├── app/
 │   ├── main.py                 # Backend FastAPI
 │   ├── config.py               # Configurações
@@ -73,8 +73,8 @@ soulhaven/
 
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/YOUR_USERNAME/soulhaven.git
-cd soulhaven
+git clone https://github.com/YOUR_USERNAME/aisyster.git
+cd aisyster
 
 # 2. Copie e configure o .env
 cp .env.example .env
@@ -98,7 +98,7 @@ docker-compose ps
 |---------|-----|-------------|
 | **API** | http://localhost:8000 | - |
 | **Docs** | http://localhost:8000/docs | - |
-| **pgAdmin** | http://localhost:5050 | admin@soulhaven.app / admin123 |
+| **pgAdmin** | http://localhost:5050 | admin@aisyster.com / admin123 |
 
 ---
 
@@ -125,7 +125,7 @@ python -m app.main
 
 ## Base Teológica
 
-SoulHaven está 100% fundamentado na Bíblia Sagrada:
+A AiSyster está 100% fundamentada na Bíblia Sagrada:
 
 ### Princípios
 - Escrituras como única autoridade infalível
@@ -179,8 +179,8 @@ Buscando **$200.000** por 10-15% equity para:
 
 ## Contato
 
-- Email: contact@soulhaven.app
-- Website: [soulhaven.app](https://soulhaven.app)
+- Email: contato@aisyster.com
+- Website: [aisyster.com](https://aisyster.com)
 
 ---
 
@@ -190,4 +190,4 @@ Projeto proprietário. Todos os direitos reservados.
 
 ---
 
-*SoulHaven — Seu companheiro de IA para apoio emocional e espiritual*
+*AiSyster — Sua companheira de IA para apoio emocional e espiritual*

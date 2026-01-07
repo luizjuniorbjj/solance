@@ -6,12 +6,12 @@ services:
   # ============================================
   postgres:
     image: postgres:16-alpine
-    container_name: soulhaven-db
+    container_name: aisyster-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: soulhaven
-      POSTGRES_PASSWORD: soulhaven_secret_2024
-      POSTGRES_DB: soulhaven
+      POSTGRES_USER: aisyster
+      POSTGRES_PASSWORD: aisyster_secret_2024
+      POSTGRES_DB: aisyster
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -19,7 +19,7 @@ services:
     ports:
       - "5434:5432"  # Porta externa 5434 para evitar conflito
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U soulhaven -d soulhaven"]
+      test: ["CMD-SHELL", "pg_isready -U aisyster -d aisyster"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -29,7 +29,7 @@ services:
   # ============================================
   redis:
     image: redis:7-alpine
-    container_name: soulhaven-cache
+    container_name: aisyster-cache
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -46,10 +46,10 @@ services:
   # ============================================
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: soulhaven-pgadmin
+    container_name: aisyster-pgadmin
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@soulhaven.app
+      PGADMIN_DEFAULT_EMAIL: admin@aisyster.com
       PGADMIN_DEFAULT_PASSWORD: admin123
       PGADMIN_CONFIG_SERVER_MODE: 'False'
     volumes:
@@ -60,16 +60,16 @@ services:
       - postgres
 
   # ============================================
-  # SoulHaven API (Backend)
+  # AiSyster API (Backend)
   # ============================================
   api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: soulhaven-api
+    container_name: aisyster-api
     restart: unless-stopped
     environment:
-      - DATABASE_URL=postgresql://soulhaven:soulhaven_secret_2024@postgres:5432/soulhaven
+      - DATABASE_URL=postgresql://aisyster:aisyster_secret_2024@postgres:5432/aisyster
       - REDIS_URL=redis://redis:6379
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - SECRET_KEY=${SECRET_KEY}
@@ -94,12 +94,12 @@ services:
 
 volumes:
   postgres_data:
-    name: soulhaven_postgres_data
+    name: aisyster_postgres_data
   redis_data:
-    name: soulhaven_redis_data
+    name: aisyster_redis_data
   pgadmin_data:
-    name: soulhaven_pgadmin_data
+    name: aisyster_pgadmin_data
 
 networks:
   default:
-    name: soulhaven-network
+    name: aisyster-network

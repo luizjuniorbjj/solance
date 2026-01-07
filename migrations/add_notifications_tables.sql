@@ -1,4 +1,4 @@
--- SoulHaven - Migração: Tabelas de Notificações
+-- AiSyster - Migração: Tabelas de Notificações
 -- Execute este script no banco de dados PostgreSQL/Supabase
 
 -- 1. Tabela de notificações (campanhas enviadas pelo admin)

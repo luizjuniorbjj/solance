@@ -1,5 +1,5 @@
 """
-SoulHaven - Módulo de Aprendizado Contínuo
+AiSyster - Módulo de Aprendizado Contínuo
 """
 
 from app.learning.continuous_learning import (

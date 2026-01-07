@@ -1,5 +1,5 @@
 """
-Script para gerar ícones PWA do SoulHaven
+Script para gerar ícones PWA do AiSyster
 Gera ícones PNG em vários tamanhos com o "S" dourado
 """
 from PIL import Image, ImageDraw, ImageFont
@@ -77,7 +77,7 @@ def create_icon(size):
     return img
 
 def main():
-    print("Gerando ícones PWA do SoulHaven...")
+    print("Gerando ícones PWA do AiSyster...")
 
     for size in SIZES:
         icon = create_icon(size)

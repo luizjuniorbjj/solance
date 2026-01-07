@@ -17,7 +17,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")  # Para STT (Whisper) e TTS
 # ============================================
 # DATABASE
 # ============================================
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://localhost/soulhaven")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://localhost/aisyster")
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 

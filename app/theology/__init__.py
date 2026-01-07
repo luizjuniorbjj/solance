@@ -1,5 +1,5 @@
 """
-SoulHaven - Módulo de Teologia Reformada
+AiSyster - Módulo de Teologia Reformada
 """
 
 from app.theology.reformed_foundation import (

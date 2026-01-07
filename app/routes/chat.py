@@ -1,5 +1,5 @@
 """
-SoulHaven - Rotas de Chat
+AiSyster - Rotas de Chat
 """
 
 import base64

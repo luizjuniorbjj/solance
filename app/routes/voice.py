@@ -1,5 +1,5 @@
 """
-SoulHaven - Rotas de Voz
+AiSyster - Rotas de Voz
 STT (Speech-to-Text) e TTS (Text-to-Speech)
 """
 

@@ -1,5 +1,5 @@
 """
-SoulHaven - Módulo de Psicologia e Perfil
+AiSyster - Módulo de Psicologia e Perfil
 """
 
 from app.psychology.profile_engine import (

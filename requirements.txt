@@ -1,4 +1,4 @@
-# SoulHaven - Dependências
+# AiSyster - Dependências
 
 # Web Framework
 fastapi==0.109.0

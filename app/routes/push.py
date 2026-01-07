@@ -1,5 +1,5 @@
 """
-SoulHaven - Push Notifications API
+AiSyster - Push Notifications API
 Endpoints para gerenciar push notifications
 """
 

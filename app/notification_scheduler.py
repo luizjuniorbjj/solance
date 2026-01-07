@@ -1,5 +1,5 @@
 """
-SoulHaven - Notification Scheduler
+AiSyster - Notification Scheduler
 Sistema de lembretes automaticos e notificacoes de engajamento
 Com retry logic, rate limiting e suporte a timezone
 """

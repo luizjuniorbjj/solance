@@ -1,5 +1,5 @@
 """
-SoulHaven - Motor de Perfil Psicológico
+AiSyster - Motor de Perfil Psicológico
 Análise profunda de comportamento e personalidade
 """
 

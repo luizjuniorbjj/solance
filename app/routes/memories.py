@@ -1,5 +1,5 @@
 """
-SoulHaven - Rotas de Gerenciamento de Memórias
+AiSyster - Rotas de Gerenciamento de Memórias
 Permite ao usuário ver, corrigir e apagar suas memórias
 """
 

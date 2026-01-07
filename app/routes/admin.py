@@ -1,5 +1,5 @@
 """
-SoulHaven - Rotas de Administração
+AiSyster - Rotas de Administração
 Painel para gerenciar usuários, conversas e métricas
 """
 

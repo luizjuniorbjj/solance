@@ -1,5 +1,5 @@
 """
-SoulHaven - Icon Generator
+AiSyster - Icon Generator
 Gera icones com fundo colorido e bordas arredondadas
 """
 
@@ -63,7 +63,7 @@ def generate_icon(logo_img, size, output_path):
 
 def main():
     print("=" * 50)
-    print("SoulHaven Icon Generator")
+    print("AiSyster Icon Generator")
     print("=" * 50)
     print(f"\nFundo: RGB{BACKGROUND_COLOR}")
     print(f"Bordas arredondadas: {CORNER_RADIUS_PERCENT}%")

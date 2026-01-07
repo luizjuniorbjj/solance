@@ -1,5 +1,5 @@
 """
-SoulHaven - Camada de Banco de Dados
+AiSyster - Camada de Banco de Dados
 Abstração para PostgreSQL/Supabase
 """
 

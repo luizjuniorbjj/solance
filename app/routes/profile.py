@@ -1,5 +1,5 @@
 """
-SoulHaven - Rotas de Perfil e Onboarding
+AiSyster - Rotas de Perfil e Onboarding
 """
 
 from typing import Optional, List

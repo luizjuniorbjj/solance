@@ -1,5 +1,5 @@
 -- ============================================
--- SoulHaven DATABASE SCHEMA
+-- AiSyster DATABASE SCHEMA
 -- Banco de dados para memória e perfil de usuários
 -- ============================================
 

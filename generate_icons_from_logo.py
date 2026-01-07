@@ -1,5 +1,5 @@
 """
-Script para gerar ícones PWA a partir do logo do SoulHaven
+Script para gerar ícones PWA a partir do logo do AiSyster
 Extrai apenas o símbolo (sem texto) para ícones do app
 """
 from PIL import Image
@@ -65,7 +65,7 @@ def create_icon(icon_img, size):
     return resized
 
 def main():
-    print("Gerando ícones PWA do SoulHaven a partir do logo...")
+    print("Gerando ícones PWA do AiSyster a partir do logo...")
 
     # Extrair ícone do logo
     print("  Extraindo ícone do logo...")

@@ -1,5 +1,5 @@
 """
-SoulHaven - Sistema de Autenticação
+AiSyster - Sistema de Autenticação
 Rotas e lógica de login/registro + OAuth (Google, Apple)
 """
 

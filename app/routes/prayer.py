@@ -1,5 +1,5 @@
 """
-SoulHaven - Rotas de Pedidos de Oração
+AiSyster - Rotas de Pedidos de Oração
 """
 
 from typing import Optional, List
