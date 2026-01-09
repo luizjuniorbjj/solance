@@ -145,6 +145,14 @@ APP_URL = os.getenv("APP_URL", "https://www.aisyster.com")
 ADMIN_EMAILS = os.getenv("ADMIN_EMAILS", "luizjuniorbjj@gmail.com").split(",")
 
 # ============================================
+# POLICY ENGINE (Governanca Cognitiva)
+# ============================================
+# Feature flags para o Policy Engine
+# Conforme CLAUDE_PLAYBOOK.md Secao 2-3
+POLICY_ENGINE_ENABLED = os.getenv("POLICY_ENGINE_ENABLED", "False").lower() == "true"
+POLICY_STRICT_MODE = os.getenv("POLICY_STRICT_MODE", "False").lower() == "true"
+
+# ============================================
 # PUSH NOTIFICATIONS (VAPID)
 # ============================================
 VAPID_PUBLIC_KEY = os.getenv(

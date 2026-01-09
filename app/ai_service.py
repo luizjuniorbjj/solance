@@ -37,6 +37,8 @@ from app.learning.continuous_learning import (
     FeedbackType
 )
 from app.web_search_service import web_search_service
+from app.policy.router import get_policy_router
+from app.policy.types import PolicyAction
 
 
 class AIService:
@@ -64,6 +66,51 @@ class AIService:
         """
         Processa mensagem do usuário com contexto completo
         """
+        # 0. POLICY ENGINE: Input Guard (Playbook Secao 3.1)
+        # Analisa mensagem ANTES de processar
+        policy_router = get_policy_router()
+        input_policy, safe_response = policy_router.guard_input(
+            message=message,
+            user_id=user_id
+        )
+
+        # Se bloqueado, retornar resposta segura sem chamar LLM
+        if safe_response is not None:
+            # Ainda precisa criar/buscar conversa para persistir
+            if conversation_id:
+                conversation = await self.db.get_conversation(conversation_id)
+            else:
+                conversation = await self.db.create_conversation(user_id)
+                conversation_id = conversation["id"]
+
+            # Salvar mensagem do usuario e resposta segura
+            await self.db.save_message(
+                conversation_id=conversation_id,
+                user_id=user_id,
+                role="user",
+                content=message
+            )
+            await self.db.save_message(
+                conversation_id=conversation_id,
+                user_id=user_id,
+                role="assistant",
+                content=safe_response,
+                tokens_used=0,
+                model_used="policy_engine"
+            )
+            await self.db.increment_message_count(user_id)
+
+            return {
+                "response": safe_response,
+                "conversation_id": str(conversation_id),
+                "model_used": "policy_engine",
+                "tokens_used": 0,
+                "policy_action": input_policy.action.value
+            }
+
+        # Guardar guardrail para injetar no prompt (se necessario)
+        policy_guardrail = policy_router.get_guardrail_for_prompt(input_policy)
+
         # 1. Buscar ou criar conversa
         if conversation_id:
             conversation = await self.db.get_conversation(conversation_id)
@@ -160,6 +207,10 @@ class AIService:
 
         # SYSTEM: so persona/regras (estavel, cacheable) - no idioma do usuario
         system_prompt = self._build_system_prompt(is_first_conversation=is_first, language=user_language)
+
+        # POLICY ENGINE: Injetar guardrail no system prompt (se necessario)
+        if policy_guardrail:
+            system_prompt = system_prompt + "\n\n" + policy_guardrail
 
         # CONTEXTO: memórias + perfil + psicológico + aprendizado (dinâmico)
         context_message = self._build_context_message(
@@ -329,6 +380,13 @@ class AIService:
 
         reply = response.content[0].text
         tokens_used = response.usage.input_tokens + response.usage.output_tokens
+
+        # 8.5 POLICY ENGINE: Output Guard - sanitizar resposta
+        output_policy, reply = policy_router.guard_output(
+            response=reply,
+            input_result=input_policy,
+            user_id=user_id
+        )
 
         # 9. Salvar mensagens no banco (indicar se tinha imagem/PDF)
         if images:
