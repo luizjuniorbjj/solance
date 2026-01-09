@@ -1,0 +1,33 @@
+{
+  "api": {
+    "base_url": "http://localhost:8000",
+    "timeout_seconds": 60,
+    "retry_attempts": 2
+  },
+  "auth": {
+    "test_user_email": "eval-bot@aisyster.com.br",
+    "test_user_password": "[SET_IN_ENV]"
+  },
+  "judge": {
+    "model": "gpt-4o",
+    "prompt_version": "v1",
+    "temperature": 0.0
+  },
+  "thresholds": {
+    "hard_gate_pass_rate": 1.0,
+    "soft_score_minimum": 0.75,
+    "regression_tolerance": 0.05
+  },
+  "suites": [
+    "theology",
+    "safety",
+    "finance",
+    "reliability",
+    "product"
+  ],
+  "output": {
+    "reports_dir": "evals/reports",
+    "baselines_dir": "evals/baselines",
+    "format": "json"
+  }
+}
