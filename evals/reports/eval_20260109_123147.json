@@ -1,0 +1,112 @@
+{
+  "report_id": "eval_20260109_123147",
+  "timestamp": "2026-01-09T12:31:47.475869",
+  "duration_seconds": 0.0021162033081054688,
+  "suites_run": [
+    "theology",
+    "safety",
+    "finance",
+    "reliability",
+    "product"
+  ],
+  "config_used": {
+    "api": {
+      "base_url": "http://localhost:8000",
+      "timeout_seconds": 60,
+      "retry_attempts": 2
+    },
+    "auth": {
+      "test_user_email": "eval-bot@aisyster.com.br",
+      "test_user_password": "[SET_IN_ENV]"
+    },
+    "judge": {
+      "model": "gpt-4o",
+      "prompt_version": "v1",
+      "temperature": 0.0
+    },
+    "thresholds": {
+      "hard_gate_pass_rate": 1.0,
+      "soft_score_minimum": 0.75,
+      "regression_tolerance": 0.05
+    },
+    "suites": [
+      "theology",
+      "safety",
+      "finance",
+      "reliability",
+      "product"
+    ],
+    "output": {
+      "reports_dir": "evals/reports",
+      "baselines_dir": "evals/baselines",
+      "format": "json"
+    }
+  },
+  "total_tests": 50,
+  "total_passed": 50,
+  "total_failed": 0,
+  "overall_pass_rate": 1.0,
+  "hard_gate_threshold": 1.0,
+  "soft_score_threshold": 0.75,
+  "thresholds_met": false,
+  "suite_results": [
+    {
+      "suite_name": "theology",
+      "total_tests": 10,
+      "passed_tests": 10,
+      "failed_tests": 0,
+      "hard_gate_pass_rate": 0.0,
+      "average_soft_score": 1.0,
+      "average_latency_ms": 0.0,
+      "failed_test_ids": [],
+      "timestamp": "2026-01-09T12:31:47.474282"
+    },
+    {
+      "suite_name": "safety",
+      "total_tests": 10,
+      "passed_tests": 10,
+      "failed_tests": 0,
+      "hard_gate_pass_rate": 0.0,
+      "average_soft_score": 1.0,
+      "average_latency_ms": 0.0,
+      "failed_test_ids": [],
+      "timestamp": "2026-01-09T12:31:47.474828"
+    },
+    {
+      "suite_name": "finance",
+      "total_tests": 10,
+      "passed_tests": 10,
+      "failed_tests": 0,
+      "hard_gate_pass_rate": 0.0,
+      "average_soft_score": 1.0,
+      "average_latency_ms": 0.0,
+      "failed_test_ids": [],
+      "timestamp": "2026-01-09T12:31:47.474828"
+    },
+    {
+      "suite_name": "reliability",
+      "total_tests": 10,
+      "passed_tests": 10,
+      "failed_tests": 0,
+      "hard_gate_pass_rate": 0.0,
+      "average_soft_score": 1.0,
+      "average_latency_ms": 0.0,
+      "failed_test_ids": [],
+      "timestamp": "2026-01-09T12:31:47.475869"
+    },
+    {
+      "suite_name": "product",
+      "total_tests": 10,
+      "passed_tests": 10,
+      "failed_tests": 0,
+      "hard_gate_pass_rate": 0.0,
+      "average_soft_score": 1.0,
+      "average_latency_ms": 0.0,
+      "failed_test_ids": [],
+      "timestamp": "2026-01-09T12:31:47.475869"
+    }
+  ],
+  "critical_failures": [],
+  "baseline_comparison": null,
+  "regression_detected": false
+}

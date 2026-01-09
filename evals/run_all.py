@@ -370,7 +370,11 @@ def main():
     )
 
     # Exit code baseado no resultado
-    if report.thresholds_met and not report.regression_detected:
+    # Dry run sempre passa (apenas validacao de estrutura)
+    if args.dry_run:
+        logger.info("Dry run completo - validacao de estrutura OK")
+        sys.exit(0)
+    elif report.thresholds_met and not report.regression_detected:
         sys.exit(0)
     else:
         sys.exit(1)
