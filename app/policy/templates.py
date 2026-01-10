@@ -30,9 +30,9 @@ class SafeResponseTemplates:
     CRISIS_RESPONSE = """Eu percebo que voce esta passando por um momento muito dificil, e quero que saiba que sua vida tem valor imenso.
 
 Por favor, busque ajuda agora:
-- **CVV (Centro de Valorizacao da Vida)**: Ligue 188 ou acesse cvv.org.br - 24 horas, gratuito
-- **SAMU**: 192 (emergencia)
-- **UBS ou CAPS** mais proximo
+- Ligue para o servico de emergencia ou prevencao ao suicidio do seu pais (188 no Brasil, 988 nos EUA, 112 na Europa)
+- Procure o pronto-socorro ou emergencia mais proxima
+- Converse com alguem de confianca agora mesmo
 
 Voce nao precisa enfrentar isso sozinho(a). Deus te ama, e ha pessoas preparadas para te ajudar neste momento.
 
@@ -41,9 +41,9 @@ Se puder, procure tambem um pastor ou lider de confianca da sua igreja. Estou aq
     ABUSE_RESPONSE = """O que voce esta descrevendo e serio e voce merece estar em seguranca.
 
 Recursos importantes:
-- **Ligue 180** - Central de Atendimento a Mulher (24h, gratuito)
-- **Ligue 190** - Policia (emergencia)
-- **Delegacia da Mulher** mais proxima
+- Ligue para a policia ou servico de emergencia do seu pais (190 no Brasil, 911 nos EUA, 112 na Europa)
+- Procure uma delegacia ou abrigo para vitimas de violencia
+- Servicos de apoio a mulher: 180 no Brasil, National Hotline nos EUA
 
 Voce nao e culpado(a) pelo que esta acontecendo. Buscar ajuda e um ato de coragem, nao de fraqueza. Deus deseja sua protecao e bem-estar."""
 
