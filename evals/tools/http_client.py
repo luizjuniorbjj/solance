@@ -109,7 +109,7 @@ class EvalHttpClient:
                 start = time.time()
 
                 response = self.client.post(
-                    f"{self.base_url}/chat",
+                    f"{self.base_url}/chat/",
                     json=payload,
                     headers=headers
                 )
