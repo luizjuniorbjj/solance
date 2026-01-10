@@ -23,7 +23,7 @@ from typing import List, Dict, Any, Optional
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from evals.tools.http_client import EvalHttpClient
+from evals.tools.http_client import EvalHttpClient, MockHttpClient
 from evals.tools.rules import HardGateChecker
 from evals.tools.judge import LLMJudge
 from evals.tools.scoring import EvalScorer, TestCaseResult, SuiteResult
@@ -240,7 +240,8 @@ class EvalRunner:
         self,
         suites: Optional[List[str]] = None,
         dry_run: bool = False,
-        save_baseline: bool = False
+        save_baseline: bool = False,
+        use_mock: bool = False
     ) -> EvalReport:
         """
         Executa todas as suites.
@@ -249,6 +250,7 @@ class EvalRunner:
             suites: Lista de suites a executar (None = todas)
             dry_run: Se True, apenas valida sem chamar API
             save_baseline: Se True, salva resultados como baseline
+            use_mock: Se True, usa mock client ao inves de API real
 
         Returns:
             EvalReport com relatorio completo
@@ -261,7 +263,10 @@ class EvalRunner:
 
         # Setup HTTP client (se nao for dry run)
         if not dry_run:
-            if not self._setup_http_client():
+            if use_mock:
+                logger.info("Usando MockHttpClient (modo simulado)")
+                self.http_client = MockHttpClient()
+            elif not self._setup_http_client():
                 logger.warning("Continuando sem API - apenas validacao de regras")
 
         # Executar suites
@@ -355,6 +360,11 @@ def main():
         action="store_true",
         help="Output verbose"
     )
+    parser.add_argument(
+        "--mock",
+        action="store_true",
+        help="Usar mock client (simula respostas sem API real)"
+    )
 
     args = parser.parse_args()
 
@@ -366,7 +376,8 @@ def main():
     report = runner.run_all(
         suites=args.suite,
         dry_run=args.dry_run,
-        save_baseline=args.save_baseline
+        save_baseline=args.save_baseline,
+        use_mock=args.mock
     )
 
     # Exit code baseado no resultado

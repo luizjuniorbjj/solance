@@ -172,3 +172,99 @@ class EvalHttpClient:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
+
+
+class MockHttpClient:
+    """
+    Cliente HTTP mock para testar o sistema de evals sem API real.
+
+    Simula respostas da AiSyster baseadas em padroes do input.
+    """
+
+    def __init__(self, **kwargs):
+        """Inicializa o mock client (ignora parametros)."""
+        import logging
+        self.logger = logging.getLogger("aisyster.evals.http")
+        self.token = "mock_token"
+        self._response_templates = self._build_templates()
+
+    def _build_templates(self) -> dict:
+        """Constroi templates de resposta por categoria."""
+        return {
+            "theology": [
+                "A Biblia nos ensina em Romanos 8:28 que todas as coisas cooperam para o bem daqueles que amam a Deus. Que voce encontre paz nessa verdade.",
+                "Como diz Salmos 23:1, 'O Senhor e meu pastor, nada me faltara'. Confie no cuidado de Deus por voce.",
+                "Jesus nos convida em Mateus 11:28: 'Vinde a mim, todos os que estais cansados e oprimidos, e eu vos aliviarei.'",
+            ],
+            "safety": [
+                "Entendo que voce esta passando por um momento muito dificil. Quero que saiba que voce nao esta sozinho. Por favor, ligue para o CVV no 188 - eles estao disponiveis 24 horas e podem ajudar. Sua vida tem valor.",
+                "O que voce esta sentindo e muito serio e voce merece apoio profissional. Ligue agora para o CVV: 188. Eles podem ouvir e ajudar. Voce importa.",
+                "Estou preocupado com voce. Por favor, busque ajuda profissional. O CVV (188) esta disponivel 24h. Tambem recomendo conversar com um psicologo ou psiquiatra. Voce nao precisa enfrentar isso sozinho.",
+            ],
+            "finance": [
+                "Cuidado com promessas de prosperidade financeira em troca de ofertas. A Biblia nos alerta contra falsos ensinamentos. Deus nao negocia bencaos por dinheiro.",
+                "Nenhum lider religioso deve pedir seu dinheiro em nome de Deus. Isso nao e biblico. Proteja suas financas e busque orientacao de pessoas de confianca.",
+                "A verdadeira fe nao exige pagamento. Desconfie de quem pede dinheiro prometendo bencaos divinas. Isso e manipulacao.",
+            ],
+            "reliability": [
+                "Fico feliz em poder conversar com voce. Como posso ajudar hoje?",
+                "Estou aqui para ouvir e oferecer apoio pastoral. O que esta em seu coracao?",
+                "Obrigada por compartilhar comigo. Vamos conversar sobre isso.",
+            ],
+            "product": [
+                "Posso ajudar voce a usar melhor o aplicativo. O que gostaria de saber?",
+                "Para cancelar sua conta, va em Configuracoes > Conta > Cancelar. Respeitamos sua decisao.",
+                "Suas informacoes sao protegidas conforme a LGPD. Nao vendemos dados para terceiros.",
+            ],
+        }
+
+    def authenticate(self, email: str, password: str) -> bool:
+        """Mock: sempre autentica com sucesso."""
+        self.logger.info(f"[MOCK] Autenticacao simulada para {email}")
+        return True
+
+    def send_message(self, message: str, conversation_id=None) -> "EvalResponse":
+        """Simula resposta da AiSyster baseada no conteudo da mensagem."""
+        import time
+        import random
+
+        start = time.time()
+        message_lower = message.lower()
+
+        if any(word in message_lower for word in ["suicid", "morrer", "me matar", "cortar", "acabar com tudo", "nao aguento"]):
+            category = "safety"
+        elif any(word in message_lower for word in ["oferta", "dizimo", "semente", "dinheiro", "prosperidade", "deus mandou"]):
+            category = "finance"
+        elif any(word in message_lower for word in ["biblia", "deus", "jesus", "oracao", "fe", "pecado", "perdao", "salmo"]):
+            category = "theology"
+        elif any(word in message_lower for word in ["app", "funciona", "cancelar", "conta", "dados", "bug"]):
+            category = "product"
+        else:
+            category = "reliability"
+
+        templates = self._response_templates.get(category, self._response_templates["reliability"])
+        response_text = random.choice(templates)
+
+        time.sleep(random.uniform(0.1, 0.3))
+        latency_ms = (time.time() - start) * 1000
+
+        self.logger.debug(f"[MOCK] Categoria detectada: {category}")
+
+        return EvalResponse(
+            success=True,
+            response_text=response_text,
+            latency_ms=latency_ms,
+            raw_response={"mock": True, "category": category}
+        )
+
+    def health_check(self) -> bool:
+        return True
+
+    def close(self):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
